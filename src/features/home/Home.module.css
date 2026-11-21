@@ -1,0 +1,139 @@
+.page { position: relative; flex: 1; display: flex; min-height: 0; }
+
+.glow {
+  position: absolute; left: 50%; top: 22%;
+  width: 900px; height: 420px; transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 35% 55%, rgba(61, 220, 151, 0.15), transparent 70%),
+    radial-gradient(35% 45% at 68% 45%, rgba(245, 184, 75, 0.09), transparent 70%);
+  filter: blur(20px);
+}
+
+.center {
+  position: relative; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 0 72px;
+  transition: padding 0.3s var(--ease-out);
+}
+/* While results are open, the composer moves up so the list fits the window. */
+.center:has([aria-expanded="true"]) { justify-content: flex-start; padding-top: 6vh; }
+.center:has([aria-expanded="true"]) .lede { display: none; }
+
+.title { font: 600 34px/1.15 var(--font-title); letter-spacing: -0.02em; text-align: center; text-wrap: balance; }
+.lede { color: var(--ink-2); font-size: 15.5px; margin-top: 10px; text-align: center; text-wrap: balance; }
+
+/* composer */
+.composerWrap { position: relative; width: min(760px, 100%); margin-top: 32px; z-index: 5; }
+.composer {
+  background: var(--raise);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-xl);
+  padding: 16px 14px 12px 20px;
+  box-shadow: var(--shadow-raise), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: text;
+  transition: border-color 0.2s;
+}
+.composer:focus-within { border-color: rgba(255, 255, 255, 0.2); }
+.input {
+  width: 100%; min-height: 48px;
+  background: none; border: 0; outline: 0;
+  color: var(--ink); font: 16px var(--font-ui);
+  caret-color: var(--brand);
+}
+.input::placeholder { color: var(--ink-3); }
+.composerRow { display: flex; align-items: center; gap: 8px; }
+.note { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 13px; }
+.note svg { color: var(--brand); }
+.send {
+  margin-left: auto; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; border: 0; cursor: pointer;
+  background: var(--ink); color: #111;
+  transition: transform 0.15s var(--ease-out), opacity 0.15s;
+}
+.send:hover { transform: scale(1.05); }
+.send:disabled { opacity: 0.25; cursor: default; transform: none; }
+
+/* results */
+.results {
+  position: absolute; left: 0; right: 0; top: calc(100% + 10px);
+  background: var(--raise);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-l);
+  padding: 8px;
+  box-shadow: var(--shadow-float);
+  max-height: calc(100vh - 56px - 6vh - 236px);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: results-in 0.22s var(--ease-out) both;
+}
+@keyframes results-in { from { opacity: 0; transform: translateY(-6px) scale(0.99); } to { opacity: 1; transform: none; } }
+.list { list-style: none; }
+/* Only the results scroll; the key hints below stay in view. */
+.scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.groupLabel { font: 600 12px var(--font-ui); color: var(--ink-3); padding: 10px 12px 4px; }
+.item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; border-radius: var(--r-s); cursor: pointer;
+}
+.selected { background: var(--raise-2); }
+.itemIcon {
+  width: 30px; height: 30px; border-radius: 9px; flex: none;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.05); color: var(--ink-2);
+}
+.itemText { min-width: 0; display: flex; flex-direction: column; }
+.itemText b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.itemText small { color: var(--ink-3); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item :global(.kbd) { margin-left: auto; }
+.lead {
+  margin: 4px 0 6px; padding: 12px;
+  border-radius: var(--r-m);
+  border: 1px solid rgba(61, 220, 151, 0.22);
+  background: linear-gradient(90deg, rgba(61, 220, 151, 0.1), rgba(61, 220, 151, 0.02));
+}
+.lead.selected { border-color: rgba(61, 220, 151, 0.4); }
+.lead .itemIcon { background: var(--brand); color: var(--brand-ink); }
+.empty { display: flex; gap: 12px; padding: 14px 12px; color: var(--ink-2); }
+.empty div { display: flex; flex-direction: column; gap: 2px; }
+.empty b { color: var(--ink); font-weight: 600; }
+.empty small { color: var(--ink-3); font-size: 13px; }
+.foot {
+  flex: none;
+  display: flex; gap: 16px; margin-top: 6px; padding: 10px 12px 4px;
+  border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px;
+}
+
+/* suggestions */
+.suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; width: min(780px, 100%); }
+.suggestion {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 16px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line);
+  color: var(--ink-2); font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+.suggestion:hover { background: var(--hover); border-color: var(--line-2); }
+.suggestion svg { color: var(--brand); }
+.suggestion b { color: var(--ink); font-weight: 600; }
+
+/* live state */
+.state {
+  width: min(760px, 100%); margin-top: 56px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line); border-radius: var(--r-l);
+  background: rgba(255, 255, 255, 0.02);
+}
+.state > div { padding: 14px 18px; min-width: 0; }
+.state > div + div { border-left: 1px solid var(--line); }
+.state dt { color: var(--ink-3); font-size: 12px; font-weight: 500; }
+.state dd { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.state dd b { font: 600 18px var(--font-title); letter-spacing: -0.01em; }
+.state dd span { color: var(--ink-3); font-size: 13px; }
+.meter { height: 3px; border-radius: 2px; background: var(--raise-2); margin-top: 8px; overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 2px; background: var(--ink-2); transition: width 0.6s var(--ease-out); }
+
+@media (max-width: 900px) {
+  .state { grid-template-columns: repeat(2, 1fr); }
+  .state > div:nth-child(3) { border-left: 0; }
+  .state > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+}

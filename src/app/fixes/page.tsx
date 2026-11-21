@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLanguage } from "@/hooks/useLanguage";
+import { recordActivity } from "@/lib/history";
+
+const FIX_LABEL: Record<string, string> = { sfc: "fixes.sfc_scan", dism: "fixes.dism_repair", net: "fixes.net_reset", update: "fixes.update_reset", cache: "fixes.clear_cache" };
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
@@ -43,8 +46,10 @@ export default function FixesPage() {
         setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${event.payload}`, ...prev]);
       });
       await invoke("run_system_fix", { id });
+      recordActivity({ label: t(FIX_LABEL[id] ?? id), status: "ok", href: "/fixes" });
     } catch (err) {
       setLogs(prev => [`[${new Date().toLocaleTimeString()}] ERRO: ${err}`, ...prev]);
+      recordActivity({ label: t(FIX_LABEL[id] ?? id), detail: t("history.failed"), status: "failed", href: "/fixes" });
     } finally {
       unlisten?.();
       setRunning(null);

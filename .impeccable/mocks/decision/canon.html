@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Category standard — Tweaks</title>
+<style>
+:root{--bg:#202020;--card:#2B2B2B;--line:#363636;--ink:#fff;--ink2:#A8A8A8;--acc:#60CDFF}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/20px "Segoe UI Variable","Segoe UI",sans-serif;display:grid;grid-template-columns:300px 1fr}
+nav{padding:20px 12px}
+.app{display:flex;gap:10px;align-items:center;padding:0 12px 20px;font-size:13px}
+.ic{width:20px;height:20px;border-radius:5px;background:var(--acc)}
+.search{background:#2C2C2C;border:1px solid var(--line);border-bottom-color:#8A8A8A;border-radius:6px;padding:7px 12px;color:var(--ink2);margin:0 4px 12px}
+nav a{display:block;padding:9px 16px;border-radius:6px;color:var(--ink);text-decoration:none;position:relative}
+nav a.on{background:#2D2D2D}
+nav a.on::before{content:"";position:absolute;left:0;top:10px;width:3px;height:16px;border-radius:2px;background:var(--acc)}
+main{padding:28px 40px 0 12px;overflow:hidden}
+h1{font-weight:600;font-size:28px;line-height:36px;margin-bottom:20px}
+h2{font-size:14px;font-weight:600;margin:20px 0 8px}
+.c{background:var(--card);border:1px solid #1C1C1C;border-radius:6px;padding:14px 20px;display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;margin-bottom:2px}
+.nm{font-size:14px}.ds{font-size:12px;color:var(--ink2)}
+.st{font-size:12px;color:var(--ink2)}
+.sw{width:40px;height:20px;border-radius:10px;border:1px solid #9A9A9A;position:relative}
+.sw::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#CFCFCF;top:3px;left:4px}
+.sw.on{background:var(--acc);border-color:var(--acc)}.sw.on::after{left:22px;background:#000}
+.bar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.btn{padding:6px 16px;border-radius:4px;background:#2D2D2D;border:1px solid var(--line)}
+.btn.p{background:var(--acc);color:#000;border:0}
+.info{background:#3A3215;border:1px solid #574A1C;border-radius:6px;padding:10px 16px;color:#F3D77A;font-size:13px;margin-bottom:8px}
+</style></head><body>
+<nav><div class="app"><span class="ic"></span>Segatt Tools</div><div class="search">Find a setting</div>
+<a>Home</a><a>Apps</a><a class="on">Tweaks</a><a>Cleaner</a><a>Fixes</a><a>Control</a><a>Settings</a></nav>
+<main><h1>Tweaks</h1>
+<div class="bar"><span class="btn">Preset: Gaming</span><span class="btn">Create restore point</span><span class="btn p">Apply 6 changes</span></div>
+<div class="info">Disable SysMain failed in the last run: access denied. Run Segatt Tools as administrator.</div>
+<h2>Privacy</h2>
+<div class="c"><div><div class="nm">Disable telemetry</div><div class="ds">Stops diagnostic data uploads to Microsoft</div></div><span class="st">Off</span><span class="sw on"></span></div>
+<div class="c"><div><div class="nm">Disable activity history</div><div class="ds">Timeline no longer records what you open</div></div><span class="st">Active</span><span class="sw on"></span></div>
+<div class="c"><div><div class="nm">Remove Bing from Start search</div><div class="ds">Start searches only this PC</div></div><span class="st">Off</span><span class="sw on"></span></div>
+<h2>Performance</h2>
+<div class="c"><div><div class="nm">High performance power plan</div><div class="ds">Keeps CPU clocks up while gaming</div></div><span class="st">Balanced</span><span class="sw on"></span></div>
+<div class="c"><div><div class="nm">Disable Game Bar capture</div><div class="ds">Stops background recording</div></div><span class="st">Off</span><span class="sw on"></span></div>
+<div class="c"><div><div class="nm">Disable SysMain</div><div class="ds">Service that preloads apps</div></div><span class="st">Failed</span><span class="sw"></span></div>
+</main></body></html>

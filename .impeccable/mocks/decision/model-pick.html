@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Desk Instrument — Tweaks</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161615;--body:#1D1D1C;--line:#2E2E2C;--ink:#ECEAE4;--ink2:#8C8A84;--or:#FF6A1A;--ok:#7BD88F;--bad:#FF5F57}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/20px "Hanken Grotesk",sans-serif;
+background-image:radial-gradient(#2A2A28 1px,transparent 1px);background-size:16px 16px}
+header{height:64px;display:flex;align-items:center;gap:32px;padding:0 32px;border-bottom:1px solid var(--line);background:var(--bg)}
+.logo{font-weight:700;letter-spacing:-.01em;font-size:16px}
+.logo span{color:var(--or)}
+header a{color:var(--ink2);text-decoration:none;font-weight:500}
+header a.on{color:var(--ink)}
+.admin{margin-left:auto;font:500 12px "JetBrains Mono";color:var(--ink2);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:#3B3B38;display:inline-block}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(123,216,143,.15)}
+.dot.bad{background:var(--bad)}
+.wrap{display:grid;grid-template-columns:1fr 340px;gap:24px;padding:28px 32px}
+.panel{background:var(--body);border:1px solid var(--line);border-radius:14px}
+.top{display:flex;align-items:end;justify-content:space-between;padding:24px 24px 16px}
+h1{font-weight:700;font-size:40px;line-height:44px;letter-spacing:-.025em}
+.sub{color:var(--ink2);margin-top:6px}
+.knob{display:flex;align-items:center;gap:12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg span{padding:6px 14px;border-radius:999px;color:var(--ink2);font-weight:500}
+.seg .on{background:var(--ink);color:var(--bg)}
+.tabs{display:flex;gap:24px;padding:0 24px;border-bottom:1px solid var(--line)}
+.tabs span{padding:10px 0;color:var(--ink2);font-weight:500}
+.tabs .on{color:var(--ink);box-shadow:inset 0 -2px var(--ink)}
+.tabs b{font:500 11px "JetBrains Mono";color:var(--ink2);margin-left:6px}
+.row{display:grid;grid-template-columns:20px 1fr 220px 120px 44px;gap:16px;align-items:center;padding:13px 24px;border-bottom:1px solid var(--line)}
+.row .k{font:400 12px "JetBrains Mono";color:#6F6D68}
+.row .s{font:500 12px "JetBrains Mono";color:var(--ink2);display:flex;gap:8px;align-items:center}
+.nm{font-weight:600}.ds{color:var(--ink2);font-size:13px}
+.sw{width:38px;height:22px;border-radius:11px;background:#33332F;position:relative}
+.sw::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#BDBAB2;top:2px;left:2px}
+.sw.on{background:var(--ink)} .sw.on::after{left:18px;background:var(--bg)}
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid #4A4A46}
+.chk.on{background:var(--or);border-color:var(--or)}
+aside .panel{padding:24px}
+aside h2{font-size:13px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.big{font:500 56px/56px "JetBrains Mono";letter-spacing:-.04em}
+.big small{font-size:14px;color:var(--ink2);letter-spacing:0;margin-left:6px}
+.go{margin-top:20px;background:var(--or);color:#1A0E06;font-weight:700;border-radius:10px;text-align:center;padding:12px}
+.line{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.line span:last-child{font-family:"JetBrains Mono";color:var(--ink2)}
+</style></head><body>
+<header><div class="logo">segatt<span>.</span>tools</div><a>Dashboard</a><a>Apps</a><a class="on">Tweaks</a><a>Cleaner</a><a>Fixes</a><a>Control</a><div class="admin"><span class="dot on"></span>elevated · Windows 11 24H2</div></header>
+<div class="wrap"><div class="panel">
+<div class="top"><div><h1>Tweaks</h1><p class="sub">State read live from this PC. Every change can be reverted.</p></div>
+<div class="knob"><div class="seg"><span>Minimal</span><span>Standard</span><span class="on">Gaming</span><span>Privacy</span></div></div></div>
+<div class="tabs"><span class="on">Privacy<b>4/8</b></span><span>Performance<b>1/7</b></span><span>Interface<b>2/5</b></span><span>System<b>1/5</b></span></div>
+<div class="row"><span class="chk on"></span><div><div class="nm">Disable telemetry</div><div class="ds">Stops diagnostic data uploads to Microsoft</div></div><span class="k">DataCollection\AllowTelemetry</span><span class="s"><i class="dot"></i>default</span><span class="sw"></span></div>
+<div class="row"><span class="chk"></span><div><div class="nm">Disable activity history</div><div class="ds">Timeline no longer records what you open</div></div><span class="k">System\EnableActivityFeed</span><span class="s"><i class="dot on"></i>active</span><span class="sw on"></span></div>
+<div class="row"><span class="chk on"></span><div><div class="nm">Remove Bing from Start search</div><div class="ds">Start searches only this PC</div></div><span class="k">Explorer\DisableSearchBox…</span><span class="s"><i class="dot"></i>default</span><span class="sw"></span></div>
+<div class="row"><span class="chk"></span><div><div class="nm">Disable advertising ID</div><div class="ds">Apps stop sharing an ad tracking ID</div></div><span class="k">AdvertisingInfo\Enabled</span><span class="s"><i class="dot on"></i>active</span><span class="sw on"></span></div>
+<div class="row"><span class="chk"></span><div><div class="nm">Disable location</div><div class="ds">No app can read your location</div></div><span class="k">ConsentStore\location</span><span class="s"><i class="dot bad"></i>failed</span><span class="sw"></span></div>
+<div class="row"><span class="chk"></span><div><div class="nm">Disable feedback prompts</div><div class="ds">Windows stops asking for feedback</div></div><span class="k">DataCollection\DoNotShow…</span><span class="s"><i class="dot on"></i>active</span><span class="sw on"></span></div>
+</div>
+<aside><div class="panel"><h2>Ready to apply</h2><div class="big">6<small>changes</small></div>
+<div class="line"><span>Restore point first</span><span>on</span></div>
+<div class="line"><span>Need restart</span><span>3</span></div>
+<div class="line"><span>Revertible</span><span>6 / 6</span></div>
+<div class="go">Apply 6 changes</div></div></aside></div>
+</body></html>

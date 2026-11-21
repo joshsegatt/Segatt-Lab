@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useSyncExternalStore, ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useSyncExternalStore, ReactNode } from "react";
 import { Language, translations } from "@/lib/i18n";
 
 interface LanguageContextType {
@@ -35,16 +35,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Server snapshot is "pt" so the static export hydrates without a mismatch.
   const language = useSyncExternalStore(subscribe, readLanguage, () => "pt" as Language);
 
-  const setLanguage = (lang: Language) => {
+  // Keep the document language in sync for screen readers and hyphenation.
+  useEffect(() => {
+    document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
+  }, [language]);
+
+  const setLanguage = useCallback((lang: Language) => {
     try {
       localStorage.setItem(STORAGE_KEY, lang);
     } catch {
       // not persisted, still switch for this session
     }
     listeners.forEach((l) => l());
-  };
+  }, []);
 
-  const t = (path: string): string => {
+  const t = useCallback((path: string): string => {
     let current: unknown = translations[language];
     for (const key of path.split(".")) {
       if (current && typeof current === "object" && key in current) {
@@ -54,7 +59,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
     }
     return typeof current === "string" ? current : path;
-  };
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

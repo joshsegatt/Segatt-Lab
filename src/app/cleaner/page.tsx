@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useLanguage } from "@/hooks/useLanguage";
+import { recordActivity } from "@/lib/history";
 import {
   Trash2,
   Zap,
@@ -59,8 +60,10 @@ export default function CleanerPage() {
     try {
       await invoke("run_cleanup", { id });
       setCompletedTasks((prev) => new Set(prev).add(id));
+      recordActivity({ label: CLEANUP_TASKS.find((c) => c.id === id)?.name ?? id, status: "ok", href: "/cleaner" });
     } catch (err) {
       setErrors((prev) => ({ ...prev, [id]: String(err) }));
+      recordActivity({ label: CLEANUP_TASKS.find((c) => c.id === id)?.name ?? id, detail: t("history.failed"), status: "failed", href: "/cleaner" });
     } finally {
       setRunning(null);
     }

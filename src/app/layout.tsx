@@ -1,32 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/features/navigation/components/Sidebar";
+import { TopBar } from "@/features/navigation/components/TopBar";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { APP_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Segatt Tools — Elite Windows System Utility",
-  description: "Install apps, apply tweaks, and optimize your Windows PC with AI-powered diagnostics. Zero telemetry, privacy-first.",
+  title: APP_NAME,
+  description: "Tune, clean and repair Windows. Every change shows its real result and can be undone.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="elite-theme">
+    <html lang="pt-BR">
+      <body>
         <LanguageProvider>
-          <div className="app-shell-elite">
-            {/* Background Layers */}
-            <div className="bg-mesh" />
-            <div className="bg-glow bg-glow-primary" />
-            <div className="bg-glow bg-glow-secondary" />
-            
+          <div className="app-shell">
             <Sidebar />
-            
-            <main className="content-area-elite">
-              {children}
+            <main className="app-main">
+              <TopBar />
+              <div className="app-content">{children}</div>
             </main>
           </div>
         </LanguageProvider>
