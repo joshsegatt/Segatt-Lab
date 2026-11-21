@@ -1,6 +1,6 @@
-use std::process::Command;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
+use crate::features::utils::run_visible_task;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CleanupResult {
@@ -9,103 +9,130 @@ pub struct CleanupResult {
     pub message: String,
 }
 
+// Scripts run with $ErrorActionPreference = 'Stop'. Files in use are expected,
+// so every delete opts out with -ErrorAction SilentlyContinue; anything else
+// that fails ends the task as a real failure.
+
+/// (task name, script) for each cleanup id, or None for an unknown id.
+fn cleanup_script(id: &str) -> Option<(&'static str, &'static str)> {
+    Some(match id {
+        "clean_temp" => ("Clean Temp Files", "
+$paths = @($env:TEMP, \"$env:SystemRoot\\Temp\") | Select-Object -Unique
+foreach ($path in $paths) {
+    if (Test-Path $path) {
+        Remove-Item -Path (Join-Path $path '*') -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host \"Cleaned $path\"
+    }
+}"),
+
+        "clean_prefetch" => ("Clean Prefetch",
+            "Remove-Item -Path \"$env:SystemRoot\\Prefetch\\*\" -Force -ErrorAction SilentlyContinue"),
+
+        "flush_dns" => ("Flush DNS", "ipconfig /flushdns"),
+
+        "clean_windows_update" => ("Clean Windows Update Download Cache", "
+Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
+try {
+    Remove-Item -Path \"$env:SystemRoot\\SoftwareDistribution\\Download\\*\" -Recurse -Force -ErrorAction SilentlyContinue
+} finally {
+    Start-Service -Name wuauserv -ErrorAction SilentlyContinue
+}"),
+
+        "clean_shader_cache" => ("Clean Shader Cache", "
+$caches = @(
+    \"$env:LOCALAPPDATA\\NVIDIA\\DXCache\",
+    \"$env:LOCALAPPDATA\\NVIDIA\\GLCache\",
+    \"$env:LOCALAPPDATA\\Temp\\NVIDIA Corporation\\NV_Cache\",
+    \"$env:LOCALAPPDATA\\AMD\\DxCache\",
+    \"$env:LOCALAPPDATA\\D3DSCache\"
+)
+foreach ($c in $caches) {
+    if (Test-Path $c) {
+        Remove-Item -Path (Join-Path $c '*') -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host \"Cleaned $c\"
+    }
+}"),
+
+        "clean_recycle_bin" => ("Clean Recycle Bin",
+            "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"),
+
+        // Windows.old is owned by TrustedInstaller; a plain Remove-Item only
+        // deleted what it could and reported success.
+        "clean_windows_old" => ("Clean Windows.old", "
+$old = \"$env:SystemDrive\\Windows.old\"
+if (-not (Test-Path $old)) {
+    Write-Host 'Windows.old not found. Nothing to clean.'
+} else {
+    & takeown.exe /F $old /R /A /D Y | Out-Null
+    & icacls.exe $old /grant '*S-1-5-32-544:F' /T /C /Q | Out-Null
+    Remove-Item -Path $old -Recurse -Force -ErrorAction SilentlyContinue
+    $global:LASTEXITCODE = 0
+    if (Test-Path $old) { throw 'Some files in Windows.old could not be removed. Use Disk Cleanup > Previous Windows installations.' }
+}"),
+
+        "clean_delivery_optimization" => ("Clean Delivery Optimization Cache", "
+if (Get-Command Delete-DeliveryOptimizationCache -ErrorAction SilentlyContinue) {
+    Delete-DeliveryOptimizationCache -Force
+} else {
+    Stop-Service -Name DoSvc -Force -ErrorAction SilentlyContinue
+    try {
+        Remove-Item -Path \"$env:SystemRoot\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache\\*\" -Recurse -Force -ErrorAction SilentlyContinue
+    } finally {
+        Start-Service -Name DoSvc -ErrorAction SilentlyContinue
+    }
+}"),
+
+        "clean_thumbnails" => ("Clean Thumbnail Cache",
+            "Remove-Item -Path \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*.db\" -Force -ErrorAction SilentlyContinue"),
+
+        // Was every *.log under C:\Windows, recursively. Now only crash dumps and
+        // log files older than 7 days in the Windows log folders.
+        "clean_logs_minidumps" => ("Clean Logs & Minidumps", "
+Remove-Item -Path \"$env:SystemRoot\\Minidump\\*.dmp\" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path \"$env:SystemRoot\\MEMORY.DMP\" -Force -ErrorAction SilentlyContinue
+$cutoff = (Get-Date).AddDays(-7)
+foreach ($dir in @(\"$env:SystemRoot\\Logs\", \"$env:SystemRoot\\Panther\")) {
+    if (Test-Path $dir) {
+        Get-ChildItem -Path $dir -Filter *.log -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object LastWriteTime -lt $cutoff |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+}"),
+
+        _ => return None,
+    })
+}
+
 #[tauri::command]
 pub async fn run_cleanup(id: String) -> Result<CleanupResult, String> {
-    let id_clone = id.clone();
-    
-    // Execute in a blocking thread to avoid freezing the UI bridge
-    let result = tauri::async_runtime::spawn_blocking(move || {
-        let status = match id.as_str() {
-            // ── Temp Files ───────────────────────────────────────────────────────
-            "clean_temp" => {
-                let script = "
-                    $paths = @($env:TEMP, 'C:\\Windows\\Temp', \"$env:LOCALAPPDATA\\Temp\")
-                    foreach ($path in $paths) {
-                        if (Test-Path $path) {
-                            Get-ChildItem -Path $path -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-                        }
-                    }
-                ";
-                crate::features::utils::spawn_visible_powershell("Clean Temp Files", script)
-            },
+    let (task_name, script) = cleanup_script(&id).ok_or_else(|| format!("Unknown cleanup task: '{id}'"))?;
+    run_visible_task(task_name.into(), script.into()).await?;
+    Ok(CleanupResult {
+        task_id: id,
+        success: true,
+        message: "Task completed successfully.".to_string(),
+    })
+}
 
-            // ── Optimization ─────────────────────────────────────────────────────
-            "clean_prefetch" => {
-                let script = "Remove-Item -Path 'C:\\Windows\\Prefetch\\*' -Force -ErrorAction SilentlyContinue";
-                crate::features::utils::spawn_visible_powershell("Clean Prefetch", script)
-            },
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-            "flush_dns" => {
-                crate::features::utils::spawn_visible_powershell("Flush DNS", "ipconfig /flushdns")
-            },
-
-            "clean_windows_update" => {
-                let script = "
-                    Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
-                    Remove-Item -Path 'C:\\Windows\\SoftwareDistribution\\Download\\*' -Force -Recurse -ErrorAction SilentlyContinue
-                    Start-Service -Name wuauserv -ErrorAction SilentlyContinue
-                ";
-                crate::features::utils::spawn_visible_powershell("Clean Windows Update Download Cache", script)
-            },
-
-            // ── Gaming ───────────────────────────────────────────────────────────
-            "clean_shader_cache" => {
-                let script = "
-                    $shaderPath = \"$env:LOCALAPPDATA\\Temp\\NVIDIA Corporation\\NV_Cache\"
-                    if (Test-Path $shaderPath) { Remove-Item -Path \"$shaderPath\\*\" -Force -Recurse -ErrorAction SilentlyContinue }
-                    $dxPath = \"$env:LOCALAPPDATA\\Microsoft\\DirectX Shader Cache\"
-                    if (Test-Path $dxPath) { Remove-Item -Path \"$dxPath\\*\" -Force -Recurse -ErrorAction SilentlyContinue }
-                ";
-                crate::features::utils::spawn_visible_powershell("Clean Shader Cache", script)
-            },
-
-            // ── Elite System Cleaning ────────────────────────────────────────────
-            "clean_recycle_bin" => {
-                let script = "Clear-RecycleBin -Force -ErrorAction SilentlyContinue";
-                crate::features::utils::spawn_visible_powershell("Clean Recycle Bin", script)
-            },
-
-            "clean_windows_old" => {
-                let script = "if (Test-Path 'C:\\Windows.old') { Remove-Item -Path 'C:\\Windows.old' -Force -Recurse -ErrorAction SilentlyContinue }";
-                crate::features::utils::spawn_visible_powershell("Clean Windows.old", script)
-            },
-
-            "clean_delivery_optimization" => {
-                let script = "
-                    Stop-Service -Name DoSvc -Force -ErrorAction SilentlyContinue
-                    Remove-Item -Path 'C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache\\*' -Force -Recurse -ErrorAction SilentlyContinue
-                    Start-Service -Name DoSvc -ErrorAction SilentlyContinue
-                ";
-                crate::features::utils::spawn_visible_powershell("Clean Delivery Optimization Cache", script)
-            },
-
-            "clean_thumbnails" => {
-                let script = "Get-ChildItem -Path \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\" -Filter thumbcache_*.db | Remove-Item -Force -ErrorAction SilentlyContinue";
-                crate::features::utils::spawn_visible_powershell("Clean Thumbnail Cache", script)
-            },
-
-            "clean_logs_minidumps" => {
-                let script = "
-                    Get-ChildItem -Path 'C:\\Windows' -Filter *.log -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-                    if (Test-Path 'C:\\Windows\\Minidump') { Get-ChildItem -Path 'C:\\Windows\\Minidump' -Filter *.dmp | Remove-Item -Force -ErrorAction SilentlyContinue }
-                ";
-                crate::features::utils::spawn_visible_powershell("Clean Logs & Minidumps", script)
-            },
-
-            _ => return Err(format!("Unknown cleanup task: '{}'", id)),
+    #[test]
+    fn frontend_ids_are_known() {
+        for id in [
+            "clean_temp", "clean_prefetch", "flush_dns", "clean_windows_update", "clean_shader_cache",
+            "clean_recycle_bin", "clean_windows_old", "clean_delivery_optimization", "clean_thumbnails",
+            "clean_logs_minidumps",
+        ] {
+            assert!(cleanup_script(id).is_some(), "missing cleanup {id}");
         }
-        .map_err(|e| format!("Failed to execute task: {}", e));
+    }
 
-        status
-    }).await.map_err(|e| format!("Runtime error: {}", e))?;
-
-    match result {
-        Ok(status) if status.success() => Ok(CleanupResult {
-            task_id: id_clone.clone(),
-            success: true,
-            message: format!("✓ Task completed successfully."),
-        }),
-        Ok(_) => Err(format!("Task failed. Ensure you have the power to clean system assets.")),
-        Err(e) => Err(e),
+    #[test]
+    fn logs_cleanup_is_scoped() {
+        let (_, s) = cleanup_script("clean_logs_minidumps").unwrap();
+        assert!(!s.contains("-Path 'C:\\\\Windows' -Filter *.log"));
+        assert!(s.contains("AddDays(-7)"));
     }
 }
