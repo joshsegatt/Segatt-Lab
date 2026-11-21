@@ -47,8 +47,10 @@ export default function CleanerPage() {
     try { await invoke("apply_tweak", { id: "open_system_restore" }); } catch {}
   };
 
-  const runTask = async (id: string, silent = false) => {
-    if (!safetyConfirmed && id !== "flush_dns") {
+  // `confirmed` lets runAll pass the fresh result: inside runAll the
+  // safetyConfirmed state is still the value from before the restore point.
+  const runTask = async (id: string, silent = false, confirmed = safetyConfirmed) => {
+    if (!confirmed && id !== "flush_dns") {
        if (!silent) alert(t("cleaner.safety_first"));
        return;
     }
@@ -64,15 +66,17 @@ export default function CleanerPage() {
     }
   };
 
-  const createRestorePoint = async () => {
+  const createRestorePoint = async (): Promise<boolean> => {
     setRestoring(true);
     setErrors(({ restore_point: _, ...rest }) => rest);
     try {
       await invoke("create_restore_point");
       setSafetyConfirmed(true);
       setCompletedTasks((prev) => new Set(prev).add("restore_point"));
+      return true;
     } catch (err) {
       setErrors((prev) => ({ ...prev, restore_point: String(err) }));
+      return false;
     } finally {
       setRestoring(false);
     }
@@ -81,8 +85,8 @@ export default function CleanerPage() {
   const runAll = async () => {
     setIsProcessingAll(true);
     try {
-      if (!safetyConfirmed) await createRestorePoint();
-      for (const task of CLEANUP_TASKS) await runTask(task.id, true);
+      const confirmed = safetyConfirmed || (await createRestorePoint());
+      for (const task of CLEANUP_TASKS) await runTask(task.id, true, confirmed);
     } finally {
       setIsProcessingAll(false);
     }

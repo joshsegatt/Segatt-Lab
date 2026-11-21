@@ -57,7 +57,9 @@ foreach ($c in $caches) {
             "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"),
 
         // Windows.old is owned by TrustedInstaller; a plain Remove-Item only
-        // deleted what it could and reported success.
+        // deleted what it could and reported success. `rd /s /q` is used because
+        // old profiles contain junctions to live folders, and Windows PowerShell
+        // 5.1 Remove-Item -Recurse follows junctions; rd removes the link only.
         "clean_windows_old" => ("Clean Windows.old", "
 $old = \"$env:SystemDrive\\Windows.old\"
 if (-not (Test-Path $old)) {
@@ -65,7 +67,7 @@ if (-not (Test-Path $old)) {
 } else {
     & takeown.exe /F $old /R /A /D Y | Out-Null
     & icacls.exe $old /grant '*S-1-5-32-544:F' /T /C /Q | Out-Null
-    Remove-Item -Path $old -Recurse -Force -ErrorAction SilentlyContinue
+    & cmd.exe /c rd /s /q $old
     $global:LASTEXITCODE = 0
     if (Test-Path $old) { throw 'Some files in Windows.old could not be removed. Use Disk Cleanup > Previous Windows installations.' }
 }"),
@@ -127,6 +129,13 @@ mod tests {
         ] {
             assert!(cleanup_script(id).is_some(), "missing cleanup {id}");
         }
+    }
+
+    #[test]
+    fn windows_old_is_not_deleted_with_remove_item() {
+        let (_, s) = cleanup_script("clean_windows_old").unwrap();
+        assert!(s.contains("rd /s /q"));
+        assert!(!s.contains("Remove-Item"), "Remove-Item -Recurse follows junctions in PS 5.1");
     }
 
     #[test]

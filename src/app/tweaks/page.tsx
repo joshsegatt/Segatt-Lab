@@ -152,7 +152,8 @@ export default function TweaksPage() {
     setIsApplying(true);
     // The restore point must exist before anything changes, so it runs first
     // and a failure stops the batch.
-    if (selected.has("create_restore_point")) {
+    const withRestorePoint = selected.has("create_restore_point");
+    if (withRestorePoint) {
       try {
         await invoke("create_restore_point");
       } catch (e) {
@@ -169,8 +170,9 @@ export default function TweaksPage() {
     }
     setIsApplying(false);
     const names = failed.map((id) => TWEAKS.find((tw) => tw.id === id)?.name ?? id);
+    const restoreNote = withRestorePoint ? " Restore point created." : "";
     setNotification(failed.length === 0
-      ? { type: "success", msg: `${ids.length} tweak(s) applied.` }
+      ? { type: "success", msg: `${ids.length} tweak(s) applied.${restoreNote}` }
       : { type: "error", msg: `${ids.length - failed.length} applied, ${failed.length} failed: ${names.join(", ")}.` });
     // Failed tweaks stay selected so they can be retried.
     setSelected(new Set(failed));

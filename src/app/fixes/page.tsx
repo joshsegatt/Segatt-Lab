@@ -37,15 +37,16 @@ export default function FixesPage() {
     setLogs([`[${startTime}] Iniciando: ${id}...`]);
     
     // One listener per run, removed at the end (it used to pile up and repeat every log line).
-    const unlisten = await listen<string>("system-fix-log", (event) => {
-      setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${event.payload}`, ...prev]);
-    });
+    let unlisten: (() => void) | undefined;
     try {
+      unlisten = await listen<string>("system-fix-log", (event) => {
+        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${event.payload}`, ...prev]);
+      });
       await invoke("run_system_fix", { id });
     } catch (err) {
       setLogs(prev => [`[${new Date().toLocaleTimeString()}] ERRO: ${err}`, ...prev]);
     } finally {
-      unlisten();
+      unlisten?.();
       setRunning(null);
     }
   };

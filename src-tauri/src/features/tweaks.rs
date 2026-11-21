@@ -106,10 +106,13 @@ $adapters | ForEach-Object { Write-Host \"DNS set to 1.1.1.1 on $($_.Name)\" }".
             reg_dword("HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", "AppCaptureEnabled", "0"),
             reg_dword("HKCU\\System\\GameConfigStore", "GameDVR_Enabled", "0"),
         ].join("\n"),
-        // Removes a forced HPET system clock (Windows default). bcdedit fails when the
-        // value was never set, which already is the desired state.
+        // Removes a forced HPET system clock (Windows default). The delete fails when
+        // the value was never set, so the result is checked by reading the BCD back.
         "optimize_hpet" => "& bcdedit.exe /deletevalue useplatformclock | Out-Null
 $global:LASTEXITCODE = 0
+$bcd = & bcdedit.exe /enum '{current}' | Out-String
+if ($LASTEXITCODE -ne 0) { throw 'Could not read the boot configuration.' }
+if ($bcd -match 'useplatformclock') { throw 'useplatformclock is still set.' }
 Write-Host 'HPET is not forced as the system clock (Windows default).'".to_string(),
 
         // ── Interface ─────────────────────────────────────────────────────────
