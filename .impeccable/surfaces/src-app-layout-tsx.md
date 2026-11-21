@@ -19,7 +19,7 @@ Phase 1 adaptations (cited, temporary): the app cannot yet read each tweak's rea
 
 THESIS: A command-first Windows tuner that reads like the modern AI desktop apps (Copilot, ChatGPT, Antigravity): one calm composer finds every action, and every screen shows the PC's real state. It refuses the gamer-tool default of black, neon and glowing edges, and the settings-page default of a wall of toggles.
 
-OWN-WORLD: Warm neutral graphite surfaces (#131313 sidebar, #1a1a1a canvas, #242424 raised), soft 1px light hairlines, one jade brand accent (#3ddc97) reserved for live/active state and the primary action, amber for pending, red for failed. Segoe UI Variable (Display for titles, Text for UI), Cascadia Mono only for commands, keys and values. Large radii (28px composer, 20px groups, pills for buttons and chips), soft offset shadows, one faint jade-amber glow behind the composer only.
+OWN-WORLD: Neutral graphite surfaces (#131313 sidebar, #1a1a1a canvas, #242424 raised), soft 1px light hairlines, one jade brand accent (#3ddc97) reserved for live/active state and the primary action, amber for pending, red for failed. Segoe UI Variable (Display for titles, Text for UI), Cascadia Mono only for commands, keys and values. Large radii (28px composer, 20px groups, pills for buttons and chips), soft offset shadows, one faint jade-amber glow behind the composer only.
 
 STORY: The visitor opens the app, sees one question and a composer, types what they want ("jogo"), sees the whole preset as the first result plus individual tweaks, apps and cleanups with their live state, applies with Enter, and follows the result in the sidebar history.
 

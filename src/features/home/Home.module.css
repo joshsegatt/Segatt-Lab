@@ -104,7 +104,7 @@
 }
 
 /* suggestions */
-.suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; width: min(780px, 100%); }
+.suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; width: min(760px, 100%); }
 .suggestion {
   display: inline-flex; align-items: center; gap: 8px;
   height: 38px; padding: 0 16px; border-radius: 999px;
