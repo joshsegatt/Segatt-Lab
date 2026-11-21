@@ -204,14 +204,14 @@ button { font: inherit; color: inherit; }
   border-radius: var(--r-l);
 }
 
-.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 24px 20px; }
+.stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0 0 20px; }
 .stat-card { background: var(--raise); border: 1px solid var(--line); border-radius: var(--r-m); padding: 16px; }
 .stat-label { font-size: 12px; font-weight: 500; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .stat-value { font: 600 24px var(--font-title); line-height: 1.1; }
 .stat-bar-track { width: 100%; height: 3px; background: var(--raise-2); border-radius: 2px; margin-top: 10px; overflow: hidden; }
 .stat-bar-fill { height: 100%; transition: width 0.6s var(--ease-out); }
 
-.quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 0 24px; }
+.quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .quick-card { padding: 20px; background: var(--raise); border: 1px solid var(--line); border-radius: var(--r-l); cursor: pointer; height: 100%; transition: border-color 0.15s, background 0.15s; }
 .quick-card:hover { background: var(--raise-2); border-color: var(--line-2); }
 .quick-card-icon { width: 36px; height: 36px; border-radius: var(--r-s); background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
@@ -231,7 +231,7 @@ button { font: inherit; color: inherit; }
 .admin-banner-elite {
   background: var(--danger-soft);
   border: 1px solid rgba(255, 107, 107, 0.25);
-  padding: 12px 18px; margin: 0 24px 20px;
+  padding: 12px 18px; margin: 0 0 20px;
   border-radius: var(--r-m);
   display: flex; align-items: center; gap: 12px;
   color: var(--danger); font-weight: 500;

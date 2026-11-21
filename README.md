@@ -31,7 +31,7 @@ A Tauri + Rust + Next.js desktop app. Type what you want in one search box and i
 **From source**
 
 ```bash
-# Node 18+, Rust stable, Tauri CLI
+# Node 22.6+ (tests run TypeScript natively), Rust stable, Tauri CLI
 git clone https://github.com/joshsegatt/Segatt-Tools.git
 cd Segatt-Tools
 npm install

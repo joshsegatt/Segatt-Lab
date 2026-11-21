@@ -65,6 +65,8 @@ export function Composer() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Enter also confirms an IME candidate (Chinese, Japanese, Korean): let it finish the word.
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "ArrowDown" && flat.length) {
       e.preventDefault();
       setActive((i) => (i + 1) % flat.length);

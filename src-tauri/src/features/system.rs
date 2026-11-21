@@ -44,7 +44,8 @@ pub fn get_pc_info() -> PcInfo {
 
 pub struct SystemState(pub Mutex<System>);
 
-#[tauri::command]
+/// Async so the disk query never runs on the UI thread (sync commands do).
+#[tauri::command(async)]
 pub fn get_system_stats(state: State<'_, SystemState>) -> SystemStats {
     let mut sys = state.0.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
 
