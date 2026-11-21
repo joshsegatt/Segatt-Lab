@@ -52,6 +52,11 @@ typography:
     fontFamily: "Segoe UI Variable Text, Segoe UI Variable, Segoe UI, system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 400
+  secondary:
+    fontFamily: "Segoe UI Variable Text, Segoe UI Variable, Segoe UI, system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.45
   label:
     fontFamily: "Segoe UI Variable Text, Segoe UI Variable, Segoe UI, system-ui, sans-serif"
     fontSize: "12px"
@@ -145,6 +150,61 @@ components:
     rounded: "{rounded.tag}"
     padding: "0 8px"
     height: "22px"
+  tag-off:
+    backgroundColor: "rgba(255, 255, 255, 0.06)"
+    textColor: "{colors.ink-2}"
+    rounded: "{rounded.tag}"
+    padding: "0 8px"
+    height: "22px"
+  switch:
+    backgroundColor: "#3a3a3a"
+    rounded: "11px"
+    width: "40px"
+    height: "22px"
+  switch-on:
+    backgroundColor: "{colors.jade}"
+  segmented:
+    backgroundColor: "{colors.graphite-raise}"
+    rounded: "{rounded.pill}"
+    padding: "3px"
+  segment:
+    textColor: "{colors.ink-2}"
+    typography: "{typography.secondary}"
+    rounded: "{rounded.pill}"
+    padding: "0 14px"
+    height: "30px"
+  segment-on:
+    backgroundColor: "{colors.ink}"
+    textColor: "#111111"
+  search-field:
+    backgroundColor: "{colors.graphite-raise}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pill}"
+    padding: "0 12px"
+    height: "36px"
+    width: "220px"
+  tweak-list:
+    backgroundColor: "{colors.graphite-raise}"
+    rounded: "{rounded.l}"
+  tweak-row-hover:
+    backgroundColor: "{colors.hover-wash}"
+  tweak-row-pending:
+    backgroundColor: "rgba(245, 184, 75, 0.035)"
+  tweak-detail:
+    rounded: "{rounded.m}"
+    padding: "12px 14px"
+  raw-error:
+    backgroundColor: "{colors.graphite-canvas}"
+    textColor: "{colors.ink-2}"
+    typography: "{typography.mono}"
+    rounded: "{rounded.s}"
+    padding: "10px 12px"
+  pending-dock:
+    backgroundColor: "{colors.graphite-raise-2}"
+    textColor: "{colors.ink}"
+    rounded: "24px"
+    padding: "10px 10px 10px 20px"
+    width: "860px"
   nav-item:
     textColor: "{colors.ink-2}"
     rounded: "{rounded.s}"
@@ -224,10 +284,11 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 - **Headline** (600, 30px, 1.2, -0.02em): the page header on every working screen, with an optional 60ch description in Ink 2 below.
 - **Value** (600, 18px, tabular numbers): live readings in the state strip; units beside it in Ink 3 at 13px.
 - **Title** (600, 15px, -0.01em): product name in the sidebar, top-bar screen name (in Ink 2), group/list titles.
+- **Secondary** (400, 13px, 1.45): the working secondary step. Row descriptions on Tweaks (in Ink 2), group counts (Ink 3, tabular), the inline failure line, dock notes, segmented-control labels (500), small buttons, the status pill, toasts and card descriptions. 12.5px is the step below it, kept for result sublines and the Tweaks detail panel's mono values and meta line.
 - **Body** (400, 14px, 1.45): default UI text. Result titles use 600 weight at body size; the Home lede sits at 15.5px in Ink 2.
 - **Input** (400, 16px): the composer field.
 - **Label** (600, 12px, no tracking, sentence case): group labels in results and sidebar history, state-strip terms (500 weight there), tags. Ink 3 except on tags.
-- **Mono** (400, 12px): keyboard keys and literal commands or values.
+- **Mono** (400, 12px): keyboard keys, literal commands or values, and the raw error block. The Tweaks detail panel sets its command path and before/after values at 12.5px.
 
 ### Named Rules
 **The System Face Rule.** Only installed Windows faces. No web fonts, ever: the app runs offline.
@@ -237,6 +298,8 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 ## Layout
 
 A fixed desktop shell: a 264px sidebar column and a fluid main column (CSS grid). The main column scrolls; inside it a sticky 56px top bar (screen name left, status pill and icon buttons right, 20px side padding) sits over content padded 0 32px 40px. Home centres one 760px column vertically: question, lede, composer, suggestions (8px gaps, up to 780px), then a four-cell state strip 56px below. When search results open, the column jumps to the top (6vh) and the lede hides so the list fits the window; only the results scroll, the key hints stay in view.
+
+Tweaks uses a wider 860px centred column (8px top, 140px bottom padding so the last row clears the floating dock): page title in Headline with a lede in Ink 2, a tools row (segmented presets, a 220px search pushed right, one icon button), then the grouped lists 22px apart.
 
 Spacing runs on a 4px base with 8, 12, 16, 20, 24 and 32px doing almost all the work; 56px separates the Home composer cluster from the live-state strip. Product target is desktop windows only; the single breakpoint (900px) folds the state strip from four cells to two.
 
@@ -248,6 +311,9 @@ Tonal first. Planes step from sidebar to canvas to raise to raise-2, separated b
 - **Raise** (`box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35)`): the composer at rest, combined with a 1px inner top highlight at 4% white.
 - **Float** (`box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45)`): the results panel, toasts, tooltips.
 - **Status halo** (`box-shadow: 0 0 0 3px` at 18% of the state colour): a solid ring around live/pending status dots only.
+- **Knob** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4)`): the switch knob only, so the light disc reads on its track. It belongs to the control, not to elevation.
+
+The floating pending-changes dock on Tweaks uses Float, like the results panel and toasts.
 
 ### Named Rules
 **The Flat-At-Rest Rule.** Lists, cards, pills and nav sit flat. Only something that floats over other content gets a shadow.
@@ -256,7 +322,7 @@ Tonal first. Planes step from sidebar to canvas to raise to raise-2, separated b
 
 ## Shapes
 
-Generously rounded and soft, never sharp. Radii scale with the size of the object: 28px for the composer, 20px for grouped containers, results panel and the state strip, 14px for cards, toasts and the lead result, 10px for rows, nav items and small tiles. Every button, chip, suggestion and status indicator is a full pill (999px); icon buttons and status dots are circles. Small inline objects use tight corners: 6px tags, 5px keyboard keys. Borders are always 1px hairlines; there are no thick outlines. The focus ring is a 2px jade outline offset 2px.
+Generously rounded and soft, never sharp. Radii scale with the size of the object: 28px for the composer, 20px for grouped containers, results panel and the state strip, 14px for cards, toasts and the lead result, 10px for rows, nav items and small tiles. Every button, chip, suggestion and status indicator is a full pill (999px); icon buttons and status dots are circles. Small inline objects use tight corners: 6px tags, 5px keyboard keys. The switch track (40x22) is a full pill; its 11px corner is simply half its height. The pending-changes dock is the one 24px corner: a single floating bar, not a scale step. Borders are always 1px hairlines; there are no thick outlines. The focus ring is a 2px jade outline offset 2px.
 
 ## Components
 
@@ -272,7 +338,23 @@ Quiet pills; only the primary one has colour.
 ### Chips
 - **Suggestion pill:** 38px pill, 3% white fill, hairline border, Ink 2 text with a 16px jade glyph and the label in Ink 600, optional real count after it. Hover: hover wash and strong hairline.
 - **Status pill:** 32px outlined pill in the top bar with a 7px status dot (jade live, amber warn, Ink 3 unknown).
-- **Tag:** 22px, 6px corners, 12px 600; on / off / pending / failed use the soft wash of their colour with the solid colour as text.
+- **Tag:** 22px, 6px corners, 12px 600; on / pending / failed use the soft wash of their colour with the solid colour as text; off is a 6% white wash with Ink 2 text.
+- **Tweak state tags:** every tweak row (on Tweaks and in the Home results) carries its real state: "Ativo" (on), "Padrão do Windows" and "Desconhecido" (off; the unknown one carries the engine's reason as its tooltip), "Vai ativar" / "Vai desfazer" and "Aplicando…" with a 12px spinner (pending), "Falhou" (failed, while the change is still pending). No state read yet means no tag.
+
+### Switch
+- **Track:** 40x22 full pill, #3a3a3a when off, jade when on; no border.
+- **Knob:** 18px circle inset 2px, #d4d4d4 off and white on, with the Knob shadow; slides 18px. Track and knob change over 0.2s on the decelerating curve.
+- **Disabled:** 50% opacity while states are unread or a change is running.
+- Switches only appear as the trailing control of a list row that also shows a state tag and opens a detail panel; never on their own.
+
+### Segmented control
+- **Shape:** a raised-graphite pill with a hairline border and 3px inset; segments are 30px pills, 13px 500 in Ink 2, Ink on hover.
+- **Selected:** solid Ink fill with near-black text at 600, the same neutral inversion as the composer's send button. Not jade: choosing a preset is not a live state.
+- **Passive segment:** "Personalizado" is not clickable (out of the tab order, default cursor, not dimmed). It takes the selected fill by itself when tweaks are picked by hand.
+- **Disabled:** 60% opacity while states load or a change runs.
+
+### Search field
+36px raised-graphite pill, 220px, hairline border that strengthens on focus, 15px Ink 3 search glyph, 13.5px input.
 
 ### Cards / Containers
 - **Corner Style:** 20px for groups and panels, 14px for single cards.
@@ -280,21 +362,32 @@ Quiet pills; only the primary one has colour.
 - **Shadow Strategy:** none at rest (Flat-At-Rest Rule).
 - **Border:** 1px hairline.
 - **Internal Padding:** 14-20px; list rows 12px 18px with hairline dividers.
-- **State strip:** four cells in one 20px-rounded outline at 2% white, cells divided by hairlines, each with a 3px Ink 2 meter on a raise-2 track.
+- **State strip:** four cells in one 20px-rounded outline at 2% white, cells divided by hairlines, each with a 3px Ink 2 meter on a raise-2 track. The active-tweaks cell's meter is jade, because it measures live state.
 
 ### Inputs / Fields
 - **Composer:** the signature input. 760px wide, raised graphite, 28px corners, strong hairline, Raise shadow plus inner highlight; borderless 16px field with jade caret and Ink 3 placeholder; a footer row with a plain-information note (jade shield glyph, Ink 3 text) and the round send button.
 - **Focus:** the composer border brightens to 20% white; elsewhere the global 2px jade focus ring.
 
 ### Navigation
-- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), six 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2, failed entries in red. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
+- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), six 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Nav items may carry a live count at the right edge (12px Ink 3, tabular numbers); Tweaks shows active of total ("9/24"), and an item with no real number shows nothing. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2 clamped to two lines, failed entries in red with the detail in Ink 3. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
 - **Top bar:** translucent, screen name in Title at Ink 2, actions right with 8px gaps.
 
 ### Command Results (signature)
-The floating panel under the composer: raised graphite, 20px corners, Float shadow, 8px inset, opening with a 0.22s fade-and-rise. The lead result (the matching preset) is a 14px-rounded row with a faint jade wash and jade hairline, a solid jade icon tile and an Enter key at the right. Other results are 10px-rounded rows grouped under sentence-case 12px labels, each with a 30px neutral icon tile, a 600-weight title and a 12.5px Ink 3 subline. Selection is raise-2. A hairline-topped footer lists the keys (arrows, Enter, Esc) in mono key caps.
+The floating panel under the composer: raised graphite, 20px corners, Float shadow, 8px inset, opening with a 0.22s fade-and-rise. The lead result (the matching preset) is a 14px-rounded row with a faint jade wash and jade hairline, a solid jade icon tile and an Enter key at the right. Other results are 10px-rounded rows grouped under sentence-case 12px labels, each with a 30px neutral icon tile, a 600-weight title and a 12.5px Ink 3 subline. Selection is raise-2. Tweak results carry their state tag at the right edge. A hairline-topped footer lists the keys (arrows, Enter, Esc) in mono key caps.
+
+### Tweak List (signature)
+The Tweaks screen's grouped list. Each group has a Title-size heading with its "N de M ativos" count in Secondary Ink 3, then one raised-graphite container with 20px corners, a hairline border and hairline dividers between rows.
+- **Row:** name (600) over a Secondary description in Ink 2 on the left, the state tag, then the switch in a 44px column. The whole row takes the hover wash; the name block is the button that expands the row.
+- **Pending:** a row whose switch differs from the PC's real state takes a faint amber tint (3.5%) until applied or discarded.
+- **Arrival:** a row opened from a Home search scrolls to centre and flashes jade-soft, fading out over 1.6s.
+- **Detail panel:** opens under the row with a 0.2s fade-and-rise (4px). 14px corners, hairline outline, 12px 14px inset. One line per change: the exact command or registry path in mono Ink 2 on the left; on the right the old value struck through in Ink 3, an arrow, and the new value in jade 600. When the value did not exist, the old side reads "não definido" in Ink 3, unstruck. A meta line in 12.5px Ink 3 says whether a restart is needed and how to undo ("Para desfazer, desligue: volta a …").
+- **Failure line:** under the row, in red at 13px with a 14px warning glyph: the time and a translated reason ("Falhou às 00:46: acesso negado…"), then two underlined Ink text buttons, "Ver detalhes" and "Tentar de novo" (with a 13px retry glyph). "Ver detalhes" opens the raw engine message as a mono block on canvas graphite with 10px corners.
+
+### Pending-Changes Dock
+Floats 24px above the bottom, centred on the main column and as wide as the 860px working column (minus 64px on narrow windows). Raised graphite 2, strong hairline, 24px corners, Float shadow, entering with a 0.25s fade-and-rise. Left: the change count in 600, a "Ponto de restauração antes" checkbox (jade accent, jade shield glyph, Secondary Ink 2; shown only when something will be turned on), restart and progress notes in Secondary Ink 2, and the not-admin warning in Secondary amber. Right: a default "Descartar" button and the primary "Aplicar N" button.
 
 ### Toast
-Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot at left carries the meaning colour (jade success, red error, amber info).
+Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot at left carries the meaning colour (jade success, red error, amber info). While the pending-changes dock is up, the toast is lifted to 96px from the bottom so it never covers the dock's buttons.
 
 ## Do's and Don'ts
 
@@ -308,7 +401,7 @@ Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot a
 
 ### Don't:
 - **Don't** use black, neon, or glowing edges; the only glow is the faint one behind the Home composer.
-- **Don't** build screens as a wall of toggles; lead with the composer, grouped lists and visible state.
+- **Don't** build screens as a wall of bare toggles; lead with the composer, grouped lists and visible state. A switch lives only at the end of a row that shows its state tag and opens its exact change.
 - **Don't** load web fonts or icon fonts; icons are inline SVG line icons at 1.75 stroke.
 - **Don't** invent light-theme values; the light theme is not built yet.
 - **Don't** use the legacy variable names (`--bg-main`, `--bg-sidebar`, `--glass-bg`, `--glass-border`, `--bg-hover`, `--accent`, `--accent-dim`, `--border-accent`, `--accent-glow`, `--text-primary`, `--text-secondary`, `--text-muted`, `--success`, `--warning`, `--r-lg`, `--r-md`, `--r-sm`, `--font-display`, `--font-body`) in new code. They are aliases kept only so screens not yet rebuilt inherit the palette, and are removed once those screens are rebuilt. They are not part of this system.
