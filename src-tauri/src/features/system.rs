@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::process::Command;
 use std::sync::Mutex;
-use sysinfo::{CpuRefreshKind, MemoryRefreshKind, System};
+use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, System};
 use tauri::{Emitter, State, Window};
 
 use crate::features::utils::run_visible_task;
@@ -11,6 +11,35 @@ pub struct SystemStats {
     pub cpu_usage: f32,
     pub used_memory: u64,
     pub total_memory: u64,
+    /// Free and total bytes of the Windows system drive (0 when it cannot be read).
+    pub disk_free: u64,
+    pub disk_total: u64,
+    pub uptime_secs: u64,
+}
+
+#[derive(Serialize)]
+pub struct PcInfo {
+    pub host_name: String,
+    pub os_version: String,
+}
+
+/// Free and total bytes of the drive Windows runs from (SystemDrive, usually C:).
+fn system_drive_space() -> (u64, u64) {
+    let drive = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into());
+    let mount = format!("{}\\", drive.trim_end_matches('\\'));
+    Disks::new_with_refreshed_list()
+        .iter()
+        .find(|d| d.mount_point().to_string_lossy().eq_ignore_ascii_case(&mount))
+        .map(|d| (d.available_space(), d.total_space()))
+        .unwrap_or((0, 0))
+}
+
+#[tauri::command]
+pub fn get_pc_info() -> PcInfo {
+    PcInfo {
+        host_name: System::host_name().unwrap_or_else(|| "PC".into()),
+        os_version: System::long_os_version().unwrap_or_else(|| "Windows".into()),
+    }
 }
 
 pub struct SystemState(pub Mutex<System>);
@@ -23,10 +52,14 @@ pub fn get_system_stats(state: State<'_, SystemState>) -> SystemStats {
     sys.refresh_cpu_specifics(CpuRefreshKind::new().with_cpu_usage());
     sys.refresh_memory_specifics(MemoryRefreshKind::new().with_ram());
 
+    let (disk_free, disk_total) = system_drive_space();
     SystemStats {
         cpu_usage: sys.global_cpu_usage(),
         used_memory: sys.used_memory() / 1024 / 1024, // MB
         total_memory: sys.total_memory() / 1024 / 1024, // MB
+        disk_free,
+        disk_total,
+        uptime_secs: System::uptime(),
     }
 }
 
@@ -118,6 +151,14 @@ mod tests {
         for id in ["sfc", "dism", "net", "update", "cache"] {
             assert!(fix_script(id).is_some(), "missing fix {id}");
         }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn system_drive_is_found() {
+        let (free, total) = system_drive_space();
+        assert!(total > 0, "system drive not matched by mount point");
+        assert!(free <= total);
     }
 
     #[test]
