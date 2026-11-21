@@ -2,21 +2,13 @@ mod features;
 
 use crate::features::packages::{search_packages, install_package_stream, uninstall_package_stream};
 use crate::features::tweaks::{get_tweaks, apply_tweak, create_restore_point, check_admin};
-use crate::features::ai::{get_system_context, chat_with_segatt_ai, get_smart_diagnostic};
 use crate::features::cleaner::run_cleanup;
-use crate::features::system::{get_system_stats, open_legacy_panel, run_system_fix, SystemState};
+use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
 use std::sync::Mutex;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  // ── Forge: Elite Hardware Enabler (WebGPU) ───────────────────────────────────
-  // This enables WebGPU support in WebView2 for the Neural Core (Local AI).
-  std::env::set_var(
-    "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", 
-    "--enable-unsafe-webgpu --enable-features=WebGPU"
-  );
-
   let mut builder = tauri::Builder::default();
 
   builder = builder
@@ -44,11 +36,9 @@ pub fn run() {
       apply_tweak,
       create_restore_point,
       check_admin,
-      get_system_context,
-      chat_with_segatt_ai,
-      get_smart_diagnostic,
       run_cleanup,
       get_system_stats,
+      get_pc_info,
       open_legacy_panel,
       run_system_fix
     ])

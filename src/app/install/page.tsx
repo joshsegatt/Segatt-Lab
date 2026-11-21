@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useQueryParam } from "@/hooks/useQueryParam";
+import { recordActivity } from "@/lib/history";
+import { fmt } from "@/lib/fmt";
 import { invoke } from "@tauri-apps/api/core";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -176,7 +179,10 @@ export default function SoftwareHub() {
   const [mode, setMode] = useState<ViewMode>("install");
   const [manager, setManager] = useState<Manager>("winget");
   const [fossOnly, setFossOnly] = useState(false);
-  const [search, setSearch] = useState("");
+  // Arriving from the Home search (?q=Steam) prefills the filter until the user types.
+  const queryParam = useQueryParam("q");
+  const [typed, setSearch] = useState<string | null>(null);
+  const search = typed ?? queryParam ?? "";
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [statusMap, setStatusMap] = useState<Record<string, InstalledStatus>>({});
   const [working, setWorking] = useState(false);
@@ -197,17 +203,21 @@ export default function SoftwareHub() {
   };
 
   const executeAction = async (id: string) => {
+    const name = APP_CATEGORIES.flatMap((c) => c.apps).find((a) => a.id === id)?.name ?? id;
     setStatusMap(prev => ({ ...prev, [id]: "installing" }));
     try {
       if (mode === "uninstall") {
         await invoke("uninstall_package_stream", { packageId: id });
         setStatusMap(prev => ({ ...prev, [id]: "not-installed" }));
+        recordActivity({ label: fmt(t("history.uninstalled"), { name }), status: "ok", href: "/install" });
       } else {
         await invoke("install_package_stream", { packageId: id });
         setStatusMap(prev => ({ ...prev, [id]: "installed" }));
+        recordActivity({ label: fmt(t("history.installed"), { name }), status: "ok", href: "/install" });
       }
     } catch {
       setStatusMap(prev => ({ ...prev, [id]: "error" }));
+      recordActivity({ label: fmt(t(mode === "uninstall" ? "history.uninstall_failed" : "history.install_failed"), { name }), status: "failed", href: "/install" });
     }
   };
 

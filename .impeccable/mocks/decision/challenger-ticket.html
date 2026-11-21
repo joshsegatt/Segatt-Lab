@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Ticket Wallet — Tweaks</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B2A52;--red:#C8102E;--paper:#FBFAF7;--carbon:#5B3E96;--rule:#D9D5CC;--ink:#1B1D24;--ink2:#6A6A72}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#E9E6DF;color:var(--ink);font:14px/20px Archivo,sans-serif;display:grid;grid-template-columns:220px 1fr 360px}
+nav{background:var(--navy);color:#fff;padding:24px 16px}
+nav .b{font:800 18px Archivo;font-stretch:80%;text-transform:uppercase;letter-spacing:.06em;margin:0 8px 28px}
+nav a{display:block;padding:8px;color:#AEB7D0;text-decoration:none;font-weight:500}
+nav a.on{color:#fff;background:rgba(255,255,255,.08);border-radius:6px}
+main{padding:28px 28px;overflow:hidden}
+h1{font:800 40px Archivo;font-stretch:75%;text-transform:uppercase;color:var(--navy)}
+.sub{color:var(--ink2);margin:4px 0 18px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tabs span{padding:6px 14px;border-radius:6px 6px 0 0;background:#DCD8CF;font:700 12px Archivo;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+.tabs .on{background:var(--paper);color:var(--navy)}
+.cp{background:var(--paper);border:1px solid var(--rule);border-radius:8px;display:grid;grid-template-columns:1fr 150px 120px;margin-bottom:8px;position:relative}
+.cp>div{padding:12px 16px}
+.cp .m{border-left:1px dashed var(--rule)}
+.lab{font:700 10px Archivo;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2)}
+.nm{font-weight:700;font-size:15px}
+.k{font:400 12px "Courier Prime";color:var(--carbon)}
+.v{font:700 16px "Courier Prime";color:var(--carbon)}
+.stamp{position:absolute;right:136px;top:14px;border:2px solid;border-radius:4px;padding:1px 8px;font:800 12px Archivo;letter-spacing:.12em;text-transform:uppercase;transform:rotate(-6deg)}
+.ok{color:#1E7B4B}.void{color:var(--red)}
+.sw{width:38px;height:22px;border-radius:11px;background:#CFCAC0;position:relative;margin-top:4px}
+.sw::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px}
+.sw.on{background:var(--navy)}.sw.on::after{left:18px}
+aside{background:var(--paper);border-left:1px solid var(--rule);padding:28px 24px}
+aside h2{font:800 16px Archivo;font-stretch:80%;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:12px}
+.h{display:grid;grid-template-columns:52px 1fr auto;gap:10px;padding:9px 0;border-top:1px solid var(--rule);font-size:13px}
+.h .t{font:400 12px "Courier Prime";color:var(--ink2)}
+.go{margin-top:18px;background:var(--red);color:#fff;text-align:center;padding:12px;border-radius:8px;font:800 15px Archivo;text-transform:uppercase;letter-spacing:.06em}
+</style></head><body>
+<nav><div class="b">Segatt Tools</div><a>Dashboard</a><a>Apps</a><a class="on">Tweaks</a><a>Cleaner</a><a>Fixes</a><a>Control</a></nav>
+<main><h1>Tweaks</h1><p class="sub">Each change is a coupon: applied, reverted or failed, nothing disappears.</p>
+<div class="tabs"><span class="on">Privacy</span><span>Performance</span><span>Interface</span><span>System</span></div>
+<div class="cp"><div><div class="lab">Privacy · 01</div><div class="nm">Disable telemetry</div><div class="k">HKLM\…\DataCollection\AllowTelemetry</div></div><div class="m"><div class="lab">Now → new</div><div class="v">3 → 0</div></div><div class="m"><div class="lab">Apply</div><div class="sw on"></div></div></div>
+<div class="cp"><div><div class="lab">Privacy · 02</div><div class="nm">Disable activity history</div><div class="k">HKLM\…\System\EnableActivityFeed</div></div><div class="m"><div class="lab">Now</div><div class="v">0</div></div><div class="m"><div class="lab">Active</div><div class="sw on"></div></div><span class="stamp ok">Applied</span></div>
+<div class="cp"><div><div class="lab">Privacy · 03</div><div class="nm">Remove Bing from Start search</div><div class="k">HKCU\…\Explorer\DisableSearchBoxSuggestions</div></div><div class="m"><div class="lab">Now → new</div><div class="v">— → 1</div></div><div class="m"><div class="lab">Apply</div><div class="sw on"></div></div></div>
+<div class="cp"><div><div class="lab">Privacy · 05</div><div class="nm">Disable location</div><div class="k">HKLM\…\ConsentStore\location</div></div><div class="m"><div class="lab">Now</div><div class="v">Allow</div></div><div class="m"><div class="lab">Retry</div><div class="sw"></div></div><span class="stamp void">Failed</span></div>
+<div class="cp"><div><div class="lab">Privacy · 06</div><div class="nm">Disable advertising ID</div><div class="k">HKCU\…\AdvertisingInfo\Enabled</div></div><div class="m"><div class="lab">Now</div><div class="v">0</div></div><div class="m"><div class="lab">Active</div><div class="sw on"></div></div><span class="stamp ok">Applied</span></div>
+</main>
+<aside><h2>History</h2>
+<div class="h"><span class="t">14:02</span><span>Show file extensions</span><span class="ok">applied</span></div>
+<div class="h"><span class="t">14:02</span><span>Disable SysMain</span><span class="void">failed</span></div>
+<div class="h"><span class="t">13:55</span><span>Classic context menu</span><span class="t">reverted</span></div>
+<div class="h"><span class="t">13:50</span><span>Restore point</span><span class="ok">created</span></div>
+<div class="go">Apply 2 changes</div></aside>
+</body></html>

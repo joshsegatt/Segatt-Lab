@@ -53,3 +53,6 @@ rustup-init.exe
 # verify screenshots
 .verify/
 .playwright-cli/
+
+# impeccable review captures (regenerated each run)
+.impeccable/review/

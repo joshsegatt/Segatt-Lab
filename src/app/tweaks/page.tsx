@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useQueryParam } from "@/hooks/useQueryParam";
+import { recordActivity } from "@/lib/history";
+import { fmt } from "@/lib/fmt";
+import { TWEAKS as CATALOG, PRESETS as PRESET_DEFS, tweaksInPreset, type PresetKey } from "@/lib/tweaks-catalog";
 import {
   Loader2,
   Play,
@@ -15,6 +19,9 @@ import {
   Monitor,
   Settings,
   LifeBuoy,
+  Gamepad2,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 // ─── Tweak Row Component ────────────────────────────────────
@@ -64,42 +71,32 @@ import { PageHeader } from "@/components/ui/PageHeader";
 
 // ─── Main Page ───────────────────────────────────────────────
 export default function TweaksPage() {
-  const { t } = useLanguage();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { t, language } = useLanguage();
+  // Arriving from the Home search (?preset=gaming or ?select=<id>) preselects those tweaks.
+  const presetParam = useQueryParam("preset");
+  const selectParam = useQueryParam("select");
+  const fromQuery = useMemo(() => {
+    if (presetParam && ["essential", "privacy", "gaming"].includes(presetParam)) {
+      return new Set(tweaksInPreset(presetParam as PresetKey).map((tw) => tw.id));
+    }
+    return new Set(selectParam && CATALOG.some((tw) => tw.id === selectParam) ? [selectParam] : []);
+  }, [presetParam, selectParam]);
+  const [picked, setPicked] = useState<Set<string> | null>(null);
+  const selected = picked ?? fromQuery;
+  const setSelected = (next: Set<string> | ((prev: Set<string>) => Set<string>)) =>
+    setPicked((prev) => (typeof next === "function" ? next(prev ?? fromQuery) : next));
   const [isAdmin, setIsAdmin]   = useState<boolean | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [notification, setNotification] = useState<{ type: "success"|"error"|"info"; msg: string } | null>(null);
 
-  const TWEAKS: TweakDef[] = [
-    { id: "disable_telemetry",       name: "Disable Telemetry",            description: "Stops Windows from sending diagnostic and usage data.",       column: "privacy", preset: ["essential", "privacy"] },
-    { id: "disable_cortana",         name: "Disable Cortana",              description: "Disables the Cortana virtual assistant.",         column: "privacy", preset: ["privacy"] },
-    { id: "disable_activity_feed",   name: "Disable Activity Feed",        description: "Prevents Windows from tracking your activity history.",               column: "privacy", preset: ["privacy"] },
-    { id: "remove_bing_search",      name: "Remove Bing Search",           description: "Removes Bing results from Start Menu search.",                       column: "privacy", preset: ["essential", "privacy"] },
-    { id: "disable_location",        name: "Disable Location",             description: "Prevents apps from accessing your location.",                                  column: "privacy", preset: ["privacy"] },
-    { id: "disable_advertising_id",  name: "Disable Advertising ID",       description: "Stops advertisers from tracking your usage patterns.",                    column: "privacy", preset: ["essential", "privacy"] },
-    { id: "disable_wifi_sense",      name: "Disable WiFi Sense",           description: "Prevents auto-connecting to shared networks.",                  column: "privacy" },
-    { id: "disable_feedback",        name: "Disable Feedback",             description: "Stops Windows from asking for feedback.",                 column: "privacy", preset: ["privacy"] },
-
-    { id: "optimize_hpet",           name: "Optimize HPET",                description: "Stops forcing HPET as the system timer (Windows default).", column: "performance", preset: ["gaming"] },
-    { id: "disable_game_bar",        name: "Disable Game Bar",             description: "Removes Xbox Game Bar overlay.",                    column: "performance", preset: ["gaming"] },
-    { id: "high_performance_plan",   name: "High Performance Plan",        description: "Switches Windows to maximum performance mode.",                            column: "performance", preset: ["essential", "gaming"] },
-    { id: "disable_superfetch",      name: "Disable SysMain",              description: "Disables service that pre-loads apps (SSD recommended).",                  column: "performance", preset: ["essential"] },
-    { id: "disable_search_indexing", name: "Disable Indexing",             description: "Stops background drive indexing.",                         column: "performance" },
-    { id: "disable_visual_fx",       name: "Disable Visual Effects",       description: "Turns off animations for responsiveness.",           column: "performance", preset: ["essential"] },
-    { id: "set_dns_cloudflare",      name: "Set DNS Cloudflare",           description: "Changes DNS to 1.1.1.1 for privacy/speed.",              column: "performance" },
-
-    { id: "dark_mode",               name: "Enable Dark Mode",             description: "Forces dark mode for system UI.",                                            column: "interface", preset: ["essential"] },
-    { id: "classic_context_menu",    name: "Classic Context Menu",         description: "Restores Win10-style right-click menu in Win11.",          column: "interface", preset: ["essential"] },
-    { id: "show_file_extensions",    name: "Show Extensions",              description: "Makes file extensions visible in Explorer.",               column: "interface", preset: ["essential"] },
-    { id: "show_hidden_files",       name: "Show Hidden Files",            description: "Reveals hidden files in File Explorer.",                                  column: "interface" },
-    { id: "disable_mouse_accel",     name: "Disable Mouse Accel",          description: "Removes pointer precision for gaming consistency.",                    column: "interface", preset: ["gaming"] },
-
-    { id: "enable_long_paths",       name: "Enable Long Paths",            description: "Removes the 260-character path limit.",                            column: "system", preset: ["essential"] },
-    { id: "enable_f8_boot",          name: "Enable F8 Boot",               description: "Restores F8 boot options access.",             column: "system" },
-    { id: "disable_fast_startup",    name: "Disable Fast Startup",         description: "Ensures clean shutdown instead of hybrid sleep.",                column: "system" },
-    { id: "disable_windows_update",  name: "Pause Updates",                description: "Turns off automatic updates. Manual updates still work.",              column: "system" },
-    { id: "create_restore_point",    name: "Manual Restore Point",         description: "Creates a System Restore Point immediately.",          column: "system", preset: ["essential"] },
-  ];
+  // Names and presets come from the shared catalog (also used by the Home search).
+  const TWEAKS: TweakDef[] = CATALOG.map((tw) => ({
+    id: tw.id,
+    name: tw.name[language],
+    description: tw.description[language],
+    column: tw.group,
+    preset: tw.presets,
+  }));
 
   const COLUMNS: { key: TweakDef["column"]; label: string; icon: React.ElementType }[] = [
     { key: "privacy",     label: t("tweaks.categories.privacy"),     icon: Shield },
@@ -108,11 +105,8 @@ export default function TweaksPage() {
     { key: "system",      label: t("tweaks.categories.system"),      icon: Settings },
   ];
 
-  const PRESETS = [
-    { key: "essential", label: "Essential",  icon: "⚡", desc: "Safe, recommended changes" },
-    { key: "privacy",   label: "Privacy",    icon: "🛡", desc: "Maximum privacy" },
-    { key: "gaming",    label: "Gaming",     icon: "🎮", desc: "Optimize for FPS" },
-  ] as const;
+  const PRESET_ICON = { essential: Sparkles, privacy: ShieldCheck, gaming: Gamepad2 } as const;
+  const PRESETS = PRESET_DEFS.map((p) => ({ key: p.key, label: p.name[language], icon: PRESET_ICON[p.key] }));
 
   useEffect(() => {
     invoke("check_admin").then((v) => setIsAdmin(v as boolean)).catch(() => {});
@@ -131,7 +125,7 @@ export default function TweaksPage() {
       return next;
     });
 
-  const applyPreset = (key: typeof PRESETS[number]["key"]) => {
+  const applyPreset = (key: PresetKey) => {
     const ids = TWEAKS.filter((t) => t.preset?.includes(key)).map((t) => t.id);
     setSelected(new Set(ids));
   };
@@ -174,6 +168,12 @@ export default function TweaksPage() {
     setNotification(failed.length === 0
       ? { type: "success", msg: `${ids.length} tweak(s) applied.${restoreNote}` }
       : { type: "error", msg: `${ids.length - failed.length} applied, ${failed.length} failed: ${names.join(", ")}.` });
+    recordActivity({
+      label: t("history.tweaks"),
+      detail: failed.length ? `${fmt(t("history.n_of_m"), { n: ids.length - failed.length, m: ids.length })} · ${names.join(", ")} ${t("history.failed")}` : String(ids.length),
+      status: failed.length ? "failed" : "ok",
+      href: "/tweaks",
+    });
     // Failed tweaks stay selected so they can be retried.
     setSelected(new Set(failed));
   };
@@ -192,7 +192,7 @@ export default function TweaksPage() {
     <div className="checklist-page fade-in">
       <PageHeader 
         title={t("tabs.tweaks")} 
-        description={t("tweaks.description") || "Optimize Windows settings."}
+        description={t("tweaks.subtitle")}
         compact={true}
       >
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -237,7 +237,7 @@ export default function TweaksPage() {
         </button>
         {PRESETS.map((p) => (
           <button key={p.key} className="preset-btn" onClick={() => applyPreset(p.key)}>
-            {p.icon} {p.label}
+            <p.icon size={14} strokeWidth={1.75} aria-hidden="true" /> {p.label}
           </button>
         ))}
       </div>

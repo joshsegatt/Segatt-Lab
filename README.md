@@ -1,27 +1,24 @@
 # Segatt Tools
 
-Native Windows maintenance suite. Local AI. Zero telemetry.
+Native Windows tuning app for gamers and PC enthusiasts. Zero telemetry.
 
 [Download](https://github.com/joshsegatt/Segatt-Tools/releases/latest) · [MIT license](LICENSE)
 
-A Tauri + Rust + Next.js desktop app that cleans the machine, manages startup, and updates software with winget — without sending data off the device. On-device suggestions run through WebLLM, not an API.
+A Tauri + Rust + Next.js desktop app. Type what you want in one search box and it finds the action: a gaming preset, a single tweak, an app to install, a cleanup or a repair. Every task reports its real result, and nothing leaves your PC.
 
 ## Features
 
-| | |
-| --- | --- |
-| System cleaner | Temp files, browser cache, Windows Update leftovers |
-| Startup manager | See what launches with Windows and turn it off |
-| Winget updater | Batch-upgrade installed apps |
-| Local AI | On-device suggestions via WebLLM. No cloud calls |
-| Health panel | CPU, RAM, and disk at a glance |
-| Privacy | No telemetry, no account, no phone-home |
+- **Search everything** — one composer on the Home screen finds presets, tweaks, apps, cleanup tasks and repairs, in Portuguese or English.
+- **Apps** — install and remove apps through winget.
+- **Tweaks** — privacy, performance, interface and system tweaks, with presets (gaming, privacy, essentials) and a restore point first.
+- **Cleaner** — temp files, update caches, shader caches, recycle bin, Windows.old.
+- **Fixes** — SFC, DISM, network reset, Windows Update reset, icon cache, classic control panels.
+- **Private** — no telemetry, no account, no cloud calls.
 
 ## Stack
 
 - Desktop — Tauri 2, Rust
 - UI — Next.js 16, React 19, TypeScript
-- Local model — `@mlc-ai/web-llm`
 
 ## Install
 
@@ -34,7 +31,7 @@ A Tauri + Rust + Next.js desktop app that cleans the machine, manages startup, a
 **From source**
 
 ```bash
-# Node 18+, Rust stable, Tauri CLI
+# Node 22.6+ (tests run TypeScript natively), Rust stable, Tauri CLI
 git clone https://github.com/joshsegatt/Segatt-Tools.git
 cd Segatt-Tools
 npm install

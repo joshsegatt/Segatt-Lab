@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Segatt Tools — Ajustes</title>
+<link rel="stylesheet" href="base.css">
+<style>
+.wrap{width:860px;margin:0 auto;padding:8px 0 140px}
+h1{font:600 30px/1.2 var(--display);letter-spacing:-.02em}
+.lede{color:var(--ink2);margin-top:6px}
+.tools{display:flex;align-items:center;gap:10px;margin:22px 0 18px}
+.seg{display:flex;padding:3px;border-radius:999px;background:var(--raise);border:1px solid var(--line)}
+.seg span{height:30px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;color:var(--ink2);font-weight:500;font-size:13px}
+.seg .on{background:var(--ink);color:#111;font-weight:600}
+.search{margin-left:auto;display:flex;align-items:center;gap:8px;height:36px;width:240px;padding:0 12px;border-radius:999px;background:var(--raise);border:1px solid var(--line);color:var(--ink3)}
+.gh{display:flex;align-items:baseline;gap:8px;margin:22px 4px 8px}
+.gh b{font:600 15px var(--display)}
+.gh span{color:var(--ink3);font-size:13px}
+.group{background:var(--raise);border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto 44px;gap:16px;align-items:center;padding:14px 18px}
+.row+.row,.det+.row{border-top:1px solid var(--line)}
+.row b{font-weight:600}
+.row small{display:block;color:var(--ink2);font-size:13px;margin-top:1px}
+.tag{height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;white-space:nowrap}
+.tag.on{background:rgba(61,220,151,.14);color:var(--brand)}
+.tag.off{background:rgba(255,255,255,.06);color:var(--ink2)}
+.tag.pend{background:rgba(245,184,75,.14);color:var(--warn)}
+.tag.bad{background:rgba(255,107,107,.14);color:var(--bad)}
+.sw{width:40px;height:22px;border-radius:11px;background:#3a3a3a;position:relative}
+.sw::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#d4d4d4;top:2px;left:2px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.sw.on{background:var(--brand)} .sw.on::after{left:20px;background:#fff}
+.row.sel{background:rgba(255,255,255,.025)}
+.det{padding:0 18px 16px;background:rgba(255,255,255,.025)}
+.det .box{border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 24px;font-size:13px}
+.det code{font:12.5px var(--mono);color:var(--ink2)}
+.det .v{font:12.5px var(--mono)}
+.det .v s{color:var(--ink3)}
+.det .v b{color:var(--brand)}
+.err{display:flex;align-items:center;gap:10px;color:var(--bad);font-size:13px;margin-top:4px}
+.err a{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.dock{position:absolute;left:calc(50% + 0px);bottom:24px;transform:translateX(-50%);width:760px;display:flex;align-items:center;gap:14px;padding:10px 10px 10px 20px;background:var(--raise2);border:1px solid var(--line2);border-radius:999px;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.dock .c{font-weight:600}
+.dock .s{color:var(--ink2);font-size:13px;display:flex;align-items:center;gap:6px}
+.dock .s svg{color:var(--brand);width:16px;height:16px}
+.dock .sp{margin-left:auto}
+</style></head><body>
+<aside class="side">
+  <div class="brand"><span class="mark">S</span><b>Segatt Tools</b></div>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8l-9-5-9 5v8l9 5 9-5zM3.3 7 12 12l8.7-5M12 22V12"/></svg>Apps<span class="n">7 updates</span></a>
+  <a class="nav on"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Ajustes<span class="n">7/25</span></a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Limpeza<span class="n">3,2 GB</span></a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg>Reparos</a>
+  <a class="nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Controle</a>
+  <div class="grp">Hoje</div>
+  <div class="hist">Preset Gaming aplicado <i>· 6</i></div>
+  <div class="hist">Limpeza concluída <i>· 2,1 GB</i></div>
+  <div class="hist"><span class="bad">Desativar SysMain falhou</span></div>
+  <div class="pc"><span class="av"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><div>DESKTOP-3T4HPS2<small>Windows 11 Pro 24H2</small></div></div>
+</aside>
+<main class="main">
+  <div class="top"><span class="t">Ajustes</span><span class="pill"><span class="dot"></span>Administrador</span></div>
+  <div style="overflow:hidden;flex:1"><div class="wrap">
+    <h1>Ajustes</h1>
+    <p class="lede">Estado lido agora do seu PC. Qualquer ajuste volta ao valor original com um clique.</p>
+    <div class="tools">
+      <div class="seg"><span>Nenhum</span><span>Essencial</span><span class="on">Jogo</span><span>Privacidade</span><span>Personalizado</span></div>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Buscar ajuste</div>
+    </div>
+
+    <div class="gh"><b>Desempenho</b><span>2 de 7 ativos</span></div>
+    <div class="group">
+      <div class="row sel"><div><b>Plano de energia de alto desempenho</b><small>Mantém o clock da CPU alto durante o jogo</small></div><span class="tag pend">Vai ativar</span><span class="sw on"></span></div>
+      <div class="det"><div class="box"><code>powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c</code><span class="v"><s>Equilibrado</s> → <b>Alto desempenho</b></span><span style="color:var(--ink3)">Para desfazer: volta ao plano Equilibrado.</span><span style="color:var(--ink3)">Sem reinício</span></div></div>
+      <div class="row"><div><b>Desativar gravação da Game Bar</b><small>Para a gravação em segundo plano do Xbox Game Bar</small></div><span class="tag on">Ativo</span><span class="sw on"></span></div>
+      <div class="row"><div><b>Desativar SysMain</b><small>Serviço que pré-carrega apps na memória</small><div class="err"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>Falhou às 14:02: acesso negado. <a>Ver detalhes</a> <a>Tentar de novo</a></div></div><span class="tag bad">Falhou</span><span class="sw"></span></div>
+      <div class="row"><div><b>DNS Cloudflare 1.1.1.1</b><small>Wi-Fi e Ethernet 2 · hoje: automático (DHCP)</small></div><span class="tag off">Padrão do Windows</span><span class="sw"></span></div>
+    </div>
+
+    <div class="gh"><b>Privacidade</b><span>4 de 8 ativos</span></div>
+    <div class="group">
+      <div class="row sel"><div><b>Desativar telemetria</b><small>Para o envio de dados de diagnóstico para a Microsoft</small></div><span class="tag pend">Vai ativar</span><span class="sw on"></span></div>
+      <div class="row"><div><b>Desativar histórico de atividades</b><small>A Linha do tempo deixa de registrar o que você abre</small></div><span class="tag on">Ativo</span><span class="sw on"></span></div>
+    </div>
+  </div></div>
+  <div class="dock">
+    <span class="c">6 alterações</span>
+    <span class="s"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Ponto de restauração antes</span>
+    <span class="s">2 pedem reinício</span>
+    <span class="sp"></span>
+    <span class="btn">Descartar</span>
+    <span class="btn brand">Aplicar 6 alterações</span>
+  </div>
+</main>
+</body></html>

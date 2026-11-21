@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Segatt Tools — Início</title>
+<link rel="stylesheet" href="base.css">
+<style>
+.glow{position:absolute;left:50%;top:230px;width:900px;height:420px;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(40% 50% at 35% 55%,rgba(61,220,151,.16),transparent 70%),radial-gradient(35% 45% at 68% 45%,rgba(245,184,75,.10),transparent 70%);filter:blur(20px)}
+.center{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;padding-top:96px}
+h1{font:600 34px/1.15 var(--display);letter-spacing:-.02em;text-align:center}
+.lede{color:var(--ink2);font-size:15.5px;margin-top:10px;text-align:center}
+.composer{width:760px;margin-top:32px;background:var(--raise);border:1px solid var(--line2);border-radius:var(--r-xl);padding:16px 14px 12px 20px;box-shadow:0 12px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04)}
+.ph{color:var(--ink3);font-size:16px;min-height:48px}
+.crow{display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2);font-size:13px;font-weight:500}
+.send{margin-left:auto;width:36px;height:36px;border-radius:50%;background:var(--ink);color:#111;display:grid;place-items:center}
+.sugs{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center;width:780px}
+.sug{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--ink2);font-weight:500}
+.sug b{color:var(--ink);font-weight:600}
+.sug svg{color:var(--brand)}
+.state{margin-top:56px;width:760px;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r-l);background:rgba(255,255,255,.02)}
+.state>div{padding:14px 18px}
+.state>div+div{border-left:1px solid var(--line)}
+.state small{display:block;color:var(--ink3);font-size:12px;font-weight:500}
+.state b{font:600 18px var(--display);letter-spacing:-.01em}
+.state span{color:var(--ink3);font-size:13px}
+.bar{height:3px;border-radius:2px;background:var(--raise2);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink2);border-radius:2px}
+
+.typed{color:var(--ink);font-size:16px;min-height:48px}.typed i{display:inline-block;width:2px;height:20px;background:var(--brand);vertical-align:-4px;margin-left:1px}
+.res{width:760px;margin-top:10px;background:var(--raise);border:1px solid var(--line2);border-radius:var(--r-l);padding:8px;box-shadow:0 18px 48px rgba(0,0,0,.45)}
+.rg{font:600 12px var(--font);color:var(--ink3);padding:10px 12px 4px}
+.ri{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-s)}
+.ri.sel{background:var(--raise2)}
+.ri .ic{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--ink2)}
+.ri .tx b{font-weight:600}.ri .tx small{display:block;color:var(--ink3);font-size:12.5px}
+.ri .r{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--ink3);font-size:12.5px}
+.tag{height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;display:inline-flex;align-items:center}
+.tag.on{background:rgba(61,220,151,.14);color:var(--brand)}.tag.off{background:rgba(255,255,255,.06);color:var(--ink2)}
+.kbd{font:12px var(--mono);border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--ink2)}
+.lead{display:flex;align-items:center;gap:14px;padding:12px;border-radius:var(--r-m);background:linear-gradient(90deg,rgba(61,220,151,.10),rgba(61,220,151,.02));border:1px solid rgba(61,220,151,.22);margin:4px 4px 6px}
+.lead .ic{background:var(--brand);color:var(--brand-ink)}
+.foot{display:flex;gap:16px;padding:10px 12px 4px;color:var(--ink3);font-size:12px;border-top:1px solid var(--line);margin-top:6px}
+</style></head><body>
+<aside class="side">
+  <div class="brand"><span class="mark">S</span><b>Segatt Tools</b></div>
+  <a class="nav on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8l-9-5-9 5v8l9 5 9-5zM3.3 7 12 12l8.7-5M12 22V12"/></svg>Apps<span class="n">7 updates</span></a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Ajustes<span class="n">7/25</span></a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="m16 22-1-4M19 13.99a1 1 0 0 0 1-1V12a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V4a2 2 0 0 0-4 0v5a1 1 0 0 1-1 1H6a2 2 0 0 0-2 2v.99a1 1 0 0 0 1 1M5 14h14l1.973 6.767A1 1 0 0 1 20 22H4a1 1 0 0 1-.973-1.233zM8 22l1-4"/></svg>Limpeza<span class="n">3,2 GB</span></a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg>Reparos</a>
+  <a class="nav"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Controle</a>
+  <div class="grp">Hoje</div>
+  <div class="hist">Preset Gaming aplicado <i>· 6</i></div>
+  <div class="hist">Limpeza concluída <i>· 2,1 GB</i></div>
+  <div class="hist"><span class="bad">Desativar SysMain falhou</span></div>
+  <div class="grp">Ontem</div>
+  <div class="hist">Steam e Discord instalados</div>
+  <div class="hist">Verificação SFC <i>· sem erros</i></div>
+  <div class="pc"><span class="av"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><div>DESKTOP-3T4HPS2<small>Windows 11 Pro 24H2</small></div></div>
+</aside>
+<main class="main">
+  <div class="top"><span class="t">Início</span><div style="display:flex;gap:8px;align-items:center"><span class="pill"><span class="dot"></span>Administrador</span><span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span></div></div>
+  <div class="glow"></div>
+  <section class="center">
+    <h1>O que vamos ajustar hoje?</h1>
+    <p class="lede">Procure qualquer ação ou descreva o que você quer. Tudo pode ser desfeito.</p>
+    <div class="composer">
+      <div class="typed">jogo<i></i></div>
+      <div class="crow">
+        <span class="chip"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>Ponto de restauração antes</span>
+        <span class="chip"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>Seguro</span>
+        <span class="send"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+      </div>
+    </div>
+    <div class="res">
+      <div class="lead ri"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg></span><div class="tx"><b>Aplicar o modo jogo</b><small>6 ajustes · cria um ponto de restauração antes · 2 pedem reinício</small></div><div class="r"><span class="kbd">Enter</span></div></div>
+      <div class="rg">Ajustes</div>
+      <div class="ri sel"><span class="ic"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></span><div class="tx"><b>Plano de energia de alto desempenho</b><small>Mantém o clock da CPU alto durante o jogo</small></div><div class="r"><span class="tag off">Equilibrado</span></div></div>
+      <div class="ri"><span class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4"/></svg></span><div class="tx"><b>Desativar gravação da Game Bar</b><small>Para a gravação em segundo plano do Xbox Game Bar</small></div><div class="r"><span class="tag on">Ativo</span></div></div>
+      <div class="ri"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2v6M4.9 7.1l3 3M2 12h6"/><circle cx="12" cy="12" r="10"/></svg></span><div class="tx"><b>Desativar aceleração do mouse</b><small>Mira consistente: o cursor anda igual em qualquer velocidade</small></div><div class="r"><span class="tag off">Padrão do Windows</span></div></div>
+      <div class="rg">Apps</div>
+      <div class="ri"><span class="ic"><svg viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15M21 8l-9-5-9 5v8l9 5 9-5z"/></svg></span><div class="tx"><b>Steam</b><small>Valve.Steam · instalado · atualização 2.10.91</small></div><div class="r">Atualizar</div></div>
+      <div class="rg">Limpeza</div>
+      <div class="ri"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span><div class="tx"><b>Limpar cache de shaders</b><small>NVIDIA e DirectX · 1,4 GB · pode reduzir travadas</small></div><div class="r">1,4 GB</div></div>
+      <div class="foot"><span><span class="kbd">↑</span> <span class="kbd">↓</span> navegar</span><span><span class="kbd">Enter</span> aplicar</span><span><span class="kbd">Esc</span> fechar</span></div>
+    </div>
+  </section>
+</main>
+</body></html>

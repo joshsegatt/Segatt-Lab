@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-22T00:00:00Z",
+  "title": "Design System: Segatt Tools",
+  "extensions": {
+    "theme": { "colorScheme": "dark", "note": "Dark only. Light theme planned, not built; no light tokens exist." },
+    "colorMeta": {
+      "jade": { "role": "primary", "displayName": "Jade", "cssVar": "--brand", "hover": "#52e4a6", "tonalRamp": ["#05140d", "#0d3a26", "#16613f", "#1f8a59", "#2db577", "#3ddc97", "#8ceabf", "#d6f8e8"] },
+      "jade-ink": { "role": "primary", "displayName": "Jade Ink", "cssVar": "--brand-ink" },
+      "jade-soft": { "role": "primary", "displayName": "Jade Wash", "cssVar": "--brand-soft" },
+      "amber-pending": { "role": "secondary", "displayName": "Amber Pending", "cssVar": "--pending", "tonalRamp": ["#2a1c05", "#523709", "#7d540e", "#a87114", "#d6921f", "#f5b84b", "#f9d38e", "#fdefd6"] },
+      "amber-soft": { "role": "secondary", "displayName": "Amber Wash", "cssVar": "--pending-soft" },
+      "red-failed": { "role": "tertiary", "displayName": "Red Failed", "cssVar": "--danger", "tonalRamp": ["#2e0909", "#5a1414", "#8a2020", "#ba2e2e", "#e44848", "#ff6b6b", "#ffa6a6", "#ffe0e0"] },
+      "red-soft": { "role": "tertiary", "displayName": "Red Wash", "cssVar": "--danger-soft" },
+      "graphite-side": { "role": "neutral", "displayName": "Sidebar Graphite", "cssVar": "--side", "tonalRamp": ["#131313", "#1a1a1a", "#242424", "#2c2c2c", "#737373", "#a1a1a1", "#ededed", "#f7f7f7"] },
+      "graphite-canvas": { "role": "neutral", "displayName": "Canvas Graphite", "cssVar": "--canvas" },
+      "graphite-raise": { "role": "neutral", "displayName": "Raised Graphite", "cssVar": "--raise" },
+      "graphite-raise-2": { "role": "neutral", "displayName": "Raised Graphite 2", "cssVar": "--raise-2" },
+      "hover-wash": { "role": "neutral", "displayName": "Hover Wash", "cssVar": "--hover" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "cssVar": "--line" },
+      "hairline-strong": { "role": "neutral", "displayName": "Strong Hairline", "cssVar": "--line-2" },
+      "ink": { "role": "neutral", "displayName": "Ink", "cssVar": "--ink" },
+      "ink-2": { "role": "neutral", "displayName": "Ink 2", "cssVar": "--ink-2" },
+      "ink-3": { "role": "neutral", "displayName": "Ink 3", "cssVar": "--ink-3" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The one Home question above the composer." },
+      "headline": { "displayName": "Headline", "purpose": "Page header on every working screen." },
+      "title": { "displayName": "Title", "purpose": "Product name, top-bar screen name, group titles." },
+      "value": { "displayName": "Value", "purpose": "Live readings in the state strip, tabular numbers." },
+      "body": { "displayName": "Body", "purpose": "Default UI text." },
+      "input": { "displayName": "Input", "purpose": "Composer field." },
+      "label": { "displayName": "Label", "purpose": "Sentence-case group labels, state terms, tags." },
+      "mono": { "displayName": "Mono", "purpose": "Keyboard keys, commands and literal values only." }
+    },
+    "shadows": [
+      { "name": "raise", "value": "0 12px 40px rgba(0, 0, 0, 0.35)", "purpose": "Composer at rest, with inset 0 1px 0 rgba(255,255,255,0.04)." },
+      { "name": "float", "value": "0 16px 48px rgba(0, 0, 0, 0.45)", "purpose": "Results panel, toasts, tooltips." },
+      { "name": "status-halo", "value": "0 0 0 3px rgba(61, 220, 151, 0.18)", "purpose": "Ring on live status dots; amber variant at the same alpha for warn." },
+      { "name": "composer-glow", "value": "radial-gradient(40% 50% at 35% 55%, rgba(61,220,151,0.15), transparent 70%), radial-gradient(35% 45% at 68% 45%, rgba(245,184,75,0.09), transparent 70%); filter: blur(20px)", "purpose": "The single atmospheric glow, 900x420 behind the Home composer only." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default decelerating curve for press, entrance and meter changes." },
+      { "name": "state-change", "value": "0.15s", "purpose": "Hover background, border and colour changes." },
+      { "name": "results-in", "value": "0.22s ease-out, from opacity 0 translateY(-6px) scale(0.99)", "purpose": "Results panel entrance." },
+      { "name": "fade-in", "value": "0.35s ease-out, from opacity 0 translateY(4px)", "purpose": "Screen content entrance." },
+      { "name": "meter", "value": "width 0.6s ease-out", "purpose": "Live meters." },
+      { "name": "reduced-motion", "value": "animation/transition 0.01ms", "purpose": "Global collapse under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "state-strip-fold", "value": "900px" }
+    ],
+    "layout": { "sidebarWidth": "264px", "topbarHeight": "56px", "contentPadding": "0 32px 40px", "homeColumn": "760px", "headerDescriptionMax": "60ch" },
+    "focus": { "value": "outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px" },
+    "legacyAliases": {
+      "status": "To be removed once every screen is rebuilt; not part of the system.",
+      "names": ["--bg-main", "--bg-sidebar", "--glass-bg", "--glass-border", "--bg-hover", "--accent", "--accent-dim", "--border-accent", "--accent-glow", "--text-primary", "--text-secondary", "--text-muted", "--success", "--warning", "--r-lg", "--r-md", "--r-sm", "--font-display", "--font-body"]
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one colored action on a screen.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Aplicar</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--ink); font: 600 13.5px var(--font-ui); cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.15s var(--ease-out); } .ds-btn:active { transform: scale(0.98); } .ds-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; } .ds-btn-primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; } .ds-btn-primary:hover { background: #52e4a6; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral action on raised graphite.",
+      "html": "<button class=\"ds-btn2\">Reverter</button>",
+      "css": ".ds-btn2 { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--raise); color: var(--ink); font: 600 13.5px var(--font-ui); cursor: pointer; transition: background 0.15s, transform 0.15s var(--ease-out); } .ds-btn2:hover { background: var(--raise-2); } .ds-btn2:active { transform: scale(0.98); } .ds-btn2:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }"
+    },
+    {
+      "name": "Composer",
+      "kind": "input",
+      "refersTo": "composer",
+      "description": "Signature command input on Home.",
+      "html": "<div class=\"ds-composer\"><input class=\"ds-composer-input\" placeholder=\"O que você quer ajustar?\"><div class=\"ds-composer-row\"><span class=\"ds-note\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg>Ponto de restauração antes de qualquer ajuste</span><button class=\"ds-send\" aria-label=\"Enviar\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/></svg></button></div></div>",
+      "css": ".ds-composer { width: min(760px, 100%); background: var(--raise); border: 1px solid var(--line-2); border-radius: var(--r-xl); padding: 16px 14px 12px 20px; box-shadow: var(--shadow-raise), inset 0 1px 0 rgba(255,255,255,0.04); transition: border-color 0.2s; } .ds-composer:focus-within { border-color: rgba(255,255,255,0.2); } .ds-composer-input { width: 100%; min-height: 48px; background: none; border: 0; outline: 0; color: var(--ink); font: 16px var(--font-ui); caret-color: var(--brand); } .ds-composer-input::placeholder { color: var(--ink-3); } .ds-composer-row { display: flex; align-items: center; gap: 8px; } .ds-note { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 13px; } .ds-note svg { color: var(--brand); } .ds-send { margin-left: auto; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 0; background: var(--ink); color: #111; cursor: pointer; transition: transform 0.15s var(--ease-out); } .ds-send:hover { transform: scale(1.05); } .ds-send:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }"
+    },
+    {
+      "name": "Command Result Row",
+      "kind": "custom",
+      "refersTo": "result-row",
+      "description": "Lead preset result and a regular result inside the floating results panel.",
+      "html": "<ul class=\"ds-results\"><li class=\"ds-row ds-lead\"><span class=\"ds-ico\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"6\" x2=\"10\" y1=\"11\" y2=\"11\"/><line x1=\"8\" x2=\"8\" y1=\"9\" y2=\"13\"/><rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\"/></svg></span><span class=\"ds-txt\"><b>Modo jogo</b><small>4 ajustes · você revisa antes de aplicar</small></span><span class=\"ds-kbd\">Enter</span></li><li class=\"ds-row\"><span class=\"ds-ico\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z\"/></svg></span><span class=\"ds-txt\"><b>Desativar aceleração do mouse</b><small>O cursor anda igual em qualquer velocidade.</small></span></li></ul>",
+      "css": ".ds-results { list-style: none; width: min(760px, 100%); background: var(--raise); border: 1px solid var(--line-2); border-radius: var(--r-l); padding: 8px; box-shadow: var(--shadow-float); } .ds-row { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: var(--r-s); cursor: pointer; color: var(--ink); font: 14px/1.45 var(--font-ui); } .ds-row:hover { background: var(--raise-2); } .ds-ico { width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center; background: rgba(255,255,255,0.05); color: var(--ink-2); } .ds-txt { min-width: 0; display: flex; flex-direction: column; } .ds-txt b { font-weight: 600; } .ds-txt small { color: var(--ink-3); font-size: 12.5px; } .ds-lead { margin: 4px 0 6px; padding: 12px; border-radius: var(--r-m); border: 1px solid rgba(61,220,151,0.22); background: linear-gradient(90deg, rgba(61,220,151,0.1), rgba(61,220,151,0.02)); } .ds-lead:hover { border-color: rgba(61,220,151,0.4); } .ds-lead .ds-ico { background: var(--brand); color: var(--brand-ink); } .ds-kbd { margin-left: auto; font: 12px var(--font-mono); color: var(--ink-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 6px; }"
+    },
+    {
+      "name": "Suggestion Pill",
+      "kind": "chip",
+      "refersTo": "suggestion-pill",
+      "description": "Home suggestion with a real count.",
+      "html": "<a class=\"ds-sug\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"6\" x2=\"10\" y1=\"11\" y2=\"11\"/><line x1=\"8\" x2=\"8\" y1=\"9\" y2=\"13\"/><rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\"/></svg><b>Modo jogo</b><span>4 ajustes</span></a>",
+      "css": ".ds-sug { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); color: var(--ink-2); font: 500 14px var(--font-ui); text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-sug:hover { background: var(--hover); border-color: var(--line-2); } .ds-sug:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; } .ds-sug svg { color: var(--brand); } .ds-sug b { color: var(--ink); font-weight: 600; }"
+    },
+    {
+      "name": "Status Pill and Tags",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Top-bar status with halo dot, and state tags.",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-pill\"><span class=\"ds-dot\"></span>Administrador</span><span class=\"ds-tag ds-on\">Ativo</span><span class=\"ds-tag ds-pend\">Pendente</span><span class=\"ds-tag ds-bad\">Falhou</span></div>",
+      "css": ".ds-tags { display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); } .ds-pill { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); font-size: 13px; font-weight: 500; } .ds-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px rgba(61,220,151,0.18); } .ds-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 600; } .ds-on { background: var(--brand-soft); color: var(--brand); } .ds-pend { background: var(--pending-soft); color: var(--pending); } .ds-bad { background: var(--danger-soft); color: var(--danger); }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Nav items in the 264px sidebar.",
+      "html": "<nav class=\"ds-side\"><a class=\"ds-nav ds-active\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>Início</a><a class=\"ds-nav\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>Reparos</a></nav>",
+      "css": ".ds-side { width: 264px; padding: 14px 10px; background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; } .ds-nav { display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 10px; border-radius: var(--r-s); color: var(--ink-2); font: 500 14px var(--font-ui); text-decoration: none; transition: background 0.15s, color 0.15s; } .ds-nav:hover { background: var(--hover); color: var(--ink); } .ds-nav:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; } .ds-active, .ds-active:hover { background: var(--raise); color: var(--ink); }"
+    },
+    {
+      "name": "Live State Strip",
+      "kind": "card",
+      "refersTo": "state-strip",
+      "description": "Real readings in one hairline outline with meters.",
+      "html": "<dl class=\"ds-state\"><div><dt>CPU</dt><dd><b>12%</b></dd><div class=\"ds-meter\"><i style=\"width:12%\"></i></div></div><div><dt>Memória</dt><dd><b>9,4</b> <span>/ 32 GB</span></dd><div class=\"ds-meter\"><i style=\"width:29%\"></i></div></div></dl>",
+      "css": ".ds-state { width: min(760px, 100%); display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: var(--r-l); background: rgba(255,255,255,0.02); font-family: var(--font-ui); color: var(--ink); } .ds-state > div { padding: 14px 18px; } .ds-state > div + div { border-left: 1px solid var(--line); } .ds-state dt { color: var(--ink-3); font-size: 12px; font-weight: 500; } .ds-state dd { margin: 0; font-variant-numeric: tabular-nums; } .ds-state dd b { font: 600 18px var(--font-title); letter-spacing: -0.01em; } .ds-state dd span { color: var(--ink-3); font-size: 13px; } .ds-meter { height: 3px; border-radius: 2px; background: var(--raise-2); margin-top: 8px; overflow: hidden; } .ds-meter i { display: block; height: 100%; background: var(--ink-2); transition: width 0.6s var(--ease-out); }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Result notice with a meaning dot.",
+      "html": "<div class=\"ds-toast ds-toast-ok\">Ponto de restauração criado</div>",
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-m); border: 1px solid var(--line-2); background: var(--raise-2); color: var(--ink); font: 13px/1.4 var(--font-ui); box-shadow: var(--shadow-float); } .ds-toast::before { content: \"\"; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); } .ds-toast-ok::before { background: var(--brand); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Command Line",
+    "overview": "Segatt Tools reads like a modern AI desktop app (Copilot, the ChatGPT app, Antigravity), not like a gamer utility or a Windows settings page. The world is a quiet graphite room with one question and one composer at its centre: every action is found by typing, and every screen reports the PC's real state. Density is moderate and desktop-only: a 264px sidebar, a translucent 56px top bar, and a centred working column. Surfaces step up in flat greys and are separated by soft 1px light hairlines; depth comes from tone first and from two soft, diffuse shadows reserved for things that float.\n\nColour is almost absent on purpose. A single jade accent marks what is live, on, or the one primary action; amber means pending, red means failed. Everything else is ink on graphite. Type is the Windows system face (Segoe UI Variable, Display for titles and Text for UI) and Cascadia Mono only where the user reads something literal: a key, a command, a value. The app must work offline, so there are no web fonts.\n\nThe system refuses the gamer-tool default of black, neon and glowing edges, and the settings-page default of a wall of toggles. This build is dark only. A light theme is planned and not built; no light tokens exist and none should be invented until it ships.",
+    "keyCharacteristics": [
+      "Graphite tonal ladder (side, canvas, raise, raise-2) with 1px light hairlines instead of heavy borders.",
+      "One jade accent, rationed to live state and the primary action.",
+      "Large, soft radii: 28px composer, 20px groups, full pills for buttons, chips and status.",
+      "System type only: Segoe UI Variable Display/Text, Cascadia Mono for literals.",
+      "Soft diffuse shadows only on floating layers; one faint jade-amber glow behind the Home composer.",
+      "Motion is short and decelerating (cubic-bezier(0.16, 1, 0.3, 1)), and fully disabled under reduced motion."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Jade means \"live, on, or do this\". It never decorates: no jade headings, jade borders on idle cards, or jade icons without a state behind them. Suggestion-pill and preset icons are the single sanctioned decorative use, as small 16px glyphs.", "section": "colors" },
+      { "name": "The Honest Colour Rule", "body": "Amber and red are reserved for pending and failed. A failure is never rendered in jade or neutral to soften it.", "section": "colors" },
+      { "name": "The System Face Rule", "body": "Only installed Windows faces. No web fonts, ever: the app runs offline.", "section": "typography" },
+      { "name": "The Literal Mono Rule", "body": "Cascadia Mono is for keys, commands, registry paths and values. Never for headings, labels or decoration.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Lists, cards, pills and nav sit flat. Only something that floats over other content gets a shadow.", "section": "elevation" },
+      { "name": "The One Glow Rule", "body": "The single atmospheric glow is the faint, blurred jade-and-amber radial behind the Home composer (15% and 9% alpha). No other surface glows.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep jade for live state, the primary action and focus; use amber only for pending and red only for failed.",
+      "Do separate surfaces by tone and 1px hairlines; give a shadow only to things that float (Raise for the composer, Float for panels, toasts, tooltips).",
+      "Do make every button, chip and status indicator a full pill, and match container radius to size (28 / 20 / 14 / 10px).",
+      "Do use Segoe UI Variable Display for titles and Text for UI, and Cascadia Mono only for keys, commands and values.",
+      "Do show real numbers only; when a reading is not available yet, show nothing or a dash, never a placeholder figure.",
+      "Do honour reduced motion: the global rule collapses every animation and transition."
+    ],
+    "donts": [
+      "Don't use black, neon, or glowing edges; the only glow is the faint one behind the Home composer.",
+      "Don't build screens as a wall of toggles; lead with the composer, grouped lists and visible state.",
+      "Don't load web fonts or icon fonts; icons are inline SVG line icons at 1.75 stroke.",
+      "Don't invent light-theme values; the light theme is not built yet.",
+      "Don't use the legacy variable names (`--bg-main`, `--bg-sidebar`, `--glass-bg`, `--glass-border`, `--bg-hover`, `--accent`, `--accent-dim`, `--border-accent`, `--accent-glow`, `--text-primary`, `--text-secondary`, `--text-muted`, `--success`, `--warning`, `--r-lg`, `--r-md`, `--r-sm`, `--font-display`, `--font-body`) in new code. They are aliases kept only so screens not yet rebuilt inherit the palette, and are removed once those screens are rebuilt. They are not part of this system."
+    ]
+  }
+}
