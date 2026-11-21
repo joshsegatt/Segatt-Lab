@@ -23,6 +23,11 @@ interface GithubStats {
   }[];
 }
 
+interface GithubRelease {
+  tag_name: string;
+  assets: { download_count: number }[];
+}
+
 export default function AdminPage() {
   const [stats, setStats] = useState<GithubStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +42,8 @@ export default function AdminPage() {
       const repoData = await repoResp.json();
 
       let total = 0;
-      const releaseStats = releases.map((r: any) => {
-        const count = r.assets.reduce((acc: number, a: any) => acc + a.download_count, 0);
+      const releaseStats = (releases as GithubRelease[]).map((r) => {
+        const count = r.assets.reduce((acc, a) => acc + a.download_count, 0);
         total += count;
         return { tag: r.tag_name, downloads: count };
       });

@@ -33,11 +33,17 @@ pub struct TweakSuggestion {
 
 #[tauri::command]
 pub async fn get_system_context() -> Result<SystemContext, String> {
+    tauri::async_runtime::spawn_blocking(read_system_context)
+        .await
+        .map_err(|e| format!("Runtime error: {e}"))
+}
+
+fn read_system_context() -> SystemContext {
+    // CPU usage is a delta between two refreshes at least
+    // MINIMUM_CPU_UPDATE_INTERVAL apart; 100 ms gave 0% or noise.
     let mut sys = System::new_all();
+    std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
     sys.refresh_all();
-    
-    std::thread::sleep(std::time::Duration::from_millis(100));
-    sys.refresh_cpu_all();
 
     let total_memory = sys.total_memory() / 1024 / 1024;
     let used_memory = sys.used_memory() / 1024 / 1024;
@@ -54,17 +60,28 @@ pub async fn get_system_context() -> Result<SystemContext, String> {
         })
         .collect::<Vec<_>>();
 
-    processes.sort_by(|a, b| b.cpu_usage.partial_cmp(&a.cpu_usage).unwrap());
+    processes.sort_by(|a, b| b.cpu_usage.total_cmp(&a.cpu_usage));
     let top_processes = processes.into_iter().take(5).collect();
 
-    Ok(SystemContext {
+    SystemContext {
         total_memory,
         used_memory,
         cpu_usage,
         top_processes,
         os_name,
         os_version,
-    })
+    }
+}
+
+impl SystemContext {
+    /// Name of the busiest process, or "-" when the list is empty (it used to index [0] and crash).
+    fn top_process_name(&self) -> &str {
+        self.top_processes.first().map(|p| p.name.as_str()).unwrap_or("-")
+    }
+
+    fn ram_percent(&self) -> f32 {
+        if self.total_memory == 0 { 0.0 } else { self.used_memory as f32 / self.total_memory as f32 * 100.0 }
+    }
 }
 
 #[tauri::command]
@@ -101,9 +118,9 @@ pub async fn chat_with_segatt_ai(message: String, language: String) -> Result<St
     
     // RAM / Memory
     if msg.contains("ram") || msg.contains("memór") || msg.contains("memor") {
-        let ram_pct = (ctx.used_memory as f32 / ctx.total_memory as f32) * 100.0;
-        let p_name = &ctx.top_processes[0].name;
-        let free_gb = (ctx.total_memory - ctx.used_memory) as f32 / 1024.0;
+        let ram_pct = ctx.ram_percent();
+        let p_name = ctx.top_process_name();
+        let free_gb = ctx.total_memory.saturating_sub(ctx.used_memory) as f32 / 1024.0;
 
         if is_pt {
             return Ok(format!(
@@ -128,12 +145,12 @@ pub async fn chat_with_segatt_ai(message: String, language: String) -> Result<St
             if is_pt {
                 return Ok(format!(
                     "Gargalo de CPU Identificado ({:.1}%):\nO sistema está sob carga pesada. Recomendo:\n1. Ativar o 'Plano de Desempenho Máximo' em Tweaks.\n2. Fechar o processo '{}' se não estiver em uso.", 
-                    cpu_pct, ctx.top_processes[0].name
+                    cpu_pct, ctx.top_process_name()
                 ));
             }
             return Ok(format!(
                 "CPU Bottleneck Identified ({:.1}%):\nSystem is under heavy load. I recommend:\n1. Enable 'High Performance Plan' in Tweaks.\n2. Terminate '{}' if not strictly necessary.", 
-                cpu_pct, ctx.top_processes[0].name
+                cpu_pct, ctx.top_process_name()
             ));
         } else {
             if is_pt {
@@ -154,9 +171,9 @@ pub async fn chat_with_segatt_ai(message: String, language: String) -> Result<St
     // Diagnostic/Status
     if msg.contains("status") || msg.contains("diag") || msg.contains("check") {
         if is_pt { 
-            return Ok(format!("Relatório de Saúde Segatt — OS: {} | RAM: {:.0}% | CPU: {:.1}%.\nSua máquina está {}, focada em performance gamer.", ctx.os_name, (ctx.used_memory as f32 / ctx.total_memory as f32) * 100.0, ctx.cpu_usage, if ctx.cpu_usage < 30.0 { "otimizada" } else { "em carga" }));
+            return Ok(format!("Relatório de Saúde Segatt — OS: {} | RAM: {:.0}% | CPU: {:.1}%.\nSua máquina está {}, focada em performance gamer.", ctx.os_name, ctx.ram_percent(), ctx.cpu_usage, if ctx.cpu_usage < 30.0 { "otimizada" } else { "em carga" }));
         }
-        return Ok(format!("Segatt Health Report — OS: {} | RAM: {:.0}% | CPU: {:.1}%.\nYour machine is {}, focused on gaming performance.", ctx.os_name, (ctx.used_memory as f32 / ctx.total_memory as f32) * 100.0, ctx.cpu_usage, if ctx.cpu_usage < 30.0 { "optimized" } else { "under load" }));
+        return Ok(format!("Segatt Health Report — OS: {} | RAM: {:.0}% | CPU: {:.1}%.\nYour machine is {}, focused on gaming performance.", ctx.os_name, ctx.ram_percent(), ctx.cpu_usage, if ctx.cpu_usage < 30.0 { "optimized" } else { "under load" }));
     }
 
     // Default Greeting / Help

@@ -1,48 +1,59 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useSyncExternalStore, ReactNode } from "react";
 import { Language, translations } from "@/lib/i18n";
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (path: string) => any;
+  t: (path: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("pt");
+const STORAGE_KEY = "segatt_lang";
+const listeners = new Set<() => void>();
 
-  useEffect(() => {
-    const saved = localStorage.getItem("segatt_lang") as Language;
-    if (saved && (saved === "pt" || saved === "en")) {
-      setLanguageState(saved);
-    } else {
-      const browserLang = navigator.language.split("-")[0];
-      if (browserLang === "pt" || browserLang === "en") {
-        setLanguageState(browserLang as Language);
-      }
-    }
-  }, []);
+function readLanguage(): Language {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === "pt" || saved === "en") return saved;
+  } catch {
+    // storage unavailable: fall back to the browser language
+  }
+  return navigator.language.split("-")[0] === "en" ? "en" : "pt";
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  // Server snapshot is "pt" so the static export hydrates without a mismatch.
+  const language = useSyncExternalStore(subscribe, readLanguage, () => "pt" as Language);
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem("segatt_lang", lang);
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // not persisted, still switch for this session
+    }
+    listeners.forEach((l) => l());
   };
 
-  const t = (path: string) => {
-    const keys = path.split(".");
-    let current: any = translations[language];
-    
-    for (const key of keys) {
-      if (current && current[key] !== undefined) {
-        current = current[key];
+  const t = (path: string): string => {
+    let current: unknown = translations[language];
+    for (const key of path.split(".")) {
+      if (current && typeof current === "object" && key in current) {
+        current = (current as Record<string, unknown>)[key];
       } else {
         return path;
       }
     }
-    return current;
+    return typeof current === "string" ? current : path;
   };
 
   return (

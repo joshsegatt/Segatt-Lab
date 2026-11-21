@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { check } from '@tauri-apps/plugin-updater';
+import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { Download, RefreshCcw, X, CheckCircle } from 'lucide-react';
 
 export function AutoUpdater() {
-  const [updateInfo, setUpdateInfo] = useState<any>(null);
+  const [updateInfo, setUpdateInfo] = useState<Update | null>(null);
   const [status, setStatus] = useState<'idle' | 'checking' | 'found' | 'downloading' | 'installing' | 'done' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export function AutoUpdater() {
       let downloaded = 0;
       let total = 0;
 
-      await updateInfo.downloadAndInstall((event: any) => {
+      await updateInfo.downloadAndInstall((event: DownloadEvent) => {
         switch (event.event) {
           case 'Started':
             total = event.data.contentLength || 0;
@@ -87,7 +87,7 @@ export function AutoUpdater() {
 
       <div className="updater-content">
         <div className="updater-title">
-          {status === 'found' && `Nova versão disponível: v${updateInfo.version}`}
+          {status === 'found' && `Nova versão disponível: v${updateInfo?.version}`}
           {status === 'downloading' && `Baixando atualização... (${progress}%)`}
           {status === 'installing' && `Instalando e reiniciando...`}
           {status === 'done' && `Atualizado com sucesso! Reiniciando...`}

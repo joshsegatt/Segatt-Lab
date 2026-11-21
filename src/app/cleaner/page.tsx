@@ -24,7 +24,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 export default function CleanerPage() {
   const { t } = useLanguage();
   const [running, setRunning] = useState<string | null>(null);
-  const [results, setResults] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [safetyConfirmed, setSafetyConfirmed] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [isProcessingAll, setIsProcessingAll] = useState(false);
@@ -47,26 +47,36 @@ export default function CleanerPage() {
     try { await invoke("apply_tweak", { id: "open_system_restore" }); } catch {}
   };
 
-  const runTask = async (id: string, silent = false) => {
-    if (!safetyConfirmed && id !== "flush_dns") {
+  // `confirmed` lets runAll pass the fresh result: inside runAll the
+  // safetyConfirmed state is still the value from before the restore point.
+  const runTask = async (id: string, silent = false, confirmed = safetyConfirmed) => {
+    if (!confirmed && id !== "flush_dns") {
        if (!silent) alert(t("cleaner.safety_first"));
        return;
     }
     setRunning(id);
+    setErrors(({ [id]: _, ...rest }) => rest);
     try {
-      const res: any = await invoke("run_cleanup", { id });
+      await invoke("run_cleanup", { id });
       setCompletedTasks((prev) => new Set(prev).add(id));
-    } catch {} finally {
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, [id]: String(err) }));
+    } finally {
       setRunning(null);
     }
   };
 
-  const createRestorePoint = async () => {
+  const createRestorePoint = async (): Promise<boolean> => {
     setRestoring(true);
+    setErrors(({ restore_point: _, ...rest }) => rest);
     try {
       await invoke("create_restore_point");
       setSafetyConfirmed(true);
       setCompletedTasks((prev) => new Set(prev).add("restore_point"));
+      return true;
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, restore_point: String(err) }));
+      return false;
     } finally {
       setRestoring(false);
     }
@@ -75,8 +85,8 @@ export default function CleanerPage() {
   const runAll = async () => {
     setIsProcessingAll(true);
     try {
-      if (!safetyConfirmed) await createRestorePoint();
-      for (const task of CLEANUP_TASKS) await runTask(task.id, true);
+      const confirmed = safetyConfirmed || (await createRestorePoint());
+      for (const task of CLEANUP_TASKS) await runTask(task.id, true, confirmed);
     } finally {
       setIsProcessingAll(false);
     }
@@ -127,7 +137,7 @@ export default function CleanerPage() {
       {!safetyConfirmed && (
         <div className="admin-banner-elite">
           <ShieldAlert size={16} />
-          <span>{t("cleaner.safety_desc")}</span>
+          <span>{errors.restore_point ?? t("cleaner.safety_desc")}</span>
         </div>
       )}
 
@@ -148,6 +158,11 @@ export default function CleanerPage() {
                       {completedTasks.has(task.id) && <CheckCircle2 size={14} className="text-accent" />}
                     </div>
                     <div className="cleaner-card-desc">{task.description}</div>
+                    {errors[task.id] && (
+                      <div className="cleaner-card-desc" role="alert" style={{ color: "var(--danger)" }}>
+                        {errors[task.id]}
+                      </div>
+                    )}
                   </div>
                   
                   <button 

@@ -368,3 +368,27 @@ a {
 .cleaner-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 4px; }
 .category-title-elite { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-accent); padding-bottom: 8px; }
 
+
+/* Toast: fixed so the result of an action is always visible (it used to render
+   below every column, off screen). Visual polish comes with the redesign. */
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  max-width: min(420px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--text-muted);
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.toast-success { border-left-color: var(--success); }
+.toast-error { border-left-color: var(--danger); }
+.toast-info { border-left-color: var(--accent); }

@@ -14,7 +14,7 @@ export class AIEngineManager {
 
   static async isWebGPUSupported(): Promise<boolean> {
     if (typeof navigator === "undefined") return false;
-    const nav = navigator as any;
+    const nav = navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } };
     if (!nav.gpu) return false;
     try {
       const adapter = await nav.gpu.requestAdapter();

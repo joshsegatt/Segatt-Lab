@@ -80,7 +80,7 @@ export default function TweaksPage() {
     { id: "disable_wifi_sense",      name: "Disable WiFi Sense",           description: "Prevents auto-connecting to shared networks.",                  column: "privacy" },
     { id: "disable_feedback",        name: "Disable Feedback",             description: "Stops Windows from asking for feedback.",                 column: "privacy", preset: ["privacy"] },
 
-    { id: "optimize_hpet",           name: "Optimize HPET",                description: "Disables High Precision Event Timer to reduce lag.", column: "performance", preset: ["gaming"] },
+    { id: "optimize_hpet",           name: "Optimize HPET",                description: "Stops forcing HPET as the system timer (Windows default).", column: "performance", preset: ["gaming"] },
     { id: "disable_game_bar",        name: "Disable Game Bar",             description: "Removes Xbox Game Bar overlay.",                    column: "performance", preset: ["gaming"] },
     { id: "high_performance_plan",   name: "High Performance Plan",        description: "Switches Windows to maximum performance mode.",                            column: "performance", preset: ["essential", "gaming"] },
     { id: "disable_superfetch",      name: "Disable SysMain",              description: "Disables service that pre-loads apps (SSD recommended).",                  column: "performance", preset: ["essential"] },
@@ -97,7 +97,7 @@ export default function TweaksPage() {
     { id: "enable_long_paths",       name: "Enable Long Paths",            description: "Removes the 260-character path limit.",                            column: "system", preset: ["essential"] },
     { id: "enable_f8_boot",          name: "Enable F8 Boot",               description: "Restores F8 boot options access.",             column: "system" },
     { id: "disable_fast_startup",    name: "Disable Fast Startup",         description: "Ensures clean shutdown instead of hybrid sleep.",                column: "system" },
-    { id: "disable_windows_update",  name: "Pause Updates",                description: "Pauses Windows Update to prevent background tasks.",              column: "system" },
+    { id: "disable_windows_update",  name: "Pause Updates",                description: "Turns off automatic updates. Manual updates still work.",              column: "system" },
     { id: "create_restore_point",    name: "Manual Restore Point",         description: "Creates a System Restore Point immediately.",          column: "system", preset: ["essential"] },
   ];
 
@@ -139,8 +139,8 @@ export default function TweaksPage() {
   const openSystemRestore = async () => {
     try {
       await invoke("apply_tweak", { id: "open_system_restore" });
-    } catch (err: any) {
-      setNotification({ type: "error", msg: err });
+    } catch (err) {
+      setNotification({ type: "error", msg: String(err) });
     }
   };
 
@@ -150,14 +150,32 @@ export default function TweaksPage() {
       return;
     }
     setIsApplying(true);
-    let ok = 0;
-    for (const id of selected) {
-      try { await invoke("apply_tweak", { id }); ok++; }
-      catch (e) { console.error(`Tweak ${id} failed:`, e); }
+    // The restore point must exist before anything changes, so it runs first
+    // and a failure stops the batch.
+    const withRestorePoint = selected.has("create_restore_point");
+    if (withRestorePoint) {
+      try {
+        await invoke("create_restore_point");
+      } catch (e) {
+        setIsApplying(false);
+        setNotification({ type: "error", msg: `Restore point failed, nothing was changed. ${e}` });
+        return;
+      }
+    }
+    const ids = [...selected].filter((id) => id !== "create_restore_point");
+    const failed: string[] = [];
+    for (const id of ids) {
+      try { await invoke("apply_tweak", { id }); }
+      catch { failed.push(id); }
     }
     setIsApplying(false);
-    setNotification({ type: "success", msg: `${ok} tweak applied.` });
-    setSelected(new Set());
+    const names = failed.map((id) => TWEAKS.find((tw) => tw.id === id)?.name ?? id);
+    const restoreNote = withRestorePoint ? " Restore point created." : "";
+    setNotification(failed.length === 0
+      ? { type: "success", msg: `${ids.length} tweak(s) applied.${restoreNote}` }
+      : { type: "error", msg: `${ids.length - failed.length} applied, ${failed.length} failed: ${names.join(", ")}.` });
+    // Failed tweaks stay selected so they can be retried.
+    setSelected(new Set(failed));
   };
 
   const createRestorePoint = async () => {
@@ -165,8 +183,8 @@ export default function TweaksPage() {
     try {
       const msg: string = await invoke("create_restore_point");
       setNotification({ type: "success", msg });
-    } catch (e: any) {
-      setNotification({ type: "error", msg: e.toString() });
+    } catch (e) {
+      setNotification({ type: "error", msg: String(e) });
     }
   };
 
@@ -253,7 +271,7 @@ export default function TweaksPage() {
       </div>
 
       {notification && (
-        <div className={`toast toast-${notification.type} glass-panel fade-in`}>
+        <div className={`toast toast-${notification.type} glass-panel fade-in`} role="status" aria-live="polite">
           <span>{notification.msg}</span>
         </div>
       )}

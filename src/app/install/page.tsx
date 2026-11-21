@@ -199,13 +199,13 @@ export default function SoftwareHub() {
   const executeAction = async (id: string) => {
     setStatusMap(prev => ({ ...prev, [id]: "installing" }));
     try {
-      if (mode === "install") {
+      if (mode === "uninstall") {
+        await invoke("uninstall_package_stream", { packageId: id });
+        setStatusMap(prev => ({ ...prev, [id]: "not-installed" }));
+      } else {
         await invoke("install_package_stream", { packageId: id });
-      } else if (mode === "uninstall") {
-        // Placeholder for uninstall logic
-        await new Promise(r => setTimeout(r, 1500));
+        setStatusMap(prev => ({ ...prev, [id]: "installed" }));
       }
-      setStatusMap(prev => ({ ...prev, [id]: "installed" }));
     } catch {
       setStatusMap(prev => ({ ...prev, [id]: "error" }));
     }

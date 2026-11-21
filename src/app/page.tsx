@@ -38,17 +38,12 @@ export default function Dashboard() {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   
-  const fetchStats = async () => {
-    try {
-      const data = await invoke<SystemStats>("get_system_stats");
-      setStats(data);
-    } catch (err) {
-      console.error("Failed to fetch system stats:", err);
-    }
-  };
-
   useEffect(() => {
-    // Initial fetch
+    const fetchStats = () =>
+      invoke<SystemStats>("get_system_stats")
+        .then(setStats)
+        .catch((err) => console.error("Failed to fetch system stats:", err));
+
     fetchStats();
     invoke<boolean>("check_admin").then(setIsAdmin).catch(() => setIsAdmin(false));
 
