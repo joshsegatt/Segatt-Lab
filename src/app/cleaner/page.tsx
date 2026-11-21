@@ -45,7 +45,7 @@ export default function CleanerPage() {
   ];
 
   const openSystemRestore = async () => {
-    try { await invoke("apply_tweak", { id: "open_system_restore" }); } catch {}
+    try { await invoke("open_system_restore"); } catch {}
   };
 
   // `confirmed` lets runAll pass the fresh result: inside runAll the

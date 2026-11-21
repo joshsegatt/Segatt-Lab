@@ -1,279 +1,344 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { LifeBuoy, Loader2, RotateCw, Search, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQueryParam } from "@/hooks/useQueryParam";
+import { useIsAdmin } from "@/hooks/useSystem";
+import { refreshTweakStates, updateTweakState, useTweakStates, type TweakState } from "@/hooks/useTweakStates";
+import { PRESETS, TWEAKS, tweaksInPreset, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
+import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
-import { TWEAKS as CATALOG, PRESETS as PRESET_DEFS, tweaksInPreset, type PresetKey } from "@/lib/tweaks-catalog";
-import {
-  Loader2,
-  Play,
-  ShieldAlert,
-  RotateCcw,
-  CheckCheck,
-  X,
-  Zap,
-  Shield,
-  Monitor,
-  Settings,
-  LifeBuoy,
-  Gamepad2,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import styles from "@/features/tweaks/Tweaks.module.css";
 
-// ─── Tweak Row Component ────────────────────────────────────
-interface TweakDef {
-  id: string;
-  name: string;
-  description: string;
-  column: "privacy" | "performance" | "interface" | "system";
-  preset?: ("essential" | "privacy" | "gaming")[];
+const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
+type Pending = Record<string, boolean>;
+
+/** Failure time, read in event handlers only. */
+const stamp = () => Date.now();
+
+function presetPending(key: PresetKey, states: Record<string, TweakState> | null): Pending {
+  return Object.fromEntries(
+    tweaksInPreset(key)
+      .filter((tw) => states?.[tw.id]?.status !== "active")
+      .map((tw) => [tw.id, true]),
+  );
 }
 
-interface TweakRowProps {
-  tweak: TweakDef;
-  isSelected: boolean;
-  onToggle: () => void;
-}
-
-const TweakRow = ({ tweak, isSelected, onToggle }: TweakRowProps) => (
-  <div
-    className={`item-row ${isSelected ? "selected" : ""}`}
-    onClick={onToggle}
-    role="checkbox"
-    aria-checked={isSelected}
-    tabIndex={0}
-    onKeyDown={(e) => e.key === " " && onToggle()}
-  >
-    <div className="item-checkbox" aria-hidden="true">
-      {isSelected && (
-        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </div>
-
-    <span className="item-name">{tweak.name}</span>
-
-    <div className="tooltip-wrap">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--text-muted)", flexShrink: 0, cursor: "help" }}>
-        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
-      </svg>
-      <div className="tooltip-box">{tweak.description}</div>
-    </div>
-  </div>
-);
-
-import { PageHeader } from "@/components/ui/PageHeader";
-
-// ─── Main Page ───────────────────────────────────────────────
 export default function TweaksPage() {
   const { t, language } = useLanguage();
-  // Arriving from the Home search (?preset=gaming or ?select=<id>) preselects those tweaks.
-  const presetParam = useQueryParam("preset");
+  const { states, loading, error } = useTweakStates();
+  const admin = useIsAdmin();
+  const presetParam = useQueryParam("preset") as PresetKey | null;
   const selectParam = useQueryParam("select");
-  const fromQuery = useMemo(() => {
-    if (presetParam && ["essential", "privacy", "gaming"].includes(presetParam)) {
-      return new Set(tweaksInPreset(presetParam as PresetKey).map((tw) => tw.id));
+
+  const [pendingOverride, setPending] = useState<Pending | null>(null);
+  const [preset, setPreset] = useState<PresetKey | "current" | "custom" | null>(null);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<Record<string, { msg: string; at: number }>>({});
+  const [showRaw, setShowRaw] = useState<Set<string>>(new Set());
+  const [working, setWorking] = useState<string | null>(null);
+  const [busyNote, setBusyNote] = useState<string | null>(null);
+  const [restoreFirst, setRestoreFirst] = useState(true);
+  const [toast, setToast] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
+
+  // Arriving from the Home search: ?preset=gaming marks that preset, ?select=<id> opens that row.
+  const validPreset = presetParam && PRESETS.some((p) => p.key === presetParam) ? presetParam : null;
+  const pending: Pending = pendingOverride ?? (validPreset ? presetPending(validPreset, states) : {});
+  const activePreset = preset ?? validPreset ?? "current";
+  const isOpen = (id: string) => open.has(id) || (selectParam === id && !open.has(`-${id}`));
+
+  // Bring the row picked in the Home search into view once, not on every state update.
+  const scrolledTo = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selectParam || scrolledTo.current === selectParam) return;
+    const row = document.getElementById(`tweak-${selectParam}`);
+    if (row) {
+      row.scrollIntoView({ block: "center" });
+      scrolledTo.current = selectParam;
     }
-    return new Set(selectParam && CATALOG.some((tw) => tw.id === selectParam) ? [selectParam] : []);
-  }, [presetParam, selectParam]);
-  const [picked, setPicked] = useState<Set<string> | null>(null);
-  const selected = picked ?? fromQuery;
-  const setSelected = (next: Set<string> | ((prev: Set<string>) => Set<string>)) =>
-    setPicked((prev) => (typeof next === "function" ? next(prev ?? fromQuery) : next));
-  const [isAdmin, setIsAdmin]   = useState<boolean | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
-  const [notification, setNotification] = useState<{ type: "success"|"error"|"info"; msg: string } | null>(null);
-
-  // Names and presets come from the shared catalog (also used by the Home search).
-  const TWEAKS: TweakDef[] = CATALOG.map((tw) => ({
-    id: tw.id,
-    name: tw.name[language],
-    description: tw.description[language],
-    column: tw.group,
-    preset: tw.presets,
-  }));
-
-  const COLUMNS: { key: TweakDef["column"]; label: string; icon: React.ElementType }[] = [
-    { key: "privacy",     label: t("tweaks.categories.privacy"),     icon: Shield },
-    { key: "performance", label: t("tweaks.categories.performance"), icon: Zap },
-    { key: "interface",   label: t("tweaks.categories.interface"),   icon: Monitor },
-    { key: "system",      label: t("tweaks.categories.system"),      icon: Settings },
-  ];
-
-  const PRESET_ICON = { essential: Sparkles, privacy: ShieldCheck, gaming: Gamepad2 } as const;
-  const PRESETS = PRESET_DEFS.map((p) => ({ key: p.key, label: p.name[language], icon: PRESET_ICON[p.key] }));
+  }, [selectParam, states]);
 
   useEffect(() => {
-    invoke("check_admin").then((v) => setIsAdmin(v as boolean)).catch(() => {});
-  }, []);
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(id);
+  }, [toast]);
 
-  useEffect(() => {
-    if (!notification) return;
-    const t = setTimeout(() => setNotification(null), 5000);
-    return () => clearTimeout(t);
-  }, [notification]);
+  const visible = useMemo(() => {
+    const q = normalize(query.trim());
+    return TWEAKS.filter((tw) => !q || normalize(`${tw.name[language]} ${tw.description[language]} ${tw.keywords ?? ""}`).includes(q));
+  }, [query, language]);
 
-  const toggle = (id: string) =>
-    setSelected((prev) => {
+  const isActive = (id: string) => states?.[id]?.status === "active";
+  const target = (id: string) => (id in pending ? pending[id] : isActive(id));
+
+  const toggle = (id: string) => {
+    const next = { ...pending };
+    const want = !target(id);
+    if (want === isActive(id)) delete next[id];
+    else next[id] = want;
+    setPending(next);
+    setPreset("custom");
+  };
+
+  const choosePreset = (key: PresetKey | "current") => {
+    setPreset(key);
+    setPending(key === "current" ? {} : presetPending(key, states));
+  };
+
+  const toggleOpen = (id: string) =>
+    setOpen((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      const shown = isOpen(id);
+      next.delete(id);
+      next.delete(`-${id}`);
+      if (!shown) next.add(id);
+      else if (selectParam === id) next.add(`-${id}`);
       return next;
     });
 
-  const applyPreset = (key: PresetKey) => {
-    const ids = TWEAKS.filter((t) => t.preset?.includes(key)).map((t) => t.id);
-    setSelected(new Set(ids));
-  };
-
-  const openSystemRestore = async () => {
-    try {
-      await invoke("apply_tweak", { id: "open_system_restore" });
-    } catch (err) {
-      setNotification({ type: "error", msg: String(err) });
-    }
-  };
-
-  const applySelected = async () => {
-    if (!isAdmin) {
-      setNotification({ type: "error", msg: "Admin privileges required." });
-      return;
-    }
-    setIsApplying(true);
-    // The restore point must exist before anything changes, so it runs first
-    // and a failure stops the batch.
-    const withRestorePoint = selected.has("create_restore_point");
-    if (withRestorePoint) {
+  const run = async (entries: [string, boolean][]) => {
+    if (!entries.length) return;
+    if (restoreFirst) {
+      setBusyNote(t("tw.creating_restore"));
       try {
         await invoke("create_restore_point");
       } catch (e) {
-        setIsApplying(false);
-        setNotification({ type: "error", msg: `Restore point failed, nothing was changed. ${e}` });
+        setBusyNote(null);
+        setToast({ kind: "error", msg: fmt(t("tw.restore_failed"), { msg: String(e) }) });
         return;
       }
     }
-    const ids = [...selected].filter((id) => id !== "create_restore_point");
-    const failed: string[] = [];
-    for (const id of ids) {
-      try { await invoke("apply_tweak", { id }); }
-      catch { failed.push(id); }
+    setBusyNote(null);
+    const failed: Record<string, { msg: string; at: number }> = {};
+    for (const [id, enabled] of entries) {
+      setWorking(id);
+      try {
+        updateTweakState(await invoke<TweakState>("set_tweak", { id, enabled }));
+      } catch (e) {
+        failed[id] = { msg: String(e), at: stamp() };
+      }
     }
-    setIsApplying(false);
-    const names = failed.map((id) => TWEAKS.find((tw) => tw.id === id)?.name ?? id);
-    const restoreNote = withRestorePoint ? " Restore point created." : "";
-    setNotification(failed.length === 0
-      ? { type: "success", msg: `${ids.length} tweak(s) applied.${restoreNote}` }
-      : { type: "error", msg: `${ids.length - failed.length} applied, ${failed.length} failed: ${names.join(", ")}.` });
+    setWorking(null);
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const [id] of entries) delete next[id];
+      return { ...next, ...failed };
+    });
+    setPending(Object.fromEntries(Object.entries(pending).filter(([id]) => failed[id] || !entries.some(([e]) => e === id))));
+    void refreshTweakStates();
+
+    const ok = entries.length - Object.keys(failed).length;
+    const names = Object.keys(failed).map((id) => TWEAKS.find((tw) => tw.id === id)?.name[language] ?? id);
+    setToast(
+      ok === entries.length
+        ? { kind: "success", msg: fmt(t("tw.done_all"), { n: ok }) }
+        : { kind: "error", msg: fmt(t("tw.done_some"), { ok, n: entries.length }) },
+    );
     recordActivity({
-      label: t("history.tweaks"),
-      detail: failed.length ? `${fmt(t("history.n_of_m"), { n: ids.length - failed.length, m: ids.length })} · ${names.join(", ")} ${t("history.failed")}` : String(ids.length),
-      status: failed.length ? "failed" : "ok",
+      label: ok === 0 ? t("history.tweaks_none") : t("history.tweaks"),
+      detail: names.length ? `${fmt(t("history.n_of_m"), { n: ok, m: entries.length })} · ${names.join(", ")} ${t("history.failed")}` : String(ok),
+      status: names.length ? "failed" : "ok",
       href: "/tweaks",
     });
-    // Failed tweaks stay selected so they can be retried.
-    setSelected(new Set(failed));
   };
 
-  const createRestorePoint = async () => {
-    setNotification({ type: "info", msg: "Creating restore point..." });
-    try {
-      const msg: string = await invoke("create_restore_point");
-      setNotification({ type: "success", msg });
-    } catch (e) {
-      setNotification({ type: "error", msg: String(e) });
-    }
+  // The engine reports a few plain English words (states, labels); show them translated.
+  const word = (value: string) => {
+    if (value === "—") return t("tw.unset");
+    const key = `tw.v.${value.replace(/[^a-z]/gi, "_").toLowerCase()}`;
+    const translated = t(key);
+    return translated === key ? value : translated;
+  };
+
+  // Known backend errors in the user's language; anything else is shown as is.
+  const explain = (msg: string) => {
+    if (/access denied|acesso negado|administrator/i.test(msg)) return t("tw.err_access");
+    if (/did not keep/i.test(msg)) return t("tw.err_not_kept");
+    if (/may be left changed/i.test(msg)) return t("tw.err_partial");
+    if (/could not be restored/i.test(msg)) return t("tw.err_restore");
+    if (/no active network adapter/i.test(msg)) return t("tw.err_no_adapter");
+    if (/not available on this pc/i.test(msg)) return t("tw.err_power");
+    return msg;
+  };
+
+  const pendingEntries = Object.entries(pending);
+  const busy = working !== null || busyNote !== null;
+  const restartCount = pendingEntries.filter(([id]) => states?.[id]?.restart).length;
+
+  const tagFor = (id: string) => {
+    if (working === id) return <span className="tag pending"><Loader2 size={12} className="animate-spin" aria-hidden="true" />&nbsp;{t("tw.st_working")}</span>;
+    if (errors[id] && id in pending) return <span className="tag bad">{t("tw.st_failed")}</span>;
+    if (id in pending) return <span className="tag pending">{pending[id] ? t("tw.st_will_on") : t("tw.st_will_off")}</span>;
+    const st = states?.[id]?.status;
+    if (st === "active") return <span className="tag on">{t("tw.st_active")}</span>;
+    if (st === "inactive") return <span className="tag off">{t("tw.st_inactive")}</span>;
+    if (st === "unknown") return <span className="tag off" title={states?.[id]?.reason ?? undefined}>{t("tw.st_unknown")}</span>;
+    return null;
   };
 
   return (
-    <div className="checklist-page fade-in">
-      <PageHeader 
-        title={t("tabs.tweaks")} 
-        description={t("tweaks.subtitle")}
-        compact={true}
-      >
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setSelected(new Set(TWEAKS.map(t => t.id)))}>
-            <CheckCheck size={14} />
-          </button>
-          
-          <div className="topbar-divider" />
+    <div className={styles.page}>
+      <div className={styles.col}>
+        <header className={styles.head}>
+          <div>
+            <h1 className={styles.title}>{t("tw.title")}</h1>
+            <p className={styles.lede}>{t("tw.lede")}</p>
+          </div>
+        </header>
 
-          <button className="btn btn-secondary btn-sm" onClick={createRestorePoint}>
-            <RotateCcw size={14} />
-          </button>
-
-          <button
-            className="btn btn-sm btn-primary"
-            style={{ height: 32 }}
-            onClick={applySelected}
-            disabled={selected.size === 0 || isApplying}
-          >
-            {isApplying ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <>
-                <Play size={14} />
-                {selected.size > 0 && <span className="badge-count-elite">{selected.size}</span>}
-              </>
-            )}
+        <div className={styles.tools}>
+          <div className={styles.seg} role="radiogroup" aria-label={t("tw.title")}>
+            {(["current", "essential", "gaming", "privacy", "custom"] as const).map((key) => (
+              key === "custom" ? (
+                <button key={key} type="button" role="radio" aria-checked={activePreset === key} aria-disabled="true" tabIndex={-1}
+                  className={activePreset === key ? styles.segOn : styles.segPassive}>
+                  {t("tw.preset_custom")}
+                </button>
+              ) : (
+              <button
+                key={key}
+                type="button"
+                role="radio"
+                aria-checked={activePreset === key}
+                className={activePreset === key ? styles.segOn : undefined}
+                onClick={() => choosePreset(key)}
+                disabled={!states || busy}
+              >
+                {key === "current" ? t("tw.preset_current") : PRESETS.find((p) => p.key === key)?.name[language]}
+              </button>
+              )
+            ))}
+          </div>
+          <label className={styles.search}>
+            <Search size={15} strokeWidth={1.75} aria-hidden="true" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("tw.search")} aria-label={t("tw.search")} spellCheck={false} />
+          </label>
+          <button type="button" className="icon-btn" onClick={() => invoke("open_system_restore").catch(() => undefined)} aria-label={t("tw.system_restore")} title={t("tw.system_restore")}>
+            <LifeBuoy size={17} strokeWidth={1.75} />
           </button>
         </div>
-      </PageHeader>
 
-      {isAdmin === false && (
-        <div className="admin-banner glass-panel" style={{ marginBottom: 24, borderRadius: 'var(--r-md)' }}>
-          <ShieldAlert size={14} />
-          <span>{t("dashboard.admin_warn")}</span>
-        </div>
-      )}
+        {!states && loading && (
+          <p className={styles.status} role="status"><Loader2 size={16} className="animate-spin" aria-hidden="true" />{t("tw.reading")}</p>
+        )}
+        {!states && !loading && error && (
+          <div className={styles.status} role="alert">
+            <TriangleAlert size={16} aria-hidden="true" />
+            {t("tw.read_failed")}
+            <button type="button" className="btn btn-sm" onClick={() => void refreshTweakStates()}>{t("tw.retry_read")}</button>
+          </div>
+        )}
+        {visible.length === 0 && <p className={styles.status}>{fmt(t("tw.no_match"), { q: query.trim() })}</p>}
 
-      <div className="preset-strip">
-        <button className="preset-btn preset-btn-warning" onClick={openSystemRestore}>
-          <LifeBuoy size={14} /> {t("tweaks.restore_btn")}
-        </button>
-        {PRESETS.map((p) => (
-          <button key={p.key} className="preset-btn" onClick={() => applyPreset(p.key)}>
-            <p.icon size={14} strokeWidth={1.75} aria-hidden="true" /> {p.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="elite-columns">
-        {COLUMNS.map(({ key, label, icon: Icon }) => {
-          const tweaks = TWEAKS.filter((t) => t.column === key);
-          const colSelected = tweaks.filter((t) => selected.has(t.id)).length;
-
+        {GROUPS.map((group) => {
+          const items = visible.filter((tw) => tw.group === group);
+          if (!items.length) return null;
+          const all = TWEAKS.filter((tw) => tw.group === group);
+          const activeCount = all.filter((tw) => isActive(tw.id)).length;
           return (
-            <div key={key} className="category-col">
-              <div className="category-header">
-                <div className="category-title">
-                  <Icon size={13} />
-                  {label}
-                </div>
-                {colSelected > 0 && <span className="badge-count-elite">{colSelected}</span>}
+            <section key={group} className={styles.group} aria-labelledby={`g-${group}`}>
+              <div className={styles.groupHead}>
+                <h2 id={`g-${group}`}>{t(`tweaks.categories.${group}`)}</h2>
+                {states && <span>{fmt(t("tw.n_active"), { n: activeCount, m: all.length })}</span>}
               </div>
-
-              {tweaks.map((tweak) => (
-                <TweakRow
-                  key={tweak.id}
-                  tweak={tweak}
-                  isSelected={selected.has(tweak.id)}
-                  onToggle={() => toggle(tweak.id)}
-                />
-              ))}
-            </div>
+              <ul className={styles.list}>
+                {items.map((tw) => {
+                  const st = states?.[tw.id];
+                  const on = target(tw.id);
+                  const expanded = isOpen(tw.id);
+                  return (
+                    <li key={tw.id} id={`tweak-${tw.id}`} className={`${styles.row} ${tw.id in pending ? styles.changed : ""} ${selectParam === tw.id ? styles.flash : ""}`}>
+                      <div className={styles.line}>
+                        <button type="button" className={styles.info} onClick={() => toggleOpen(tw.id)} aria-expanded={expanded} aria-controls={`d-${tw.id}`}>
+                          <b>{tw.name[language]}</b>
+                          <small>{tw.description[language]}</small>
+                        </button>
+                        {tagFor(tw.id)}
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={on}
+                          aria-label={tw.name[language]}
+                          className={`${styles.switch} ${on ? styles.switchOn : ""}`}
+                          onClick={() => toggle(tw.id)}
+                          disabled={!states || busy}
+                        />
+                      </div>
+                      {errors[tw.id] && (
+                        <p className={styles.error} role="alert">
+                          <TriangleAlert size={14} aria-hidden="true" />
+                          {fmt(t("tw.failed_at"), { time: new Date(errors[tw.id].at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" }), msg: explain(errors[tw.id].msg) })}
+                          <button type="button" onClick={() => setShowRaw((prev) => { const n = new Set(prev); if (n.has(tw.id)) n.delete(tw.id); else n.add(tw.id); return n; })}>
+                            {t("tw.see_details")}
+                          </button>
+                          <button type="button" onClick={() => void run([[tw.id, target(tw.id)]])} disabled={busy}>
+                            <RotateCw size={13} aria-hidden="true" /> {t("tw.retry")}
+                          </button>
+                        </p>
+                      )}
+                      {errors[tw.id] && showRaw.has(tw.id) && <pre className={styles.raw}>{errors[tw.id].msg}</pre>}
+                      {expanded && (
+                        <div id={`d-${tw.id}`} className={styles.detail}>
+                          {st?.status === "unknown" && st.reason && <p className={styles.reason}>{st.reason}</p>}
+                          {st?.changes.map((c) => (
+                            <div key={c.target} className={styles.change}>
+                              <code>{c.target}</code>
+                              <span className={styles.values} aria-label={`${t("tw.current")}: ${word(c.current)}. ${t("tw.wanted")}: ${word(c.wanted)}.`}>
+                                {c.current === "—" ? <span aria-hidden="true">{word(c.current)}</span> : <s aria-hidden="true">{word(c.current)}</s>}
+                                <span aria-hidden="true">→</span>
+                                <b aria-hidden="true">{word(c.wanted)}</b>
+                              </span>
+                            </div>
+                          ))}
+                          <p className={styles.meta}>
+                            <span>{st?.restart ? t("tw.restart") : t("tw.no_restart")}</span>
+                            <span>
+                              {st && st.status !== "active" && st.changes.length === 1
+                                ? st.changes[0].current === "—"
+                                  ? t("tw.revert_to_default")
+                                  : fmt(t("tw.revert_to"), { v: word(st.changes[0].current) })
+                                : t("tw.revert_note")}
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           );
         })}
       </div>
 
-      {notification && (
-        <div className={`toast toast-${notification.type} glass-panel fade-in`} role="status" aria-live="polite">
-          <span>{notification.msg}</span>
+      {pendingEntries.length > 0 && (
+        <div className={styles.dock} role="region" aria-label={t("tw.dock_apply")}>
+          <div className={styles.dockInfo}>
+          <span className={styles.dockCount}>{pendingEntries.length === 1 ? t("tw.dock_one") : fmt(t("tw.dock_changes"), { n: pendingEntries.length })}</span>
+          <label className={styles.dockCheck}>
+            <input type="checkbox" checked={restoreFirst} onChange={(e) => setRestoreFirst(e.target.checked)} />
+            <ShieldCheck size={15} strokeWidth={1.75} aria-hidden="true" />
+            {t("tw.dock_restore")}
+          </label>
+          {restartCount > 0 && <span className={styles.dockNote}>{restartCount === 1 ? t("tw.dock_restart_one") : fmt(t("tw.dock_restart"), { n: restartCount })}</span>}
+          {admin === false && <span className={styles.dockWarn}>{t("tw.dock_not_admin")}</span>}
+          {busyNote && <span className={styles.dockNote} role="status"><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {busyNote}</span>}
+          </div>
+          <button type="button" className="btn" onClick={() => { setPending({}); setPreset("current"); }} disabled={busy}>{t("tw.dock_discard")}</button>
+          <button type="button" className="btn btn-primary" onClick={() => void run(pendingEntries)} disabled={busy}>
+            {busy && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+            {t("tw.dock_apply")} {pendingEntries.length}
+          </button>
         </div>
+      )}
+
+      {toast && (
+        <div className={`toast toast-${toast.kind} ${pendingEntries.length ? styles.toastAbove : ""}`} role="status" aria-live="polite">{toast.msg}</div>
       )}
     </div>
   );

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { House, Package, SlidersHorizontal, Trash2, Wrench, Settings2, Monitor } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePcInfo } from "@/hooks/useSystem";
+import { countActive, useTweakStates } from "@/hooks/useTweakStates";
+import { TWEAKS } from "@/lib/tweaks-catalog";
 import { groupByDay, useActivity } from "@/lib/history";
 import { APP_MARK, APP_NAME } from "@/lib/brand";
 import styles from "./Sidebar.module.css";
@@ -23,6 +25,8 @@ export function Sidebar() {
   const { t } = useLanguage();
   const pc = usePcInfo();
   const history = groupByDay(useActivity());
+  const { states } = useTweakStates();
+  const tweakCount = states ? `${countActive(states, TWEAKS.map((tw) => tw.id))}/${TWEAKS.length}` : null;
 
   return (
     <aside className={styles.side}>
@@ -39,6 +43,7 @@ export function Sidebar() {
             <Link key={item.href} href={item.href} className={`${styles.item} ${active ? styles.active : ""}`} aria-current={active ? "page" : undefined}>
               <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
               <span>{t(`nav.${item.key}`)}</span>
+              {item.key === "tweaks" && tweakCount && <span className={styles.count}>{tweakCount}</span>}
             </Link>
           );
         })}
@@ -54,8 +59,10 @@ export function Sidebar() {
               <ul>
                 {group.items.map((a) => (
                   <li key={a.id} className={`${styles.entry} ${a.status === "failed" ? styles.failed : ""}`} title={a.detail ? `${a.label} · ${a.detail}` : a.label}>
-                    {a.label}
-                    {a.detail && <span className={styles.detail}> · {a.detail}</span>}
+                    <span className={styles.clamp}>
+                      {a.label}
+                      {a.detail && <span className={styles.detail}> · {a.detail}</span>}
+                    </span>
                   </li>
                 ))}
               </ul>
