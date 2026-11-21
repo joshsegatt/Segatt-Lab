@@ -14,7 +14,7 @@ import {
   Clock,
   History,
   ToggleLeft as Toggle,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -28,7 +28,7 @@ export default function ConfigPage() {
     { id: "hyperv", name: "Hyper-V Virtualization", icon: Cpu },
     { id: "sandbox", name: "Windows Sandbox", icon: Box },
     { id: "containers", name: "Containers", icon: Server },
-    { id: "vmp", name: "Virtual Machine Platform", icon: (props: any) => <Database {...props} /> },
+    { id: "vmp", name: "Virtual Machine Platform", icon: Database },
     { id: "tftp", name: "TFTP Client", icon: History },
   ];
 
@@ -302,7 +302,7 @@ export default function ConfigPage() {
   );
 }
 
-function Database({ size, className }: { size: number, className: string }) {
+function Database({ size, className }: { size: number, className?: string }) {
   return (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 

@@ -12,15 +12,9 @@ import {
   AlertCircle,
   RefreshCw
 } from "lucide-react";
-import { PackageCard } from "@/features/packages/components/PackageCard";
+import { PackageCard, type PackageInfo } from "@/features/packages/components/PackageCard";
 import { TerminalOutput } from "@/features/packages/components/TerminalOutput";
 
-interface PackageInfo {
-  name: string;
-  id: string;
-  version: string;
-  source: string;
-}
 
 export default function AppsPage() {
   const [query, setQuery] = useState("");
@@ -42,9 +36,9 @@ export default function AppsPage() {
       if (results.length === 0) {
         setError("Nenhum aplicativo encontrado para este termo.");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Busca falhou:", err);
-      setError(err.toString() || "Falha ao consultar o WinGet. Verifique se ele está instalado.");
+      setError(String(err) || "Falha ao consultar o WinGet. Verifique se ele está instalado.");
     } finally {
       setIsLoading(false);
     }

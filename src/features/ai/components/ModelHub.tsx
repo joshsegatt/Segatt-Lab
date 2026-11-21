@@ -72,9 +72,9 @@ export const ModelHub = () => {
       const updated = models.map(m => m.id === modelId ? { ...m, isDownloaded: true } : m);
       setModels(updated);
       localStorage.setItem("segatt_downloaded_models", JSON.stringify(updated.filter(m => m.isDownloaded).map(m => m.id)));
-    } catch (err: any) {
+    } catch (err) {
       console.error("Download failed:", err);
-      if (err.message === "WEBGPU_NOT_SUPPORTED") {
+      if (err instanceof Error && err.message === "WEBGPU_NOT_SUPPORTED") {
         setError("Your hardware/browser doesn't support WebGPU. Try updating your drivers.");
       } else {
         setError("Network failure or hardware incompatibility. Please try again later.");

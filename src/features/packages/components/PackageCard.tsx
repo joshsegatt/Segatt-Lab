@@ -9,10 +9,17 @@ import {
   Package as PackageIcon
 } from "lucide-react";
 
+export interface PackageInfo {
+  name: string;
+  id: string;
+  version: string;
+  source: string;
+}
+
 interface PackageCardProps {
-  pkg: any;
+  pkg: PackageInfo;
   onInstall: (id: string) => void;
-  onSelect: (pkg: any) => void;
+  onSelect: (pkg: PackageInfo) => void;
   isSelected: boolean;
 }
 

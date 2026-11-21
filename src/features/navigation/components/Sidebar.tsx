@@ -292,6 +292,6 @@ export function Sidebar() {
   );
 }
 
-function IconWrapper({ icon: Icon, size }: { icon: any, size: number }) {
+function IconWrapper({ icon: Icon, size }: { icon: React.ElementType, size: number }) {
   return <Icon size={size} />;
 }
