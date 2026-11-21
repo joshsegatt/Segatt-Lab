@@ -36,22 +36,17 @@ export default function FixesPage() {
     const startTime = new Date().toLocaleTimeString();
     setLogs([`[${startTime}] Iniciando: ${id}...`]);
     
+    // One listener per run, removed at the end (it used to pile up and repeat every log line).
+    const unlisten = await listen<string>("system-fix-log", (event) => {
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${event.payload}`, ...prev]);
+    });
     try {
-      // Listen for log events
-      const unlisten = await listen<string>("system-fix-log", (event) => {
-        setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${event.payload}`, ...prev]);
-      });
-
-      // Execute the real fix
       await invoke("run_system_fix", { id });
-
-      // The Rust side will emit the logs and "CONCLUÍDO" event
     } catch (err) {
-      setLogs(prev => [`[${new Date().toLocaleTimeString()}] ERRO CRÍTICO: ${err}`, ...prev]);
-      setRunning(null);
+      setLogs(prev => [`[${new Date().toLocaleTimeString()}] ERRO: ${err}`, ...prev]);
     } finally {
-      // We don't null running here because the streaming handles the completion visual
-      setTimeout(() => setRunning(null), 1000);
+      unlisten();
+      setRunning(null);
     }
   };
 
@@ -162,7 +157,7 @@ export default function FixesPage() {
               <FileCode size={20} />
               <div className="tool-info">
                 <span className="tool-name">{t("fixes.clear_cache")}</span>
-                <span className="tool-desc">Reseta ícones e cache de fontes.</span>
+                <span className="tool-desc">Reconstrói o cache de ícones.</span>
               </div>
             </button>
           </div>
