@@ -1,7 +1,8 @@
 mod features;
 
 use crate::features::packages::{search_packages, install_package_stream, uninstall_package_stream};
-use crate::features::tweaks::{get_tweaks, apply_tweak, create_restore_point, check_admin};
+use crate::features::tweaks::{check_admin, create_restore_point, open_system_restore};
+use crate::features::engine::{get_tweak_states, set_tweak};
 use crate::features::cleaner::run_cleanup;
 use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
@@ -32,8 +33,9 @@ pub fn run() {
       search_packages,
       install_package_stream,
       uninstall_package_stream,
-      get_tweaks,
-      apply_tweak,
+      get_tweak_states,
+      set_tweak,
+      open_system_restore,
       create_restore_point,
       check_admin,
       run_cleanup,
