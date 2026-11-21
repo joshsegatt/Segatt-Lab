@@ -1,5 +1,5 @@
 // The tweaks the Rust backend knows how to apply (src-tauri/src/features/tweaks.rs).
-// Every id here must exist there; the Rust test `every_frontend_tweak_has_a_script` checks it.
+// Every id here must exist there; the Rust test `specs_match_the_frontend_catalog` checks it.
 
 import type { Language } from "@/lib/i18n";
 
@@ -92,9 +92,6 @@ export const TWEAKS: TweakDef[] = [
   { id: "disable_windows_update", group: "system", keywords: "atualizacoes updates windows update pausar",
     name: { pt: "Pausar atualizações automáticas", en: "Pause automatic updates" },
     description: { pt: "Desliga as atualizações automáticas; as manuais continuam.", en: "Turns off automatic updates; manual ones still work." } },
-  { id: "create_restore_point", group: "system", presets: ["essential"], keywords: "restauracao restore backup",
-    name: { pt: "Criar ponto de restauração", en: "Create restore point" },
-    description: { pt: "Cria um ponto de restauração agora.", en: "Creates a restore point now." } },
 ];
 
 export const PRESETS: { key: PresetKey; name: Record<Language, string>; keywords: string }[] = [

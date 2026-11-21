@@ -8,6 +8,7 @@ import {
   Monitor, MousePointer2, Moon, Network, Power, RefreshCw, Search, Timer, Wifi, Mic, Zap,
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useTweakStates } from "@/hooks/useTweakStates";
 import { flattenResult, searchActions, type Action, type ActionKind } from "@/lib/search";
 import { fmt } from "@/lib/fmt";
 import { buildActions } from "./actions";
@@ -40,6 +41,14 @@ function iconFor(a: Action) {
   return KIND_ICON[a.kind];
 }
 
+function TweakTag({ status }: { status?: string }) {
+  const { t } = useLanguage();
+  if (status === "active") return <span className={`tag on ${styles.itemTag}`}>{t("tw.st_active")}</span>;
+  if (status === "inactive") return <span className={`tag off ${styles.itemTag}`}>{t("tw.st_inactive")}</span>;
+  if (status === "unknown") return <span className={`tag off ${styles.itemTag}`}>{t("tw.st_unknown")}</span>;
+  return null;
+}
+
 export function Composer() {
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -47,8 +56,9 @@ export function Composer() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const { states } = useTweakStates();
 
-  const actions = useMemo(() => buildActions(language, t), [language, t]);
+  const actions = useMemo(() => buildActions(language, t, states), [language, t, states]);
   const result = useMemo(() => searchActions(query, actions), [query, actions]);
   const flat = useMemo(() => flattenResult(result), [result]);
   const open = query.trim().length > 0;
@@ -102,6 +112,7 @@ export function Composer() {
           <small>{a.subtitle}</small>
         </span>
         {lead && <span className="kbd">Enter</span>}
+        {a.kind === "tweak" && <TweakTag status={states?.[a.id.slice("tweak:".length)]?.status} />}
       </li>
     );
   };

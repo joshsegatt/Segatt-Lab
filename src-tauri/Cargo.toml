@@ -34,3 +34,6 @@ codegen-units = 1
 panic = "abort"
 strip = true
 
+[target."cfg(windows)".dependencies]
+winreg = "0.55"
+

@@ -84,7 +84,7 @@
 .itemText { min-width: 0; display: flex; flex-direction: column; }
 .itemText b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .itemText small { color: var(--ink-3); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item :global(.kbd) { margin-left: auto; }
+.item :global(.kbd), .itemTag { margin-left: auto; }
 .lead {
   margin: 4px 0 6px; padding: 12px;
   border-radius: var(--r-m);
@@ -131,6 +131,7 @@
 .state dd span { color: var(--ink-3); font-size: 13px; }
 .meter { height: 3px; border-radius: 2px; background: var(--raise-2); margin-top: 8px; overflow: hidden; }
 .meter i { display: block; height: 100%; border-radius: 2px; background: var(--ink-2); transition: width 0.6s var(--ease-out); }
+.meterBrand i { background: var(--brand); }
 
 @media (max-width: 900px) {
   .state { grid-template-columns: repeat(2, 1fr); }

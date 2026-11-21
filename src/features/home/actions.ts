@@ -1,4 +1,5 @@
 import type { Language } from "@/lib/i18n";
+import type { TweakState } from "@/hooks/useTweakStates";
 import type { Action } from "@/lib/search";
 import { APP_CATEGORIES } from "@/lib/app-categories";
 import { PRESETS, TWEAKS, tweaksInPreset } from "@/lib/tweaks-catalog";
@@ -38,14 +39,16 @@ const FIXES: [id: string, labelKey: string, keywords: string][] = [
   ["cache", "clear_cache", "icones icons cache"],
 ];
 
-export function buildActions(lang: Language, t: T): Action[] {
+export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null): Action[] {
   const presets: Action[] = PRESETS.map((p) => {
-    const count = tweaksInPreset(p.key).filter((tw) => tw.id !== "create_restore_point").length;
+    const ids = tweaksInPreset(p.key).map((tw) => tw.id);
+    const count = ids.length;
+    const pending = states ? ids.filter((id) => states[id]?.status !== "active").length : null;
     return {
       id: `preset:${p.key}`,
       kind: "preset",
       title: p.name[lang],
-      subtitle: fmt(t("home.preset_sub"), { n: count }),
+      subtitle: pending === null ? fmt(t("home.preset_sub"), { n: count }) : fmt(t("home.preset_sub_pending"), { p: pending, n: count }),
       href: `/tweaks?preset=${p.key}`,
       keywords: p.keywords,
     };

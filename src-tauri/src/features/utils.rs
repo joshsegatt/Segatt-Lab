@@ -102,6 +102,53 @@ pub fn spawn_visible_powershell(task_name: &str, script: &str) -> std::io::Resul
         .status()
 }
 
+/// Runs a script with no window and returns its standard output. Same honesty
+/// rules as the visible wrapper: any error or non-zero native exit code fails.
+/// Blocking: call it from a blocking thread.
+pub fn run_hidden_powershell(script: &str) -> Result<String, String> {
+    let wrapped = format!(
+        "$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$global:LASTEXITCODE = 0
+try {{
+{script}
+    if ($LASTEXITCODE -ne 0) {{ [Console]::Error.WriteLine(\"exit code $LASTEXITCODE\"); exit 1 }}
+}} catch {{
+    [Console]::Error.WriteLine($_.Exception.Message)
+    exit 1
+}}
+exit 0
+"
+    );
+    let output = silent_cmd("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", &encode_command(&wrapped)])
+        .output()
+        .map_err(|e| format!("Failed to start PowerShell: {e}"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if output.status.success() {
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(if stderr.is_empty() { "PowerShell task failed.".to_string() } else { stderr })
+    }
+}
+
+/// Runs a program with no window and returns stdout, or stderr/stdout on failure.
+pub fn run_hidden(program: &str, args: &[&str]) -> Result<String, String> {
+    let output = silent_cmd(program)
+        .args(args)
+        .output()
+        .map_err(|e| format!("Failed to start {program}: {e}"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if output.status.success() {
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(format!("{program} failed: {}", if stderr.is_empty() { &stdout } else { &stderr }))
+    }
+}
+
 /// Runs a blocking PowerShell task off the async runtime and maps the exit code.
 pub async fn run_visible_task(task_name: String, script: String) -> Result<(), String> {
     let status = tauri::async_runtime::spawn_blocking(move || {
