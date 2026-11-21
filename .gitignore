@@ -49,3 +49,7 @@ src-tauri/sig_exe_v1_5_5.txt
 src-tauri/sig_msi.txt
 src-tauri/sig_msi_v1_5_5.txt
 rustup-init.exe
+
+# verify screenshots
+.verify/
+.playwright-cli/
