@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity
-    version="1.5.1.0"
-    processorArchitecture="*"
-    name="com.segatt.tools"
-    type="win32"
-  />
-  <description>Segatt Tools Elite Utility</description>
+  <!-- Common Controls v6 is part of Tauri's default manifest; without it the app fails to start. -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+  <!-- build.rs swaps requireAdministrator for asInvoker in debug builds so `tauri dev` still runs. -->
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>
