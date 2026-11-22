@@ -274,6 +274,16 @@ mod tests {
         assert!(needs_admin(&decode_output(dism)));
     }
 
+    /// Runs SFC, DISM and the icon cache rebuild for real through run_fix.
+    /// Without administrator SFC and DISM stop at their own admin check.
+    #[test]
+    #[ignore]
+    fn real_fixes_report_honestly() {
+        for id in ["sfc", "dism", "cache"] {
+            println!("--- {id}: {:?}", run_fix(id));
+        }
+    }
+
     #[test]
     fn reads_the_sfc_verdict_in_both_languages() {
         assert_eq!(sfc_outcome("Windows Resource Protection did not find any integrity violations."), Some(FixOutcome::Clean));

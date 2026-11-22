@@ -233,7 +233,12 @@ pub fn action_args(action: AppAction, id: &str) -> (Vec<String>, Vec<i32>) {
 pub fn output_tail(stdout: &str, lines: usize) -> String {
     let clean: Vec<&str> = stdout
         .lines()
-        .map(|l| l.rsplit('\r').next().unwrap_or(l).trim())
+        // SFC ends lines with \r\r\n: drop trailing \r first, then keep what the
+        // last carriage return left on screen (spinners overwrite with \r).
+        .map(|l| {
+            let l = l.trim_end_matches('\r');
+            l.rsplit('\r').next().unwrap_or(l).trim()
+        })
         .filter(|l| !l.is_empty() && !l.chars().all(|c| matches!(c, '-' | '\\' | '|' | '/' | ' ' | '█' | '▒')))
         .collect();
     clean[clean.len().saturating_sub(lines)..].join("\n")
@@ -388,5 +393,13 @@ Navegador Ação Ç     Foo.Navegador           2.0.1    winget
         assert!(tail.contains("Found Steam"));
         assert!(tail.contains("1603"));
         assert!(!tail.contains("   - "));
+    }
+
+    #[test]
+    fn output_tail_keeps_lines_ending_in_double_cr() {
+        // Real SFC text without admin on this PC: every line ends with \r\r\n.
+        let sfc = "\r\r\nVocê precisa ser um administrador executando uma sessão do console\r\r\npara poder usar o utilitário sfc.\r\r\n";
+        assert_eq!(output_tail(sfc, 8), "Você precisa ser um administrador executando uma sessão do console\npara poder usar o utilitário sfc.");
+        assert_eq!(output_tail("Verification 10% complete.\rVerification 100% complete.\r\r\n", 8), "Verification 100% complete.");
     }
 }
