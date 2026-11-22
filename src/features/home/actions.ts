@@ -28,6 +28,11 @@ const CLEANUP: [id: string, keywords: string][] = [
   ["clean_browser_cache", "navegador browser chrome edge brave firefox cache"],
   ["clean_discord_cache", "discord cache"],
   ["clean_steam_web_cache", "steam cache loja store"],
+  ["clean_dev_package_caches", "npm yarn pip nuget pacotes packages programacao dev cache"],
+  ["clean_vscode_cache", "vscode vs code programacao dev cache"],
+  ["clean_gradle_cache", "gradle android java programacao dev cache"],
+  ["clean_old_ide_versions", "android studio jetbrains intellij ide antigas old programacao dev"],
+  ["clean_old_android_sdk", "android sdk ndk build-tools antigo old programacao dev"],
 ];
 
 // Extra words for the app categories, so "jogo" finds Steam.
