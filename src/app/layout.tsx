@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/features/navigation/components/Sidebar";
 import { TopBar } from "@/features/navigation/components/TopBar";
+import { Onboarding } from "@/features/onboarding/Onboarding";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { APP_NAME } from "@/lib/brand";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div className="app-content">{children}</div>
             </main>
           </div>
+          <Onboarding />
         </LanguageProvider>
       </body>
     </html>

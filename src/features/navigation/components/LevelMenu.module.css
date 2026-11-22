@@ -1,0 +1,26 @@
+.wrap { position: relative; }
+.chip { cursor: pointer; background: none; font-family: var(--font-ui); transition: background 0.15s, color 0.15s; }
+.chip:hover, .chip[aria-expanded="true"] { background: var(--hover); color: var(--ink); }
+
+.menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 50;
+  width: 320px; padding: 6px;
+  background: var(--raise-2); border: 1px solid var(--line-2); border-radius: var(--r-m);
+  box-shadow: var(--shadow-float);
+  animation: menu-in 0.18s var(--ease-out) both;
+}
+@keyframes menu-in { from { opacity: 0; transform: translateY(-4px); } }
+.head { padding: 6px 10px 6px; color: var(--ink-3); font-size: 12px; }
+
+.item {
+  width: 100%; display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 10px; border: 0; border-radius: var(--r-s);
+  background: none; color: var(--ink); text-align: left; cursor: pointer;
+  font: inherit;
+}
+.item:hover { background: var(--hover); }
+.on .check { color: var(--brand); }
+.check { flex: none; width: 16px; height: 18px; display: grid; place-items: center; }
+.text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.text b { font-weight: 600; font-size: 13.5px; }
+.text small { color: var(--ink-2); font-size: 12.5px; line-height: 1.4; }
