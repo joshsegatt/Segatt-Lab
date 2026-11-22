@@ -1,15 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { Gamepad2, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSystemStats } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
-import { countUpdates, useApps } from "@/hooks/useApps";
 import { Composer } from "@/features/home/Composer";
 import { YourPc } from "@/features/home/YourPc";
-import { useHardware } from "@/hooks/useHardware";
-import { presetForPc } from "@/lib/hardware";
+import { WorthDoing } from "@/features/home/WorthDoing";
 import { TWEAKS } from "@/lib/tweaks-catalog";
 import { fmt } from "@/lib/fmt";
 import styles from "@/features/home/Home.module.css";
@@ -21,31 +17,13 @@ export default function Home() {
   const { t, language } = useLanguage();
   const stats = useSystemStats();
   const { states } = useTweakStates();
-  const { hw } = useHardware();
-  const installedApps = useApps().installed;
-  const appUpdates = countUpdates(installedApps);
   const activeTweaks = countActive(states, TWEAKS.map((tw) => tw.id));
-  // Pills say how many tweaks of the preset are still off on this PC.
-  const presetDetail = (key: "gaming" | "privacy") => {
-    const ids = presetForPc(key, hw).map((tw) => tw.id);
-    if (!states) return fmt(t("home.n_tweaks"), { n: ids.length });
-    const pending = ids.length - countActive(states, ids);
-    return pending === 0 ? t("home.all_done") : fmt(t("home.n_pending"), { n: pending });
-  };
   const num = new Intl.NumberFormat(language === "pt" ? "pt-BR" : "en-US", { maximumFractionDigits: 1 });
 
   const memUsed = stats ? stats.used_memory / 1024 : 0;
   const memTotal = stats ? stats.total_memory / 1024 : 0;
   const diskFree = stats ? stats.disk_free / GB : 0;
   const diskTotal = stats ? stats.disk_total / GB : 0;
-
-  const suggestions = [
-    { href: "/tweaks?preset=gaming", icon: Gamepad2, label: t("home.sug_gaming"), detail: presetDetail("gaming") },
-    { href: "/tweaks?preset=privacy", icon: ShieldCheck, label: t("home.sug_privacy"), detail: presetDetail("privacy") },
-    // Fixed slot: the count fills in once winget has been read, the pill never swaps.
-    { href: "/install?view=updates", icon: RefreshCw, label: t("home.sug_update"), detail: installedApps ? (appUpdates > 0 ? fmt(t("home.n_apps"), { n: appUpdates }) : t("home.up_to_date")) : undefined },
-    { href: "/cleaner", icon: Trash2, label: t("home.sug_clean") },
-  ];
 
   return (
     <div className={styles.page}>
@@ -56,15 +34,7 @@ export default function Home() {
 
         <Composer />
 
-        <div className={styles.suggestions}>
-          {suggestions.map((s) => (
-            <Link key={s.href} href={s.href} className={styles.suggestion}>
-              <s.icon size={16} strokeWidth={1.75} aria-hidden="true" />
-              <b>{s.label}</b>
-              {s.detail && <span>{s.detail}</span>}
-            </Link>
-          ))}
-        </div>
+        <WorthDoing />
 
         <dl className={styles.state} aria-live="off">
           <div>

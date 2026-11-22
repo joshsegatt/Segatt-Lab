@@ -122,11 +122,6 @@ components:
     padding: "9px 12px"
   result-row-selected:
     backgroundColor: "{colors.graphite-raise-2}"
-  suggestion-pill:
-    textColor: "{colors.ink-2}"
-    rounded: "{rounded.pill}"
-    padding: "0 16px"
-    height: "38px"
   status-pill:
     textColor: "{colors.ink-2}"
     rounded: "{rounded.pill}"
@@ -274,7 +269,7 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 - **Ink** (`ink`), **Ink 2** (`ink-2`), **Ink 3** (`ink-3`): primary text; secondary text, icons and inactive nav; tertiary text, group labels, placeholders and metadata.
 
 ### Named Rules
-**The One Voice Rule.** Jade means "live, on, or do this". It never decorates: no jade headings, jade borders on idle cards, or jade icons without a state behind them. Suggestion-pill and preset icons are the single sanctioned decorative use, as small 16px glyphs.
+**The One Voice Rule.** Jade means "live, on, or do this". It never decorates: no jade headings, jade borders on idle cards, or jade icons without a state behind them. Preset icons in the Home results are the single sanctioned decorative use, as small 16px glyphs.
 
 **The Honest Colour Rule.** Amber and red are reserved for pending and failed. A failure is never rendered in jade or neutral to soften it.
 
@@ -304,7 +299,7 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 
 ## Layout
 
-A fixed desktop shell: a 264px sidebar column and a fluid main column (CSS grid). The main column scrolls; inside it a sticky 56px top bar (screen name left, status pill and icon buttons right, 20px side padding) sits over content padded 0 32px 40px. Home centres one 760px column vertically: question, lede, composer, suggestions (8px gaps, up to 780px), then a four-cell state strip 56px below. When search results open, the column jumps to the top (6vh) and the lede hides so the list fits the window; only the results scroll, the key hints stay in view.
+A fixed desktop shell: a 264px sidebar column and a fluid main column (CSS grid). The main column scrolls; inside it a sticky 56px top bar (screen name left, status pill and icon buttons right, 20px side padding) sits over content padded 0 32px 40px. Home centres one 760px column vertically: question, lede, composer, the "Vale fazer agora" list 28px below, then the four-cell state strip 28px below that. When search results open, the column jumps to the top (6vh) and the lede hides so the list fits the window; only the results scroll, the key hints stay in view.
 
 Tweaks uses a wider 860px centred column (8px top, 140px bottom padding so the last row clears the floating dock): page title in Headline with a lede in Ink 2, a tools row (segmented presets, a 220px search pushed right, one icon button), then the grouped lists 22px apart.
 
@@ -331,7 +326,7 @@ The floating dock on Tweaks and Apps uses Float, like the results panel and toas
 
 ## Shapes
 
-Generously rounded and soft, never sharp. Radii scale with the size of the object: 28px for the composer, 20px for grouped containers, results panel and the state strip, 14px for cards, toasts and the lead result, 10px for rows, nav items and small tiles. Every button, chip, suggestion and status indicator is a full pill (999px); icon buttons and status dots are circles. Small inline objects use tight corners: 6px tags, 5px keyboard keys. The switch track (40x22) is a full pill; its 11px corner is simply half its height. The pending-changes dock is the one 24px corner: a single floating bar, not a scale step. Borders are always 1px hairlines; there are no thick outlines. The focus ring is a 2px jade outline offset 2px.
+Generously rounded and soft, never sharp. Radii scale with the size of the object: 28px for the composer, 20px for grouped containers, results panel and the state strip, 14px for cards, toasts and the lead result, 10px for rows, nav items and small tiles. Every button, chip and status indicator is a full pill (999px); icon buttons and status dots are circles. Small inline objects use tight corners: 6px tags, 5px keyboard keys. The switch track (40x22) is a full pill; its 11px corner is simply half its height. The pending-changes dock is the one 24px corner: a single floating bar, not a scale step. Borders are always 1px hairlines; there are no thick outlines. The focus ring is a 2px jade outline offset 2px.
 
 ## Components
 
@@ -345,7 +340,6 @@ Quiet pills; only the primary one has colour.
 - **Icon button:** 32px circle, Ink 2 glyph, hover wash with Ink. Send in the composer is a 36px circle in ink with dark glyph, scaling 1.05 on hover, 25% opacity when empty.
 
 ### Chips
-- **Suggestion pill:** 38px pill, 3% white fill, hairline border, Ink 2 text with a 16px jade glyph and the label in Ink 600, optional real count after it. Hover: hover wash and strong hairline. The Home "Atualizar" pill opens Apps on the Atualizações view and carries the real update count ("16 apps") or "em dia"; before the apps are read it carries nothing.
 - **Status pill:** 32px outlined pill in the top bar with a 7px status dot (jade live, amber warn, Ink 3 unknown).
 - **Tag:** 22px, 6px corners, 12px 600; on / pending / failed use the soft wash of their colour with the solid colour as text; off is a 6% white wash with Ink 2 text.
 - **Tweak state tags:** every tweak row (on Tweaks and in the Home results) carries its real state: "Ativo" (on), "Padrão do Windows" and "Desconhecido" (off; the unknown one carries the engine's reason as its tooltip), "Vai ativar" / "Vai desfazer" and "Aplicando…" with a 12px spinner (pending), "Falhou" (failed, while the change is still pending). No state read yet means no tag.
@@ -392,6 +386,10 @@ The Tweaks screen's grouped list. Each group has a Title-size heading with its "
 - **Arrival:** a row opened from a Home search scrolls to centre and flashes jade-soft, fading out over 1.6s.
 - **Detail panel:** opens under the row with a 0.2s fade-and-rise (4px). 14px corners, hairline outline, 12px 14px inset. One line per change: the exact command or registry path in mono Ink 2 on the left; on the right the old value struck through in Ink 3, an arrow, and the new value in jade 600. When the value did not exist, the old side reads "não definido" in Ink 3, unstruck. A meta line in 12.5px Ink 3 says whether a restart is needed and how to undo ("Para desfazer, desligue: volta a …").
 - **Failure line:** under the row, in red at 13px with a 14px warning glyph: the time and a translated reason ("Falhou às 00:46: acesso negado…"), then two underlined Ink text buttons, "Ver detalhes" and "Tentar de novo" (with a 13px retry glyph). "Ver detalhes" opens the raw engine message as a mono block on canvas graphite with 10px corners.
+
+### Worth doing now (Home dashboard)
+
+Under the composer, before the live numbers: a 15px "Vale fazer agora" heading with "Lido deste PC" in Ink 3, then one 760px hairline list. Each row is a 30px icon tile, a 600 title that carries the number ("Liberar 5,4 GB", "Atualizar 16 apps") over one 13px Ink 2 sentence, and a chevron when it leads somewhere (the row is the link; hover nudges the chevron 2px). Warnings (not administrator, restart pending, updates off, drive under 10% free) come first with an amber tile; tips (cleanup over 1 GB, app updates, presets still off) follow with a neutral tile. The rules live in `src/lib/dashboard.ts` and only use readings the app already has; an unknown reading never makes a row. Once tweaks, apps, cleanup sizes and the admin state are read and nothing is left, a single row with a jade check says "Tudo em dia neste PC".
 
 ### Your PC (spec sheet)
 
