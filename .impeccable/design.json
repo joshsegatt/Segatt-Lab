@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-22T12:00:00Z",
+  "generatedAt": "2026-11-22T18:00:00Z",
   "title": "Design System: Segatt Tools",
   "extensions": {
     "theme": {
@@ -234,12 +234,12 @@
       {
         "name": "dock-in",
         "value": "0.25s ease-out, from opacity 0 translateY(8px)",
-        "purpose": "Pending-changes dock entrance."
+        "purpose": "Pending-changes dock entrance (Tweaks) and the progress/selection dock (Apps)."
       },
       {
         "name": "arrival-flash",
         "value": "1.6s ease-out, background rgba(61,220,151,0.14) to transparent",
-        "purpose": "Tweak row opened from a Home search."
+        "purpose": "Tweak row opened from a Home search; app row whose install, update or removal just finished."
       },
       {
         "name": "meter",
@@ -266,7 +266,9 @@
       "headerDescriptionMax": "60ch",
       "tweaksColumn": "860px",
       "tweaksColumnPadding": "8px 0 140px",
-      "dock": "fixed, bottom 24px, centred on main column, width min(860px, 100vw - sidebar - 64px); toast lifted to bottom 96px while it shows"
+      "dock": "fixed, bottom 24px, centred on main column, width min(860px, 100vw - sidebar - 64px); toast lifted to bottom 96px while it shows; on Apps it opens during a run (progress line) or with a catalog selection",
+      "appsColumn": "860px, shared with Tweaks (same Screen stylesheet)",
+      "appRowGrid": "20px checkbox | 1fr info | auto tag slot | 176px actions, 14px gap, 12px 18px inset; without checkbox: 1fr | auto | 176px"
     },
     "focus": {
       "value": "outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px"
@@ -395,6 +397,14 @@
       "css": ".ds-tlist { list-style: none; margin: 0; padding: 0; background: var(--raise); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; font: 14px/1.45 var(--font-ui); color: var(--ink); } .ds-trow { transition: background 0.15s; } .ds-trow + .ds-trow { border-top: 1px solid var(--line); } .ds-trow:hover { background: var(--hover); } .ds-tpend { background: rgba(245,184,75,0.035); } .ds-tline { display: grid; grid-template-columns: 1fr auto 44px; gap: 16px; align-items: center; padding: 6px 18px 6px 6px; } .ds-tinfo { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 8px 12px; border: 0; border-radius: var(--r-s); background: none; color: inherit; font: inherit; cursor: pointer; } .ds-tinfo:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; } .ds-tinfo b { font-weight: 600; } .ds-tinfo small { color: var(--ink-2); font-size: 13px; } .ds-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; } .ds-pend { background: var(--pending-soft); color: var(--pending); } .ds-bad { background: var(--danger-soft); color: var(--danger); } .ds-switch { width: 40px; height: 22px; border-radius: 11px; border: 0; padding: 0; position: relative; background: #3a3a3a; } .ds-switch::after { content: \"\"; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #d4d4d4; box-shadow: 0 1px 2px rgba(0,0,0,0.4); } .ds-switch-on { background: var(--brand); } .ds-switch-on::after { transform: translateX(18px); background: #fff; } @keyframes ds-detail-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } } .ds-tdetail { margin: 0 18px 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-m); display: flex; flex-direction: column; gap: 10px; animation: ds-detail-in 0.2s var(--ease-out) both; } .ds-tchange { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; } .ds-tchange code { font: 12.5px var(--font-mono); color: var(--ink-2); overflow-wrap: anywhere; } .ds-tvals { display: flex; gap: 8px; font: 12.5px var(--font-mono); white-space: nowrap; color: var(--ink-3); } .ds-tvals s { color: var(--ink-3); } .ds-tvals b { color: var(--brand); font-weight: 600; } .ds-tmeta { margin: 0; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--ink-3); font-size: 12.5px; } .ds-terr { margin: -2px 18px 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--danger); font-size: 13px; } .ds-terr button { border: 0; background: none; padding: 0; color: var(--ink); font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }"
     },
     {
+      "name": "App Row",
+      "kind": "custom",
+      "refersTo": "app-row",
+      "description": "Apps list row: optional checkbox, name and subline, tag slot (state tag or old-to-new version), fixed 176px actions; remove confirm opens inline under it.",
+      "html": "<ul class=\"ds-app-list\"><li class=\"ds-app-row\"><div class=\"ds-app-line ds-app-nocheck\"><div class=\"ds-app-info\"><b>Antigravity 2.32.1</b><small>Google.Antigravity · versão 2.32.1</small></div><span class=\"ds-app-tag\"><span class=\"ds-values\"><s>2.32.1</s><span>→</span><b>2.34.0</b></span></span><div class=\"ds-app-actions\"><button class=\"ds-btn-sm ds-btn-sec\">Atualizar</button><button class=\"ds-btn-sm ds-btn-ghost\">Remover</button></div></div></li><li class=\"ds-app-row\"><div class=\"ds-app-line ds-app-nocheck\"><div class=\"ds-app-info\"><b>Antigravity IDE (User)</b><small>Google.AntigravityIDE · versão 2.7.0</small></div><span class=\"ds-app-tag\"><span class=\"ds-values\"><s>2.7.0</s><span>→</span><b>2.8.0</b></span></span><div class=\"ds-app-actions\"><button class=\"ds-btn-sm ds-btn-sec\">Atualizar</button></div></div><p class=\"ds-app-confirm\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg>Remover Antigravity IDE (User) deste PC? O app não consegue desfazer isso.<button class=\"ds-btn-sm ds-btn-sec\">Remover</button><button class=\"ds-btn-sm ds-btn-ghost\">Cancelar</button></p></li><li class=\"ds-app-row\"><div class=\"ds-app-line ds-app-nocheck\"><div class=\"ds-app-info\"><b>Bionic 1.2.0+2</b><small>ElementLabs.Bionic</small></div><span class=\"ds-app-tag\"><span class=\"ds-tag\">Na fila</span></span><div class=\"ds-app-actions\"></div></div></li></ul>",
+      "css": ".ds-app-list { list-style: none; margin: 0; padding: 0; background: #242424; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; width: 860px; color: #ededed; font: 14px 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; } .ds-app-row { transition: background 0.15s; } .ds-app-row + .ds-app-row { border-top: 1px solid rgba(255,255,255,0.07); } .ds-app-row:hover { background: rgba(255,255,255,0.045); } .ds-app-line { display: grid; grid-template-columns: 20px 1fr auto 176px; gap: 14px; align-items: center; padding: 12px 18px; } .ds-app-nocheck { grid-template-columns: 1fr auto 176px; } .ds-app-info { display: flex; flex-direction: column; min-width: 0; } .ds-app-info b { font-weight: 600; } .ds-app-info small { color: #a1a1a1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-app-tag { display: flex; justify-content: flex-end; } .ds-app-actions { display: flex; gap: 6px; justify-content: flex-end; min-width: 88px; } .ds-values { display: flex; align-items: baseline; gap: 8px; font: 12.5px 'Cascadia Mono', Consolas, monospace; white-space: nowrap; } .ds-values s, .ds-values span { color: #737373; } .ds-values b { color: #3ddc97; font-weight: 600; } .ds-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.06); color: #a1a1a1; } .ds-btn-sm { height: 32px; padding: 0 12px; border-radius: 999px; font: 600 13px 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif; cursor: pointer; color: #ededed; } .ds-btn-sec { background: #242424; border: 1px solid rgba(255,255,255,0.12); } .ds-btn-sec:hover { background: #2c2c2c; } .ds-btn-ghost { background: transparent; border: 1px solid transparent; } .ds-btn-ghost:hover { background: rgba(255,255,255,0.045); } .ds-btn-sm:focus-visible { outline: 2px solid #3ddc97; outline-offset: 2px; } .ds-app-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -2px 18px 12px; color: #ededed; font-size: 13px; } .ds-app-confirm svg { color: #f5b84b; }"
+    },
+    {
       "name": "Pending-Changes Dock",
       "kind": "custom",
       "refersTo": "pending-dock",
@@ -460,7 +470,10 @@
       "Do make every button, chip and status indicator a full pill, and match container radius to size (28 / 20 / 14 / 10px).",
       "Do use Segoe UI Variable Display for titles and Text for UI, and Cascadia Mono only for keys, commands and values.",
       "Do show real numbers only; when a reading is not available yet, show nothing or a dash, never a placeholder figure.",
-      "Do honour reduced motion: the global rule collapses every animation and transition."
+      "Do honour reduced motion: the global rule collapses every animation and transition.",
+      "Do show any version or value change as old struck through in Ink 3, an arrow, and new in jade mono (12.5px), the same line on Tweaks details and on every Apps list.",
+      "Do confirm a destructive row action inline under the row (amber warning glyph, plain consequence, the action and \"Cancelar\"), not in a modal.",
+      "Do keep list columns aligned while state changes: fixed action tracks and an always-present tag slot, so tags and buttons never jump."
     ],
     "donts": [
       "Don't use black, neon, or glowing edges; the only glow is the faint one behind the Home composer.",

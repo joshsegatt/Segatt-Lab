@@ -6,6 +6,7 @@ import { House, Package, SlidersHorizontal, Trash2, Wrench, Settings2, Monitor }
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePcInfo } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
+import { countUpdates, useApps } from "@/hooks/useApps";
 import { TWEAKS } from "@/lib/tweaks-catalog";
 import { groupByDay, useActivity } from "@/lib/history";
 import { APP_MARK, APP_NAME } from "@/lib/brand";
@@ -27,6 +28,7 @@ export function Sidebar() {
   const history = groupByDay(useActivity());
   const { states } = useTweakStates();
   const tweakCount = states ? `${countActive(states, TWEAKS.map((tw) => tw.id))}/${TWEAKS.length}` : null;
+  const updates = countUpdates(useApps().installed);
 
   return (
     <aside className={styles.side}>
@@ -44,6 +46,7 @@ export function Sidebar() {
               <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
               <span>{t(`nav.${item.key}`)}</span>
               {item.key === "tweaks" && tweakCount && <span className={styles.count}>{tweakCount}</span>}
+              {item.key === "apps" && updates > 0 && <span className={styles.count} title={t("ap.view_updates")}>{updates}</span>}
             </Link>
           );
         })}

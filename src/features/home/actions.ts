@@ -21,10 +21,10 @@ const CLEANUP: [id: string, labelKey: string, keywords: string][] = [
   ["clean_logs_minidumps", "logs", "logs dumps"],
 ];
 
-// Portuguese words for the app categories, so "jogo" finds Steam.
+// Extra words for the app categories, so "jogo" finds Steam.
 const CATEGORY_WORDS: Record<string, string> = {
   browsers: "navegador navegadores internet",
-  hardware: "hardware placa video gpu drivers monitoramento",
+  hardware: "placa video gpu drivers monitoramento",
   gaming: "jogo jogos games gamer",
   media: "midia musica video audio",
   utilities: "utilitarios ferramentas tools",
@@ -68,9 +68,9 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
       id: `app:${app.id}`,
       kind: "app" as const,
       title: app.name,
-      subtitle: app.id,
+      subtitle: app.description[lang],
       href: `/install?q=${encodeURIComponent(app.name)}`,
-      keywords: `${cat.label} ${CATEGORY_WORDS[cat.key] ?? ""} ${app.description}`,
+      keywords: `${app.id} ${cat.label.pt} ${cat.label.en} ${CATEGORY_WORDS[cat.key] ?? ""} ${app.description.pt} ${app.description.en}`,
     })),
   );
 

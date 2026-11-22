@@ -190,6 +190,13 @@ components:
     backgroundColor: "{colors.hover-wash}"
   tweak-row-pending:
     backgroundColor: "rgba(245, 184, 75, 0.035)"
+  app-row:
+    padding: "12px 18px"
+  app-row-selected:
+    backgroundColor: "rgba(245, 184, 75, 0.035)"
+  version-update:
+    textColor: "{colors.jade}"
+    typography: "{typography.mono}"
   tweak-detail:
     rounded: "{rounded.m}"
     padding: "12px 14px"
@@ -288,7 +295,7 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 - **Body** (400, 14px, 1.45): default UI text. Result titles use 600 weight at body size; the Home lede sits at 15.5px in Ink 2.
 - **Input** (400, 16px): the composer field.
 - **Label** (600, 12px, no tracking, sentence case): group labels in results and sidebar history, state-strip terms (500 weight there), tags. Ink 3 except on tags.
-- **Mono** (400, 12px): keyboard keys, literal commands or values, and the raw error block. The Tweaks detail panel sets its command path and before/after values at 12.5px.
+- **Mono** (400, 12px): keyboard keys, literal commands or values, and the raw error block. The Tweaks detail panel sets its command path and before/after values at 12.5px, and app version changes on Apps use the same 12.5px before/after line.
 
 ### Named Rules
 **The System Face Rule.** Only installed Windows faces. No web fonts, ever: the app runs offline.
@@ -300,6 +307,8 @@ Neutral graphite with ink in three strengths, plus three meaning colours that ea
 A fixed desktop shell: a 264px sidebar column and a fluid main column (CSS grid). The main column scrolls; inside it a sticky 56px top bar (screen name left, status pill and icon buttons right, 20px side padding) sits over content padded 0 32px 40px. Home centres one 760px column vertically: question, lede, composer, suggestions (8px gaps, up to 780px), then a four-cell state strip 56px below. When search results open, the column jumps to the top (6vh) and the lede hides so the list fits the window; only the results scroll, the key hints stay in view.
 
 Tweaks uses a wider 860px centred column (8px top, 140px bottom padding so the last row clears the floating dock): page title in Headline with a lede in Ink 2, a tools row (segmented presets, a 220px search pushed right, one icon button), then the grouped lists 22px apart.
+
+Apps shares that 860px column, header, tools row and grouped-list styles with Tweaks (one stylesheet for both screens). Its segmented control switches views instead of presets, the tools row ends with a refresh icon button, and the Catálogo view groups apps by category with an "N de M instalados" count. App rows run on a four-track grid: a 20px checkbox track, the flexible name block, an auto-width tag slot, and a fixed 176px actions track (14px gaps, 12px 18px inset). Rows without a checkbox drop the first track. Because the actions track is fixed and the tag slot is always rendered (empty when there is no state), tags and buttons stay aligned down the whole list whatever a row is doing.
 
 Spacing runs on a 4px base with 8, 12, 16, 20, 24 and 32px doing almost all the work; 56px separates the Home composer cluster from the live-state strip. Product target is desktop windows only; the single breakpoint (900px) folds the state strip from four cells to two.
 
@@ -313,7 +322,7 @@ Tonal first. Planes step from sidebar to canvas to raise to raise-2, separated b
 - **Status halo** (`box-shadow: 0 0 0 3px` at 18% of the state colour): a solid ring around live/pending status dots only.
 - **Knob** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4)`): the switch knob only, so the light disc reads on its track. It belongs to the control, not to elevation.
 
-The floating pending-changes dock on Tweaks uses Float, like the results panel and toasts.
+The floating dock on Tweaks and Apps uses Float, like the results panel and toasts.
 
 ### Named Rules
 **The Flat-At-Rest Rule.** Lists, cards, pills and nav sit flat. Only something that floats over other content gets a shadow.
@@ -336,7 +345,7 @@ Quiet pills; only the primary one has colour.
 - **Icon button:** 32px circle, Ink 2 glyph, hover wash with Ink. Send in the composer is a 36px circle in ink with dark glyph, scaling 1.05 on hover, 25% opacity when empty.
 
 ### Chips
-- **Suggestion pill:** 38px pill, 3% white fill, hairline border, Ink 2 text with a 16px jade glyph and the label in Ink 600, optional real count after it. Hover: hover wash and strong hairline.
+- **Suggestion pill:** 38px pill, 3% white fill, hairline border, Ink 2 text with a 16px jade glyph and the label in Ink 600, optional real count after it. Hover: hover wash and strong hairline. The Home "Atualizar" pill opens Apps on the Atualizações view and carries the real update count ("16 apps") or "em dia"; before the apps are read it carries nothing.
 - **Status pill:** 32px outlined pill in the top bar with a 7px status dot (jade live, amber warn, Ink 3 unknown).
 - **Tag:** 22px, 6px corners, 12px 600; on / pending / failed use the soft wash of their colour with the solid colour as text; off is a 6% white wash with Ink 2 text.
 - **Tweak state tags:** every tweak row (on Tweaks and in the Home results) carries its real state: "Ativo" (on), "Padrão do Windows" and "Desconhecido" (off; the unknown one carries the engine's reason as its tooltip), "Vai ativar" / "Vai desfazer" and "Aplicando…" with a 12px spinner (pending), "Falhou" (failed, while the change is still pending). No state read yet means no tag.
@@ -349,7 +358,8 @@ Quiet pills; only the primary one has colour.
 
 ### Segmented control
 - **Shape:** a raised-graphite pill with a hairline border and 3px inset; segments are 30px pills, 13px 500 in Ink 2, Ink on hover.
-- **Selected:** solid Ink fill with near-black text at 600, the same neutral inversion as the composer's send button. Not jade: choosing a preset is not a live state.
+- **Selected:** solid Ink fill with near-black text at 600, the same neutral inversion as the composer's send button. Not jade: choosing a preset or a view is not a live state.
+- **Counts:** a segment may carry a real count after its label (12px, tabular numbers, inherited colour at 70% opacity, 6px left gap): Apps shows "Instalados 84" and "Atualizações 16". A count appears only once the number is read, and the updates count only when it is above zero.
 - **Passive segment:** "Personalizado" is not clickable (out of the tab order, default cursor, not dimmed). It takes the selected fill by itself when tweaks are picked by hand.
 - **Disabled:** 60% opacity while states load or a change runs.
 
@@ -369,7 +379,7 @@ Quiet pills; only the primary one has colour.
 - **Focus:** the composer border brightens to 20% white; elsewhere the global 2px jade focus ring.
 
 ### Navigation
-- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), six 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Nav items may carry a live count at the right edge (12px Ink 3, tabular numbers); Tweaks shows active of total ("9/24"), and an item with no real number shows nothing. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2 clamped to two lines, failed entries in red with the detail in Ink 3. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
+- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), six 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Nav items may carry a live count at the right edge (12px Ink 3, tabular numbers); Tweaks shows active of total ("9/24"), Apps shows the number of app updates available (only when above zero, with "Atualizações" as its tooltip), and an item with no real number shows nothing. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2 clamped to two lines, failed entries in red with the detail in Ink 3. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
 - **Top bar:** translucent, screen name in Title at Ink 2, actions right with 8px gaps.
 
 ### Command Results (signature)
@@ -383,8 +393,20 @@ The Tweaks screen's grouped list. Each group has a Title-size heading with its "
 - **Detail panel:** opens under the row with a 0.2s fade-and-rise (4px). 14px corners, hairline outline, 12px 14px inset. One line per change: the exact command or registry path in mono Ink 2 on the left; on the right the old value struck through in Ink 3, an arrow, and the new value in jade 600. When the value did not exist, the old side reads "não definido" in Ink 3, unstruck. A meta line in 12.5px Ink 3 says whether a restart is needed and how to undo ("Para desfazer, desligue: volta a …").
 - **Failure line:** under the row, in red at 13px with a 14px warning glyph: the time and a translated reason ("Falhou às 00:46: acesso negado…"), then two underlined Ink text buttons, "Ver detalhes" and "Tentar de novo" (with a 13px retry glyph). "Ver detalhes" opens the raw engine message as a mono block on canvas graphite with 10px corners.
 
+### App List (signature)
+The Apps screen's rows, used for the catalog, the installed list, the updates list and winget search results alike. Same container as the Tweak List: raised graphite, 20px corners, hairline outline and dividers, hover wash on the row.
+- **Row:** checkbox, name (600) over a single-line Secondary subline in Ink 2 (description, or package id and version) that truncates with an ellipsis, the tag slot, then the actions track. Actions are small pills: "Atualizar" and "Instalar" secondary, "Remover" ghost. A row that is queued or running shows no actions.
+- **Checkbox:** 16px native checkbox with a jade accent, only on catalog rows that are not installed and not busy. A catalog row that cannot be picked keeps an empty placeholder in the checkbox track so its columns stay aligned; lists with no selection (installed, updates, winget) drop the track. A selected row takes the same faint amber tint (3.5%) as a pending tweak.
+- **Update available:** the tag slot shows the change the way a tweak detail does: the installed version struck through in Ink 3, an Ink 3 arrow, and the new version in jade 600, all in 12.5px mono. This is the single update idiom on every Apps list.
+- **State tags:** "Instalado {versão}" (on) for a present app; "Na fila" (off) while queued; "Instalando…", "Atualizando…" or "Removendo…" (pending, with a 12px spinner) while running; "Instalado", "Atualizado" or "Removido" (on) when done; "Falhou" (failed). A row whose job finishes flashes jade-soft and fades over 1.6s, the same flash as a tweak's arrival.
+- **Remove confirm:** removing never opens a modal. "Remover" opens a line under the row, 13px in Ink with a 14px amber warning glyph: "Remover {nome} deste PC? O app não consegue desfazer isso." followed by a small secondary "Remover" and a small ghost "Cancelar". The row's own "Remover" hides while the line is open.
+- **Failure line:** the Tweaks failure line, reused: red 13px with the warning glyph, the time and the translated winget reason (with an admin hint appended when the app is not running as administrator and the cause may be permissions), then "Ver detalhes" (the raw winget output in the canvas-graphite mono block) and "Tentar de novo".
+- **Update all:** the Atualizações view puts a small primary "Atualizar tudo {n}" above its list; it is disabled while any run is active.
+
 ### Pending-Changes Dock
 Floats 24px above the bottom, centred on the main column and as wide as the 860px working column (minus 64px on narrow windows). Raised graphite 2, strong hairline, 24px corners, Float shadow, entering with a 0.25s fade-and-rise. Left: the change count in 600, a "Ponto de restauração antes" checkbox (jade accent, jade shield glyph, Secondary Ink 2; shown only when something will be turned on), restart and progress notes in Secondary Ink 2, and the not-admin warning in Secondary amber. Right: a default "Descartar" button and the primary "Aplicar N" button.
+
+Apps uses the same dock as a progress and selection bar. It opens while a run is active or while catalog apps are selected. During a run, the left side reads as one live line: a 14px spinner and "Instalando / Atualizando / Removendo i de n · App" in Secondary Ink 2, with no buttons. With a selection and no run, it shows "N apps selecionados" in 600, a default "Limpar seleção" button and the primary "Instalar N". When the app is not running as administrator, the amber warning ("Sem administrador: alguns instaladores vão falhar ou pedir permissão.") sits beside either state. The finished batch reports through the toast ("{ok} de {n} concluídos.").
 
 ### Toast
 Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot at left carries the meaning colour (jade success, red error, amber info). While the pending-changes dock is up, the toast is lifted to 96px from the bottom so it never covers the dock's buttons.
@@ -398,6 +420,9 @@ Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot a
 - **Do** use Segoe UI Variable Display for titles and Text for UI, and Cascadia Mono only for keys, commands and values.
 - **Do** show real numbers only; when a reading is not available yet, show nothing or a dash, never a placeholder figure.
 - **Do** honour reduced motion: the global rule collapses every animation and transition.
+- **Do** show any version or value change as old struck through in Ink 3, an arrow, and new in jade mono (12.5px), the same line on Tweaks details, on every Apps list and in the Home search.
+- **Do** confirm a destructive row action inline under the row (amber warning glyph, plain consequence, the action and "Cancelar"), not in a modal.
+- **Do** keep list columns aligned while state changes: fixed action tracks and an always-present tag slot, so tags and buttons never jump.
 
 ### Don't:
 - **Don't** use black, neon, or glowing edges; the only glow is the faint one behind the Home composer.

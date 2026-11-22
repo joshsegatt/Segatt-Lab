@@ -1,105 +1,98 @@
-// Segatt Tools — App Categories (CTT-style)
-// Predefined app catalog organized by category
+// Curated app catalog (winget ids). Every label and description exists in every
+// shipped language, so a screen never mixes languages.
+
+import type { Language } from "@/lib/i18n";
+
+type T = Record<Language, string>;
 
 export interface AppEntry {
-  id: string;           // WinGet package ID
-  name: string;         // Display name
-  description: string;  // Short description (for tooltip)
-  website?: string;
-  foss?: boolean;       // Free and Open Source Software
+  id: string; // winget package id
+  name: string;
+  description: T;
+  foss?: boolean;
 }
 
 export interface AppCategory {
   key: string;
-  label: string;
-  icon: string; // lucide icon name
+  label: T;
   apps: AppEntry[];
 }
 
+const app = (id: string, name: string, pt: string, en: string, foss = false): AppEntry => ({ id, name, description: { pt, en }, foss });
+
 export const APP_CATEGORIES: AppCategory[] = [
   {
-    key: "browsers",
-    label: "Browsers",
-    icon: "Globe",
+    key: "gaming",
+    label: { pt: "Jogos", en: "Gaming" },
     apps: [
-      { id: "Google.Chrome",          name: "Google Chrome",    description: "Fast and secure web browser" },
-      { id: "Mozilla.Firefox",        name: "Firefox",          description: "Privacy-focused open-source", foss: true },
-      { id: "Brave.Brave",            name: "Brave",            description: "Chromium-based with ad blocking", foss: true },
-      { id: "Microsoft.Edge",         name: "Edge",             description: "Microsoft's integrated browser" },
-      { id: "Opera.OperaGX",          name: "Opera GX",         description: "The gaming browser" },
-      { id: "Vivaldi.Vivaldi",        name: "Vivaldi",          description: "Highly customizable power browser" },
-      { id: "LibreWolf.LibreWolf",    name: "LibreWolf",        description: "Privacy-hardened Firefox fork", foss: true },
-      { id: "TheBrowserCompany.Arc",  name: "Arc Browser",      description: "Modern, workspace-focused browser" },
-      { id: "Ablaze.Floorp",          name: "Floorp",           description: "Customizable and fast Firefox derivative" },
-      { id: "Alex313031.Thorium",     name: "Thorium",          description: "Optimized Chromium browser" },
-      { id: "Waterfox.Waterfox",      name: "Waterfox",         description: "Fast Firefox variant for power users" },
+      app("Valve.Steam", "Steam", "A maior plataforma de jogos para PC", "The largest PC gaming platform"),
+      app("Discord.Discord", "Discord", "Voz e chat para jogar em grupo", "Voice and chat for gaming together"),
+      app("Nvidia.GeForceExperience", "GeForce Experience", "Drivers e otimização para placas NVIDIA", "Drivers and tuning for NVIDIA cards"),
+      app("EpicGames.EpicGamesLauncher", "Epic Games", "Loja com jogos grátis toda semana", "Store with free games every week"),
+      app("Blizzard.BattleNet", "Battle.net", "Launcher dos jogos da Blizzard", "Blizzard's game launcher"),
+      app("Ubisoft.Connect", "Ubisoft Connect", "Launcher dos jogos da Ubisoft", "Ubisoft's game launcher"),
+      app("ElectronicArts.EADesktop", "EA App", "Plataforma de jogos da EA", "EA's gaming platform"),
+      app("Unity.UnityHub", "Unity Hub", "Gerencia versões da engine Unity", "Manages Unity engine versions"),
+    ],
+  },
+  {
+    key: "browsers",
+    label: { pt: "Navegadores", en: "Browsers" },
+    apps: [
+      app("Google.Chrome", "Google Chrome", "Navegador rápido do Google", "Google's fast web browser"),
+      app("Mozilla.Firefox", "Firefox", "Navegador aberto focado em privacidade", "Open-source, privacy-focused browser", true),
+      app("Brave.Brave", "Brave", "Chromium com bloqueio de anúncios", "Chromium with built-in ad blocking", true),
+      app("Microsoft.Edge", "Edge", "Navegador integrado da Microsoft", "Microsoft's built-in browser"),
+      app("Opera.OperaGX", "Opera GX", "Navegador feito para gamers", "The browser made for gamers"),
+      app("Vivaldi.Vivaldi", "Vivaldi", "Navegador muito personalizável", "Highly customizable browser"),
+      app("LibreWolf.LibreWolf", "LibreWolf", "Firefox reforçado para privacidade", "Privacy-hardened Firefox fork", true),
+      app("TheBrowserCompany.Arc", "Arc Browser", "Navegador moderno com espaços de trabalho", "Modern, workspace-based browser"),
+      app("Ablaze.Floorp", "Floorp", "Derivado rápido e personalizável do Firefox", "Fast, customizable Firefox derivative", true),
+      app("Alex313031.Thorium", "Thorium", "Chromium otimizado para velocidade", "Speed-optimized Chromium", true),
+      app("Waterfox.Waterfox", "Waterfox", "Variante rápida do Firefox", "Fast Firefox variant", true),
     ],
   },
   {
     key: "hardware",
-    label: "Hardware",
-    icon: "Cpu",
+    label: { pt: "Hardware", en: "Hardware" },
     apps: [
-      { id: "REALiX.HWiNFO",          name: "HWiNFO",           description: "Hardware monitoring" },
-      { id: "CPUID.CPU-Z",            name: "CPU-Z",            description: "Processor & RAM info" },
-      { id: "TechPowerUp.GPU-Z",      name: "GPU-Z",            description: "Graphics card details" },
-      { id: "CrystalMarkSoftware.CrystalDiskInfo", name: "CrystalDiskInfo", description: "Storage health monitor" },
-      { id: "AntibodySoftware.WizTree",name: "WizTree",          description: "Fast disk space analyzer" },
-      { id: "MSI.Afterburner",        name: "MSI Afterburner",  description: "GPU overclocking/monitoring" },
-      { id: "Maxon.Cinebench",        name: "Cinebench R23",    description: "Industry standard CPU benchmark" },
-      { id: "UL.3DMark",              name: "3DMark",           description: "The gamer's GPU benchmark" },
-    ],
-  },
-  {
-    key: "gaming",
-    label: "Gaming",
-    icon: "Gamepad2",
-    apps: [
-      { id: "Valve.Steam",                  name: "Steam",              description: "Largest PC gaming platform" },
-      { id: "Discord.Discord",              name: "Discord",            description: "Communication for gamers" },
-      { id: "Nvidia.GeForceExperience",     name: "GeForce Experience", description: "Optimize/update GPU" },
-      { id: "EpicGames.EpicGamesLauncher",  name: "Epic Games",         description: "Weekly free games store" },
-      { id: "Blizzard.BattleNet",           name: "Battle.net",         description: "Blizzard's game launcher" },
-      { id: "Ubisoft.Connect",              name: "Ubisoft Connect",    description: "Ubisoft's ecosystem" },
-      { id: "ElectronicArts.EADesktop",     name: "EA App",             description: "EA gaming platform" },
-      { id: "Unity.UnityHub",               name: "Unity Hub",          description: "Unity engine manager" },
+      app("REALiX.HWiNFO", "HWiNFO", "Monitora temperaturas e sensores", "Monitors temperatures and sensors"),
+      app("CPUID.CPU-Z", "CPU-Z", "Detalhes do processador e da memória", "Processor and memory details"),
+      app("TechPowerUp.GPU-Z", "GPU-Z", "Detalhes da placa de vídeo", "Graphics card details"),
+      app("CrystalMarkSoftware.CrystalDiskInfo", "CrystalDiskInfo", "Saúde dos discos e SSDs", "Drive and SSD health", true),
+      app("AntibodySoftware.WizTree", "WizTree", "Mostra o que ocupa espaço no disco", "Shows what fills your disk"),
+      app("MSI.Afterburner", "MSI Afterburner", "Overclock e monitor da GPU", "GPU overclocking and monitoring"),
+      app("Maxon.Cinebench", "Cinebench", "Benchmark padrão de CPU", "Industry-standard CPU benchmark"),
+      app("UL.3DMark", "3DMark", "Benchmark de GPU para jogos", "The gamer's GPU benchmark"),
     ],
   },
   {
     key: "media",
-    label: "Media",
-    icon: "Music",
+    label: { pt: "Mídia e stream", en: "Media and streaming" },
     apps: [
-      { id: "VideoLAN.VLC",              name: "VLC",          description: "Best open-source player", foss: true },
-      { id: "Spotify.Spotify",           name: "Spotify",      description: "Music & podcast streaming" },
-      { id: "OBSProject.OBSStudio",      name: "OBS Studio",   description: "Recording and streaming", foss: true },
-      { id: "GIMP.GIMP",                 name: "GIMP",         description: "Pro image editor", foss: true },
-      { id: "Blender.Blender",           name: "Blender",      description: "3D creation suite", foss: true },
-      { id: "HandBrake.HandBrake",       name: "HandBrake",    description: "Video transcoder", foss: true },
-      { id: "Streamlabs.StreamlabsDesktop", name: "Streamlabs",  description: "All-in-one streaming app" },
+      app("VideoLAN.VLC", "VLC", "Toca qualquer vídeo ou áudio", "Plays any video or audio", true),
+      app("Spotify.Spotify", "Spotify", "Música e podcasts", "Music and podcasts"),
+      app("OBSProject.OBSStudio", "OBS Studio", "Grava e transmite a tela", "Records and streams your screen", true),
+      app("GIMP.GIMP", "GIMP", "Editor de imagens completo", "Full image editor", true),
+      app("Blender.Blender", "Blender", "Criação 3D completa", "Complete 3D creation suite", true),
+      app("HandBrake.HandBrake", "HandBrake", "Converte e comprime vídeos", "Converts and compresses video", true),
+      app("Streamlabs.StreamlabsDesktop", "Streamlabs", "Tudo para fazer live num app", "All-in-one streaming app"),
     ],
   },
   {
     key: "utilities",
-    label: "Utilities",
-    icon: "Wrench",
+    label: { pt: "Utilitários", en: "Utilities" },
     apps: [
-      { id: "Microsoft.PowerToys",           name: "PowerToys",         description: "System tools for power users" },
-      { id: "Notepad++.Notepad++",           name: "Notepad++",         description: "Extensible text editor" },
-      { id: "7zip.7zip",                     name: "7-Zip",             description: "High compression archiver", foss: true },
-      { id: "RevoUninstaller.RevoUninstaller",name: "Revo Uninstaller", description: "Force clean uninstaller" },
-      { id: "voidtools.Everything",          name: "Everything",        description: "Instant file search" },
-      { id: "Bitwarden.Bitwarden",           name: "Bitwarden",        description: "Open-source password manager", foss: true },
-      { id: "Akeo.Rufus",                    name: "Rufus",            description: "Create bootable USB drives", foss: true },
-      { id: "BleachBit.BleachBit",           name: "BleachBit",        description: "Privacy cleaner", foss: true },
+      app("Microsoft.PowerToys", "PowerToys", "Ferramentas extras para o Windows", "Extra tools for Windows", true),
+      app("Notepad++.Notepad++", "Notepad++", "Editor de texto leve", "Lightweight text editor", true),
+      app("7zip.7zip", "7-Zip", "Compacta e extrai arquivos", "Compresses and extracts archives", true),
+      app("RevoUninstaller.RevoUninstaller", "Revo Uninstaller", "Remove programas sem deixar restos", "Uninstalls without leftovers"),
+      app("voidtools.Everything", "Everything", "Acha qualquer arquivo na hora", "Finds any file instantly"),
+      app("Bitwarden.Bitwarden", "Bitwarden", "Gerenciador de senhas aberto", "Open-source password manager", true),
+      app("Akeo.Rufus", "Rufus", "Cria pendrives de boot", "Creates bootable USB drives", true),
+      app("BleachBit.BleachBit", "BleachBit", "Limpa rastros e arquivos inúteis", "Cleans traces and junk files", true),
     ],
   },
 ];
 
-export type InstalledStatus = "not-installed" | "installing" | "installed" | "error";
-
-export interface AppState extends AppEntry {
-  category: string;
-  status: InstalledStatus;
-  isSelected: boolean;
-}
+export const ALL_APPS: AppEntry[] = APP_CATEGORIES.flatMap((c) => c.apps);

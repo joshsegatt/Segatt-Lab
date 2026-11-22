@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTweakStates } from "@/hooks/useTweakStates";
+import { findInstalled, useApps } from "@/hooks/useApps";
+import screen from "@/components/ui/Screen.module.css";
 import { flattenResult, searchActions, type Action, type ActionKind } from "@/lib/search";
 import { fmt } from "@/lib/fmt";
 import { buildActions } from "./actions";
@@ -49,6 +51,21 @@ function TweakTag({ status }: { status?: string }) {
   return null;
 }
 
+function AppTag({ app }: { app?: { version: string; available: string | null } }) {
+  const { t } = useLanguage();
+  if (!app) return null;
+  // Same idiom as the Apps screen: old version struck, new one in jade.
+  if (app.available)
+    return (
+      <span className={`${screen.values} ${styles.itemTag}`} aria-label={`${app.version} → ${app.available}`}>
+        <s aria-hidden="true">{app.version}</s>
+        <span aria-hidden="true">→</span>
+        <b aria-hidden="true">{app.available}</b>
+      </span>
+    );
+  return <span className={`tag on ${styles.itemTag}`}>{fmt(t("ap.tag_installed"), { v: app.version })}</span>;
+}
+
 export function Composer() {
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -57,6 +74,7 @@ export function Composer() {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const { states } = useTweakStates();
+  const { installed } = useApps();
 
   const actions = useMemo(() => buildActions(language, t, states), [language, t, states]);
   const result = useMemo(() => searchActions(query, actions), [query, actions]);
@@ -113,6 +131,7 @@ export function Composer() {
         </span>
         {lead && <span className="kbd">Enter</span>}
         {a.kind === "tweak" && <TweakTag status={states?.[a.id.slice("tweak:".length)]?.status} />}
+        {a.kind === "app" && <AppTag app={findInstalled(installed, a.id.slice("app:".length))} />}
       </li>
     );
   };
