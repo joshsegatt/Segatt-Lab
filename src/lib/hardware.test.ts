@@ -45,6 +45,9 @@ test("a desktop on an SSD keeps the presets as they are", () => {
 test("a laptop never gets the high performance plan from a preset", () => {
   const laptop = { ...REAL, laptop: true };
   assert.ok(hardwareHint("high_performance_plan", laptop)?.skip);
+  assert.ok(hardwareHint("disable_power_throttling", laptop)?.skip, "throttling stays on a laptop");
+  assert.ok(!presetForPc("gaming", laptop).some((tw) => tw.id === "disable_power_throttling"));
+  assert.ok(presetForPc("gaming", REAL).some((tw) => tw.id === "disable_power_throttling"), "desktop keeps it");
   for (const key of ["essential", "gaming", "privacy"] as const) {
     assert.ok(!presetForPc(key, laptop).some((tw) => tw.id === "high_performance_plan"), key);
   }

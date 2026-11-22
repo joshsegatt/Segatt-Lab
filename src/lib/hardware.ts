@@ -103,6 +103,15 @@ export interface HardwareHint {
  */
 export function hardwareHint(id: string, hw: Hardware | null): HardwareHint | null {
   if (!hw) return null;
+  if (id === "disable_power_throttling" && hw.laptop) {
+    return {
+      skip: true,
+      note: {
+        pt: "Seu PC é notebook: sem a limitação, a bateria dura menos e ele esquenta mais. Ligue só na tomada.",
+        en: "Your PC is a laptop: without throttling the battery lasts less and it runs hotter. Use it only when plugged in.",
+      },
+    };
+  }
   if (id === "high_performance_plan" && hw.laptop) {
     return {
       skip: true,

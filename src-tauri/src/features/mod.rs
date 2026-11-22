@@ -6,4 +6,5 @@ pub mod system;
 pub mod hardware;
 pub mod control;
 pub mod profile;
+pub mod debloat;
 pub mod utils;
