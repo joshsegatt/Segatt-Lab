@@ -393,6 +393,14 @@ The Tweaks screen's grouped list. Each group has a Title-size heading with its "
 - **Detail panel:** opens under the row with a 0.2s fade-and-rise (4px). 14px corners, hairline outline, 12px 14px inset. One line per change: the exact command or registry path in mono Ink 2 on the left; on the right the old value struck through in Ink 3, an arrow, and the new value in jade 600. When the value did not exist, the old side reads "não definido" in Ink 3, unstruck. A meta line in 12.5px Ink 3 says whether a restart is needed and how to undo ("Para desfazer, desligue: volta a …").
 - **Failure line:** under the row, in red at 13px with a 14px warning glyph: the time and a translated reason ("Falhou às 00:46: acesso negado…"), then two underlined Ink text buttons, "Ver detalhes" and "Tentar de novo" (with a 13px retry glyph). "Ver detalhes" opens the raw engine message as a mono block on canvas graphite with 10px corners.
 
+### Access & Risk line
+
+Every tweak row carries a third line in 12px Ink 3 under its description, plain text with a hairline (Line 2) between the two parts, no chips:
+
+- **Scope**, read from what the tweak actually changes (never hand-written): "Sua conta" (HKCU only), "PC todo" (HKLM, services, power, network: needs administrator) or "Inicialização do Windows" (bcdedit). Its hint repeats in the detail meta line.
+- **Risk**: "Seguro" in Ink 3; "Moderado" in Ink 2 with a 12px warning glyph; "Arriscado" in red with the same glyph. Moderate and risky items carry a one-sentence note of what the user may notice or lose, shown in the detail panel (and on Cleaner/Fixes cards via `RiskLine`).
+- **Risky confirm**: turning a risky tweak on, or running a risky cleanup, opens an inline confirm under the row (red glyph, the consequence, the action and "Cancelar"). A pending risky change forces the dock's restore-point checkbox on and disabled, with "obrigatório com ajuste arriscado" in Ink 3. Presets and "Limpar tudo" never include a risky item.
+
 ### App List (signature)
 The Apps screen's rows, used for the catalog, the installed list, the updates list and winget search results alike. Same container as the Tweak List: raised graphite, 20px corners, hairline outline and dividers, hover wash on the row.
 - **Row:** checkbox, name (600) over a single-line Secondary subline in Ink 2 (description, or package id and version) that truncates with an ellipsis, the tag slot, then the actions track. Actions are small pills: "Atualizar" and "Instalar" secondary, "Remover" ghost. A row that is queued or running shows no actions.
@@ -422,6 +430,7 @@ Bottom-right, raise-2, 14px corners, strong hairline, Float shadow; an 8px dot a
 - **Do** honour reduced motion: the global rule collapses every animation and transition.
 - **Do** show any version or value change as old struck through in Ink 3, an arrow, and new in jade mono (12.5px), the same line on Tweaks details, on every Apps list and in the Home search.
 - **Do** confirm a destructive row action inline under the row (amber warning glyph, plain consequence, the action and "Cancelar"), not in a modal.
+- **Do** show every tweak's scope and risk in words on its row, and confirm risky actions inline with a forced restore point.
 - **Do** keep list columns aligned while state changes: fixed action tracks and an always-present tag slot, so tags and buttons never jump.
 
 ### Don't:
