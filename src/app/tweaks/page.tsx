@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { finishScene, stepScene, RESTORE_STEP } from "@/features/scene/store";
 import { Cpu, LifeBuoy, Loader2, RotateCw, Search, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { useIsAdmin } from "@/hooks/useSystem";
-import { applyTweaks, explainTweakError, refreshTweakStates, useTweakStates, type TweakState } from "@/hooks/useTweakStates";
+import { applyTweaks, explainTweakError, refreshTweakStates, useTweakStates, type TweakState, sceneForTweaks } from "@/hooks/useTweakStates";
 import { PRESETS, TWEAKS, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
 import { hardwareHint, presetForPc, type Hardware } from "@/lib/hardware";
 import { useHardware } from "@/hooks/useHardware";
@@ -135,9 +136,14 @@ export default function TweaksPage() {
     // A risky change always gets a restore point, whatever the checkbox says.
     if (restoreFirst || entries.some(([id, on]) => on && riskOf(id) === "risky")) {
       setBusyNote(t("tw.creating_restore"));
+      sceneForTweaks(entries, true);
+      stepScene(RESTORE_STEP, "run");
       try {
         await invoke("create_restore_point");
+        stepScene(RESTORE_STEP, "ok");
       } catch (e) {
+        stepScene(RESTORE_STEP, "fail", String(e));
+        finishScene();
         setBusyNote(null);
         setToast({ kind: "error", msg: fmt(t("tw.restore_failed"), { msg: String(e) }) });
         return;
