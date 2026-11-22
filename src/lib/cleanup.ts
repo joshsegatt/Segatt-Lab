@@ -2,11 +2,9 @@
 // picked. Behavior and sizes live in src-tauri/src/features/cleaner.rs.
 // Pure functions: tested in Node.
 
-import type { Language } from "@/lib/i18n";
 // Relative with extension so the Node test runner can load them too.
+import { localeTag, type Language, type Text } from "./i18n.ts";
 import { riskOfAction } from "./action-risk.ts";
-
-type Text = Record<Language, string>;
 
 export interface CleanupDef { id: string; name: Text; description: Text }
 
@@ -35,7 +33,7 @@ export function startsPicked(id: string, bytes: number | null | undefined): bool
 /** Sizes the way Explorer shows them: binary units, "GB" labels, one decimal from GB up. */
 export function formatBytes(bytes: number, lang: Language): string {
   const KB = 1024, MB = KB * 1024, GB = MB * 1024;
-  const num = (n: number, digits: number) => n.toLocaleString(lang === "pt" ? "pt-BR" : "en-US", { maximumFractionDigits: digits });
+  const num = (n: number, digits: number) => n.toLocaleString(localeTag(lang), { maximumFractionDigits: digits });
   if (bytes >= GB) return `${num(bytes / GB, 1)} GB`;
   if (bytes >= MB) return `${num(Math.round(bytes / MB), 0)} MB`;
   if (bytes > 0) return `${num(Math.max(1, Math.round(bytes / KB)), 0)} KB`;

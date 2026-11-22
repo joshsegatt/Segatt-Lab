@@ -10,6 +10,7 @@ import { FEATURES, UPDATE_MODES, type UpdateModeDef } from "@/lib/control";
 import type { Risk } from "@/lib/tweaks-catalog";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 export default function ControlPage() {
   const { t, language } = useLanguage();
@@ -19,7 +20,7 @@ export default function ControlPage() {
   const [confirmOff, setConfirmOff] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState<Set<string>>(new Set());
 
-  const time = (at: number) => new Date(at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+  const time = (at: number) => new Date(at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" });
 
   const access = (risk: Risk, extra?: string) => (
     <span className={styles.access}>
@@ -103,8 +104,8 @@ export default function ControlPage() {
                   <li key={m.id} className={styles.row}>
                     <div className={`${styles.appLine} ${styles.appLineNoCheck}`}>
                       <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
-                        <b>{m.name[language]}</b>
-                        <small>{blocked ? t("ct.home_no_security") : m.description[language]}</small>
+                        <b>{localize(m.name, language)}</b>
+                        <small>{blocked ? t("ct.home_no_security") : localize(m.description, language)}</small>
                         {access(m.risk)}
                       </div>
                       <span className={styles.tagSlot}>
@@ -125,7 +126,7 @@ export default function ControlPage() {
                     {confirmMode === m.id && !running && (
                       <p className={`${styles.confirm} ${styles.confirmRisky}`} role="alert">
                         <TriangleAlert size={14} aria-hidden="true" />
-                        <span className={styles.confirmText}>{fmt(t("ct.risky_confirm"), { note: m.riskNote?.[language] ?? "" })}</span>
+                        <span className={styles.confirmText}>{fmt(t("ct.risky_confirm"), { note: localize(m.riskNote, language) ?? "" })}</span>
                         <button type="button" className="btn btn-sm btn-secondary" onClick={() => pickMode(m)}>{t("ct.use")}</button>
                         <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmMode(null)}>{t("tw.risky_no")}</button>
                       </p>
@@ -133,7 +134,7 @@ export default function ControlPage() {
                     {m.riskNote && confirmMode !== m.id && !blocked && (
                       <p className={`${styles.riskNote} ${m.risk === "risky" ? styles.riskRisky : styles.riskModerate}`} style={{ margin: "-4px 18px 12px" }}>
                         <TriangleAlert size={13} aria-hidden="true" />
-                        {m.riskNote[language]}
+                        {localize(m.riskNote, language)}
                       </p>
                     )}
                     {failure(`update:${m.id}`)}
@@ -171,8 +172,8 @@ export default function ControlPage() {
                   <li key={f.name} className={styles.row}>
                     <div className={`${styles.appLine} ${styles.appLineNoCheck}`}>
                       <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
-                        <b>{f.title[language]}</b>
-                        <small>{f.description[language]}</small>
+                        <b>{localize(f.title, language)}</b>
+                        <small>{localize(f.description, language)}</small>
                         {access(f.risk, t("ct.needs_restart"))}
                       </div>
                       <span className={styles.tagSlot}>
@@ -200,7 +201,7 @@ export default function ControlPage() {
                     {confirmOff === f.name && !running && (
                       <p className={styles.confirm} role="alert">
                         <TriangleAlert size={14} aria-hidden="true" />
-                        <span className={styles.confirmText}>{f.offNote?.[language]}</span>
+                        <span className={styles.confirmText}>{localize(f.offNote, language)}</span>
                         <button type="button" className="btn btn-sm btn-secondary" onClick={toggle}>{t("ct.turn_off")}</button>
                         <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmOff(null)}>{t("tw.risky_no")}</button>
                       </p>
@@ -208,7 +209,7 @@ export default function ControlPage() {
                     {f.riskNote && !running && (
                       <p className={`${styles.riskNote} ${styles.riskModerate}`} style={{ margin: "-4px 18px 12px" }}>
                         <TriangleAlert size={13} aria-hidden="true" />
-                        {f.riskNote[language]}
+                        {localize(f.riskNote, language)}
                       </p>
                     )}
                     {failure(`feature:${f.name}`)}

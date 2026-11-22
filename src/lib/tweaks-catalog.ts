@@ -1,7 +1,7 @@
 // The tweaks the Rust backend knows how to apply (src-tauri/src/features/tweaks.rs).
 // Every id here must exist there; the Rust test `specs_match_the_frontend_catalog` checks it.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 
 export type TweakGroup = "privacy" | "performance" | "interface" | "system";
 export type PresetKey = "essential" | "privacy" | "gaming";
@@ -17,11 +17,11 @@ export interface TweakDef {
   id: string;
   risk: Risk;
   /** Required unless risk is safe: what the user may notice or lose. */
-  riskNote?: Record<Language, string>;
+  riskNote?: Text;
   group: TweakGroup;
   presets?: PresetKey[];
-  name: Record<Language, string>;
-  description: Record<Language, string>;
+  name: Text;
+  description: Text;
   /** Extra search words in both languages. */
   keywords?: string;
 }
@@ -104,7 +104,7 @@ export const TWEAKS: TweakDef[] = [
     description: { pt: "Desliga as atualizações automáticas; as manuais continuam.", en: "Turns off automatic updates; manual ones still work." } },
 ];
 
-export const PRESETS: { key: PresetKey; name: Record<Language, string>; keywords: string }[] = [
+export const PRESETS: { key: PresetKey; name: Text; keywords: string }[] = [
   { key: "gaming", name: { pt: "Modo jogo", en: "Gaming mode" }, keywords: "jogo jogos game gaming fps desempenho performance" },
   { key: "privacy", name: { pt: "Privacidade máxima", en: "Maximum privacy" }, keywords: "privacidade privacy telemetria rastreamento" },
   { key: "essential", name: { pt: "Essencial", en: "Essentials" }, keywords: "essencial essential recomendado recommended basico" },

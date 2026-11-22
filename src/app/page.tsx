@@ -9,6 +9,7 @@ import { WorthDoing } from "@/features/home/WorthDoing";
 import { TWEAKS } from "@/lib/tweaks-catalog";
 import { fmt } from "@/lib/fmt";
 import styles from "@/features/home/Home.module.css";
+import { localeTag } from "@/lib/i18n";
 
 const GB = 1024 ** 3;
 
@@ -18,7 +19,7 @@ export default function Home() {
   const stats = useSystemStats();
   const { states } = useTweakStates();
   const activeTweaks = countActive(states, TWEAKS.map((tw) => tw.id));
-  const num = new Intl.NumberFormat(language === "pt" ? "pt-BR" : "en-US", { maximumFractionDigits: 1 });
+  const num = new Intl.NumberFormat(localeTag(language), { maximumFractionDigits: 1 });
 
   const memUsed = stats ? stats.used_memory / 1024 : 0;
   const memTotal = stats ? stats.total_memory / 1024 : 0;

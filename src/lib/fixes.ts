@@ -1,9 +1,8 @@
 // The Fixes list: what each repair does, in words, and how long it takes.
 // Behavior lives in src-tauri/src/features/system.rs (run_system_fix).
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 
-type Text = Record<Language, string>;
 
 export interface FixDef { id: string; name: Text; description: Text; takes: Text }
 

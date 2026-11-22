@@ -9,6 +9,7 @@ import { CLEANUPS } from "@/lib/cleanup";
 import { FIXES as FIX_DEFS } from "@/lib/fixes";
 import { riskOfAction } from "@/lib/action-risk";
 import { showsAction, showsTweak, type Level } from "@/lib/level";
+import { localize } from "@/lib/i18n";
 
 type T = (path: string) => string;
 
@@ -52,7 +53,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     return {
       id: `preset:${p.key}`,
       kind: "preset",
-      title: p.name[lang],
+      title: localize(p.name, lang),
       subtitle: pending === null ? fmt(t("home.preset_sub"), { n: count }) : fmt(t("home.preset_sub_pending"), { p: pending, n: count }),
       href: `/tweaks?preset=${p.key}`,
       keywords: p.keywords,
@@ -62,8 +63,8 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
   const tweaks: Action[] = TWEAKS.filter((tw) => showsTweak(level, tw.risk, states?.[tw.id]?.status === "active")).map((tw) => ({
     id: `tweak:${tw.id}`,
     kind: "tweak",
-    title: tw.name[lang],
-    subtitle: tw.description[lang],
+    title: localize(tw.name, lang),
+    subtitle: localize(tw.description, lang),
     href: `/tweaks?select=${tw.id}`,
     keywords: `${tw.name.pt} ${tw.name.en} ${tw.keywords ?? ""}`,
   }));
@@ -73,7 +74,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
       id: `app:${app.id}`,
       kind: "app" as const,
       title: app.name,
-      subtitle: app.description[lang],
+      subtitle: localize(app.description, lang),
       href: `/install?q=${encodeURIComponent(app.name)}`,
       keywords: `${app.id} ${cat.label.pt} ${cat.label.en} ${CATEGORY_WORDS[cat.key] ?? ""} ${app.description.pt} ${app.description.en}`,
     })),
@@ -82,7 +83,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
   const cleanup: Action[] = CLEANUP.filter(([id]) => showsAction(level, riskOfAction(id).risk)).map(([id, key, keywords]) => ({
     id: `cleanup:${id}`,
     kind: "cleanup",
-    title: CLEANUPS.find((c) => c.id === id)?.name[lang] ?? key,
+    title: localize(CLEANUPS.find((c) => c.id === id)?.name, lang) ?? key,
     subtitle: t("home.cleanup_sub"),
     href: "/cleaner",
     keywords: `limpar limpeza clean ${keywords}`,
@@ -91,7 +92,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
   const fixes: Action[] = FIXES.map(([id, key, keywords]) => ({
     id: `fix:${id}`,
     kind: "fix",
-    title: FIX_DEFS.find((f) => f.id === id)?.name[lang] ?? key,
+    title: localize(FIX_DEFS.find((f) => f.id === id)?.name, lang) ?? key,
     subtitle: t("home.fix_sub"),
     href: "/fixes",
     keywords: `reparar reparo repair fix ${keywords}`,

@@ -1,7 +1,7 @@
 // What get_hardware reports, turned into short lines a person reads, plus the
 // rules that make suggestions fit this PC. Pure functions: tested in Node.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 // Relative with extension so the Node test runner can load it too.
 import { tweaksInPreset, type PresetKey, type TweakDef } from "./tweaks-catalog.ts";
 
@@ -92,7 +92,7 @@ export function diskKind(d: Disk): string | null {
 }
 
 export interface HardwareHint {
-  note: Record<Language, string>;
+  note: Text;
   /** Left out of presets on this PC. */
   skip: boolean;
 }

@@ -13,6 +13,7 @@ import { showsAction } from "@/lib/level";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 const TAG: Record<FixOutcome, [string, string]> = {
   clean: ["on", "fx.tag_clean"],
@@ -40,7 +41,7 @@ export default function FixesPage() {
   }, [running]);
 
   const listed = FIXES.filter((f) => showsAction(level, riskOfAction(f.id).risk));
-  const time = (at: number) => new Date(at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+  const time = (at: number) => new Date(at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" });
   const toggleRaw = (id: string) => setShowRaw((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   const start = async (id: string, name: string) => {
@@ -83,14 +84,14 @@ export default function FixesPage() {
                 <li key={f.id} className={`${styles.row} ${r?.status === "done" && r.at > openedAt ? styles.flash : ""}`}>
                   <div className={`${styles.appLine} ${styles.appLineNoCheck}`}>
                     <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
-                      <b>{f.name[language]}</b>
-                      <small>{f.description[language]}</small>
+                      <b>{localize(f.name, language)}</b>
+                      <small>{localize(f.description, language)}</small>
                       <span className={styles.access}>
                         <span className={risk.risk === "moderate" ? styles.riskModerate : risk.risk === "risky" ? styles.riskRisky : undefined}>
                           {risk.risk !== "safe" && <TriangleAlert size={12} aria-hidden="true" />}
                           {t(`tw.risk_${risk.risk}`)}
                         </span>
-                        <span>{f.takes[language]}</span>
+                        <span>{localize(f.takes, language)}</span>
                       </span>
                     </div>
                     <span className={styles.tagSlot}>
@@ -107,7 +108,7 @@ export default function FixesPage() {
                     </span>
                     <div className={styles.rowActions}>
                       {!isRunning && (
-                        <button type="button" className={`btn btn-sm ${r ? "btn-ghost" : "btn-secondary"}`} onClick={() => void start(f.id, f.name[language])} disabled={running !== null}>
+                        <button type="button" className={`btn btn-sm ${r ? "btn-ghost" : "btn-secondary"}`} onClick={() => void start(f.id, localize(f.name, language))} disabled={running !== null}>
                           {r ? t("fx.run_again") : t("fx.run")}
                         </button>
                       )}
@@ -115,7 +116,7 @@ export default function FixesPage() {
                   </div>
                   {risk.note && !r && !isRunning && (
                     <p className={`${styles.riskNote} ${styles.riskModerate}`} style={{ margin: "-4px 18px 12px" }}>
-                      <TriangleAlert size={13} aria-hidden="true" />{risk.note[language]}
+                      <TriangleAlert size={13} aria-hidden="true" />{localize(risk.note, language)}
                     </p>
                   )}
                   {isRunning && <p className={styles.reason} style={{ margin: "-4px 18px 12px" }}>{t("fx.running_note")}</p>}
@@ -150,7 +151,7 @@ export default function FixesPage() {
             {PANELS.map((p) => (
               <li key={p.cmd}>
                 <button type="button" className={styles.panelBtn} onClick={() => openPanel(p.cmd)}>
-                  {p.name[language]}
+                  {localize(p.name, language)}
                   <ExternalLink size={14} strokeWidth={1.75} aria-hidden="true" />
                 </button>
               </li>

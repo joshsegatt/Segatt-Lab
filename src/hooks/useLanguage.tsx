@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useSyncExternalStore, ReactNode } from "react";
-import { Language, translations } from "@/lib/i18n";
+import { isLanguage, LANGUAGES, localeTag, translations, type Language } from "@/lib/i18n";
 
 interface LanguageContextType {
   language: Language;
@@ -17,11 +17,22 @@ const listeners = new Set<() => void>();
 function readLanguage(): Language {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "pt" || saved === "en") return saved;
+    if (isLanguage(saved)) return saved;
   } catch {
     // storage unavailable: fall back to the browser language
   }
-  return navigator.language.split("-")[0] === "en" ? "en" : "pt";
+  // Windows' language when the app speaks it; English otherwise.
+  const base = navigator.language.split("-")[0];
+  return LANGUAGES.find((l) => l.code === base)?.code ?? "en";
+}
+
+function lookup(dict: unknown, path: string): string | undefined {
+  let current = dict;
+  for (const key of path.split(".")) {
+    if (current && typeof current === "object" && key in current) current = (current as Record<string, unknown>)[key];
+    else return undefined;
+  }
+  return typeof current === "string" ? current : undefined;
 }
 
 function subscribe(listener: () => void) {
@@ -37,7 +48,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Keep the document language in sync for screen readers and hyphenation.
   useEffect(() => {
-    document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
+    document.documentElement.lang = localeTag(language);
   }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
@@ -49,17 +60,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     listeners.forEach((l) => l());
   }, []);
 
-  const t = useCallback((path: string): string => {
-    let current: unknown = translations[language];
-    for (const key of path.split(".")) {
-      if (current && typeof current === "object" && key in current) {
-        current = (current as Record<string, unknown>)[key];
-      } else {
-        return path;
-      }
-    }
-    return typeof current === "string" ? current : path;
-  }, [language]);
+  // A key missing in this language falls back to English, then to the key itself.
+  const t = useCallback((path: string): string => lookup(translations[language].ui, path) ?? lookup(translations.en.ui, path) ?? path, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

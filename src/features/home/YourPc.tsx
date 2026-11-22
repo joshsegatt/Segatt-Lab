@@ -6,15 +6,16 @@ import { readHardware, useHardware } from "@/hooks/useHardware";
 import { binGb, cleanBoard, cleanCpu, diskKind, diskSize, ramSummary, vendor, type Hardware } from "@/lib/hardware";
 import { fmt } from "@/lib/fmt";
 import styles from "./Home.module.css";
+import { localeTag, type Language } from "@/lib/i18n";
 
 interface Spec { label: string; value: string | null; detail?: string | null }
 
 // Virtual adapters (remote desktop, basic display) are not the card in the PC.
 const realGpus = (hw: Hardware) => hw.gpus.filter((g) => g.name && !/microsoft basic|remote display|virtual/i.test(g.name));
 
-function specs(hw: Hardware | null, t: (p: string) => string, language: "pt" | "en"): Spec[] {
-  const num = new Intl.NumberFormat(language === "pt" ? "pt-BR" : "en-US", { maximumFractionDigits: 1 });
-  const date = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString(language === "pt" ? "pt-BR" : "en-US") : null);
+function specs(hw: Hardware | null, t: (p: string) => string, language: Language): Spec[] {
+  const num = new Intl.NumberFormat(localeTag(language), { maximumFractionDigits: 1 });
+  const date = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString(localeTag(language)) : null);
   const gpu = hw ? realGpus(hw)[0] : undefined;
   const ram = hw ? ramSummary(hw.ram) : null;
   const disk = hw?.systemDisk;
