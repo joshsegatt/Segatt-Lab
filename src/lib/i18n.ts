@@ -143,7 +143,7 @@ export const translations = {
     dash: {
       title: "Vale fazer agora", note: "Lido deste PC",
       not_admin: "Abrir como administrador", not_admin_sub: "Ajustes do sistema, limpezas e reparos precisam. Feche e abra o Segatt Tools com o botão direito > Executar como administrador.",
-      restart: "Reiniciar o PC", restart_sub: "O Windows espera reiniciar para concluir mudanças de recursos.",
+      restart: "Reiniciar o PC", restart_sub: "O Windows espera reiniciar para concluir mudanças já instaladas.",
       updates_off: "Windows sem atualizações automáticas", updates_off_sub: "O modo Manual está ligado: correções de segurança não chegam sozinhas.",
       disk_full: "Disco C: quase cheio", disk_full_sub: "Só {free} livres. O Windows fica lento e atualizações falham.",
       clean: "Liberar {size}", clean_sub: "Temporários, miniaturas e downloads antigos, só o que é seguro.",
@@ -505,7 +505,7 @@ export const translations = {
     dash: {
       title: "Worth doing now", note: "Read from this PC",
       not_admin: "Open as administrator", not_admin_sub: "System tweaks, cleanups and repairs need it. Close Segatt Tools and open it with right-click > Run as administrator.",
-      restart: "Restart the PC", restart_sub: "Windows is waiting for a restart to finish feature changes.",
+      restart: "Restart the PC", restart_sub: "Windows is waiting for a restart to finish changes already installed.",
       updates_off: "Windows without automatic updates", updates_off_sub: "Manual mode is on: security fixes do not arrive by themselves.",
       disk_full: "Drive C: almost full", disk_full_sub: "Only {free} free. Windows slows down and updates fail.",
       clean: "Free {size}", clean_sub: "Temporary files, thumbnails and old downloads, only what is safe.",

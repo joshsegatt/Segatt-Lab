@@ -36,9 +36,10 @@ export function WorthDoing() {
   const { installed } = useApps();
   const { hw } = useHardware();
   const { update, features } = useControl();
-  const { sizes } = useCleanup();
+  const { sizes, scanError } = useCleanup();
 
-  const pending = (key: PresetKey) => (states ? presetForPc(key, hw).filter((tw) => states[tw.id]?.status !== "active").length : null);
+  // Only tweaks read as off count: one this PC cannot read ("unknown") would never clear the row.
+  const pending = (key: PresetKey) => (states ? presetForPc(key, hw).filter((tw) => states[tw.id]?.status === "inactive").length : null);
   const list = suggestions({
     admin,
     restartPending: features?.restartPending ?? null,
@@ -51,7 +52,7 @@ export function WorthDoing() {
     gamingPending: pending("gaming"),
   });
   // "All good" only once the main readings are in; before that, nothing.
-  const allRead = states !== null && installed !== null && sizes !== null && admin !== null;
+  const allRead = states !== null && installed !== null && (sizes !== null || scanError !== null) && admin !== null;
   if (!list.length && !allRead) return null;
 
   const words = (vars: Record<string, number> = {}) =>
