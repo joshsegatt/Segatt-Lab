@@ -6,7 +6,7 @@ import { PRESETS, TWEAKS } from "@/lib/tweaks-catalog";
 import { presetForPc, type Hardware } from "@/lib/hardware";
 import { fmt } from "@/lib/fmt";
 import { riskOfAction } from "@/lib/action-risk";
-import { allows, showsAction, showsTweak, type Level } from "@/lib/level";
+import { showsAction, showsTweak, type Level } from "@/lib/level";
 
 type T = (path: string) => string;
 
@@ -44,7 +44,7 @@ const FIXES: [id: string, labelKey: string, keywords: string][] = [
 
 export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null, hw: Hardware | null = null, level: Level = "advanced"): Action[] {
   const presets: Action[] = PRESETS.map((p) => {
-    const ids = presetForPc(p.key, hw).filter((tw) => allows(level, tw.risk)).map((tw) => tw.id);
+    const ids = presetForPc(p.key, hw).map((tw) => tw.id);
     const count = ids.length;
     const pending = states ? ids.filter((id) => states[id]?.status !== "active").length : null;
     return {
@@ -101,6 +101,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     ["cleaner", "/cleaner", "screen_cleaner", "limpar clean espaco space"],
     ["fixes", "/fixes", "screen_fixes", "reparar repair consertar"],
     ["control", "/config", "screen_control", "controle control recursos features"],
+    ["profile", "/profile", "screen_profile", "perfil profile exportar export importar import backup outro pc"],
   ].map(([key, href, sub, keywords]) => ({
     id: `screen:${key}`,
     kind: "screen" as const,

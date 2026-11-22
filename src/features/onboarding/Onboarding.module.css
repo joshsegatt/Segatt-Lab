@@ -45,3 +45,4 @@
 .dot, .dotOn { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background 0.2s, width 0.2s var(--ease-out); }
 .dotOn { width: 18px; border-radius: 3px; background: var(--brand); }
 .nav { display: flex; gap: 8px; }
+.spacer { width: 68px; }

@@ -13,6 +13,7 @@ export function LevelMenu() {
   const { level, chosen } = useLevel();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const items = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -20,15 +21,28 @@ export function LevelMenu() {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     };
     const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        root.current?.querySelector<HTMLButtonElement>("[aria-haspopup]")?.focus();
+      }
     };
+    items.current[LEVELS.indexOf(level)]?.focus();
     document.addEventListener("pointerdown", away);
     document.addEventListener("keydown", esc);
     return () => {
       document.removeEventListener("pointerdown", away);
       document.removeEventListener("keydown", esc);
     };
+    // Focus goes to the current level once, when the menu opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const move = (e: React.KeyboardEvent, i: number) => {
+    const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    items.current[(i + step + LEVELS.length) % LEVELS.length]?.focus();
+  };
 
   if (chosen === "pending") return null;
 
@@ -42,9 +56,13 @@ export function LevelMenu() {
       {open && (
         <div className={styles.menu} role="menu" aria-label={t("lv.menu")}>
           <p className={styles.head}>{t("lv.menu")}</p>
-          {LEVELS.map((l) => (
+          {LEVELS.map((l, i) => (
             <button
               key={l}
+              ref={(el) => {
+                items.current[i] = el;
+              }}
+              onKeyDown={(e) => move(e, i)}
               type="button"
               role="menuitemradio"
               aria-checked={level === l}

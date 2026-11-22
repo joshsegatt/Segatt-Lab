@@ -405,12 +405,12 @@ The Control screen reuses the app row (info | tag slot | 176px actions, no check
 
 ### Onboarding
 
-First run only, until a level is stored. A full-window takeover on canvas graphite (no card, no backdrop blur), one 560px column anchored at 14vh so the buttons never move between steps, content fading in with a 6px rise per step. Three steps: what the app does, why it is safe, and the knowledge level. Steps 1–2 are a heading, a 15px Ink 2 lede and one hairline list of three rows (30px neutral icon tile, 600 title, 13px Ink 2 line); step 1 opens with the 44px jade monogram. Step 3 is a radio list of the three levels (name, who it is for in Ink 2, what it shows in Ink 3); the picked row takes the jade-soft wash. Footer: ghost "Pular" (starts as Iniciante) left, step dots centred (the current one a 18px jade bar), "Voltar" and the primary "Continuar" / "Começar" right. The app behind is inert while it is up.
+First run only, until a level is stored. A full-window takeover on canvas graphite (no card, no backdrop blur), one 560px column anchored at 14vh so the buttons never move between steps, content fading in with a 6px rise per step. Three steps: what the app does, why it is safe, and the knowledge level. Steps 1–2 are a heading, a 15px Ink 2 lede and one hairline list of three rows (30px neutral icon tile, 600 title, 13px Ink 2 line); step 1 opens with the 44px jade monogram. Step 3 is a radio list of the three levels (name, who it is for in Ink 2, what it shows in Ink 3); the picked row takes the jade-soft wash. Footer: ghost "Pular" (starts as Iniciante; not on the level step) left, step dots centred (the current one a 18px jade bar), "Voltar" and the primary "Continuar" / "Começar" right. The app behind is inert while it is up.
 
 ### Knowledge level
 
 Three levels gate what is listed, never how a change is protected:
-- **Tweaks, presets and the Home search** follow the risk scale: Iniciante sees Seguro, Intermediário adds Moderado, Avançado sees everything. Presets only pick tweaks the level sees.
+- **Tweaks, presets and the Home search** follow the risk scale: Iniciante sees Seguro, Intermediário adds Moderado, Avançado sees everything. Presets stay whole at every level (they never hold a risky tweak); their moderate rows show while pending, with the risk line. The sidebar count is out of what the level lists.
 - **Cleaner, Fixes and Control** hide only Arriscado items below Avançado.
 - Anything already on, pending or current stays listed at every level, so it can be undone.
 - Iniciante sees no registry paths in a tweak's detail; Avançado sees raw error output without "Ver detalhes".

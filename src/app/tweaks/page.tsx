@@ -11,7 +11,7 @@ import { PRESETS, TWEAKS, type PresetKey, type TweakGroup } from "@/lib/tweaks-c
 import { hardwareHint, presetForPc, type Hardware } from "@/lib/hardware";
 import { useHardware } from "@/hooks/useHardware";
 import { useLevel, setLevel } from "@/hooks/useLevel";
-import { allows, showsTweak, LEVEL_TEXT, type Level } from "@/lib/level";
+import { showsTweak, LEVEL_TEXT } from "@/lib/level";
 import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
@@ -20,10 +20,12 @@ import styles from "@/components/ui/Screen.module.css";
 const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
 type Pending = Record<string, boolean>;
 
-function presetPending(key: PresetKey, states: Record<string, TweakState> | null, hw: Hardware | null, level: Level): Pending {
+// Presets stay whole at every level: they never hold a risky tweak, and their
+// moderate rows are listed (with the risk line) while pending.
+function presetPending(key: PresetKey, states: Record<string, TweakState> | null, hw: Hardware | null): Pending {
   return Object.fromEntries(
     presetForPc(key, hw)
-      .filter((tw) => allows(level, tw.risk) && states?.[tw.id]?.status !== "active")
+      .filter((tw) => states?.[tw.id]?.status !== "active")
       .map((tw) => [tw.id, true]),
   );
 }
@@ -56,7 +58,7 @@ export default function TweaksPage() {
   // A preset chosen before the hardware report arrived drops what the rules leave out;
   // a tweak the user switched on by hand (custom) stays.
   const pending: Pending = Object.fromEntries(
-    Object.entries(pendingOverride ?? (validPreset ? presetPending(validPreset, states, hw, level) : {})).filter(
+    Object.entries(pendingOverride ?? (validPreset ? presetPending(validPreset, states, hw) : {})).filter(
       ([id, on]) => !(on && activePreset !== "custom" && hardwareHint(id, hw)?.skip),
     ),
   );
@@ -111,7 +113,7 @@ export default function TweaksPage() {
   const choosePreset = (key: PresetKey | "current") => {
     setConfirmRisky(null);
     setPreset(key);
-    setPending(key === "current" ? {} : presetPending(key, states, hw, level));
+    setPending(key === "current" ? {} : presetPending(key, states, hw));
   };
 
   const toggleOpen = (id: string) =>

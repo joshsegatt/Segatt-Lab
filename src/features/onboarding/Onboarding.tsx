@@ -95,7 +95,9 @@ export function Onboarding() {
         </div>
 
         <div className={styles.foot}>
-          <button type="button" className="btn btn-ghost" onClick={() => setLevel("beginner")} title={t("ob.skip_hint")}>{t("ob.skip")}</button>
+          {last ? <span className={styles.spacer} /> : (
+            <button type="button" className="btn btn-ghost" onClick={() => setLevel("beginner")} title={t("ob.skip_hint")}>{t("ob.skip")}</button>
+          )}
           <span className={styles.dots} aria-label={fmt(t("ob.step"), { n: step + 1, m: STEPS.length })}>
             {STEPS.map((_, i) => <span key={i} className={i === step ? styles.dotOn : styles.dot} />)}
           </span>
