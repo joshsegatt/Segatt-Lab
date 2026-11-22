@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { LifeBuoy, Loader2, RotateCw, Search, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Cpu, LifeBuoy, Loader2, RotateCw, Search, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { useIsAdmin } from "@/hooks/useSystem";
 import { refreshTweakStates, updateTweakState, useTweakStates, type TweakState } from "@/hooks/useTweakStates";
-import { PRESETS, TWEAKS, tweaksInPreset, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
+import { PRESETS, TWEAKS, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
+import { hardwareHint, presetForPc, type Hardware } from "@/lib/hardware";
+import { useHardware } from "@/hooks/useHardware";
 import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
@@ -19,9 +21,9 @@ type Pending = Record<string, boolean>;
 /** Failure time, read in event handlers only. */
 const stamp = () => Date.now();
 
-function presetPending(key: PresetKey, states: Record<string, TweakState> | null): Pending {
+function presetPending(key: PresetKey, states: Record<string, TweakState> | null, hw: Hardware | null): Pending {
   return Object.fromEntries(
-    tweaksInPreset(key)
+    presetForPc(key, hw)
       .filter((tw) => states?.[tw.id]?.status !== "active")
       .map((tw) => [tw.id, true]),
   );
@@ -30,6 +32,7 @@ function presetPending(key: PresetKey, states: Record<string, TweakState> | null
 export default function TweaksPage() {
   const { t, language } = useLanguage();
   const { states, loading, error } = useTweakStates();
+  const { hw } = useHardware();
   const admin = useIsAdmin();
   const presetParam = useQueryParam("preset") as PresetKey | null;
   const selectParam = useQueryParam("select");
@@ -48,8 +51,14 @@ export default function TweaksPage() {
 
   // Arriving from the Home search: ?preset=gaming marks that preset, ?select=<id> opens that row.
   const validPreset = presetParam && PRESETS.some((p) => p.key === presetParam) ? presetParam : null;
-  const pending: Pending = pendingOverride ?? (validPreset ? presetPending(validPreset, states) : {});
   const activePreset = preset ?? validPreset ?? "current";
+  // A preset chosen before the hardware report arrived drops what the rules leave out;
+  // a tweak the user switched on by hand (custom) stays.
+  const pending: Pending = Object.fromEntries(
+    Object.entries(pendingOverride ?? (validPreset ? presetPending(validPreset, states, hw) : {})).filter(
+      ([id, on]) => !(on && activePreset !== "custom" && hardwareHint(id, hw)?.skip),
+    ),
+  );
   const isOpen = (id: string) => open.has(id) || (selectParam === id && !open.has(`-${id}`));
 
   // Bring the row picked in the Home search into view once, not on every state update.
@@ -97,7 +106,7 @@ export default function TweaksPage() {
   const choosePreset = (key: PresetKey | "current") => {
     setConfirmRisky(null);
     setPreset(key);
-    setPending(key === "current" ? {} : presetPending(key, states));
+    setPending(key === "current" ? {} : presetPending(key, states, hw));
   };
 
   const toggleOpen = (id: string) =>
@@ -275,6 +284,9 @@ export default function TweaksPage() {
                               {tw.risk !== "safe" && <TriangleAlert size={12} aria-hidden="true" />}
                               {t(`tw.risk_${tw.risk}`)}
                             </span>
+                            {hardwareHint(tw.id, hw)?.skip && (
+                              <span className={styles.riskModerate}><Cpu size={12} aria-hidden="true" />{t("pc.not_for_pc")}</span>
+                            )}
                           </span>
                         </button>
                         {tagFor(tw.id)}
@@ -312,6 +324,12 @@ export default function TweaksPage() {
                       {expanded && (
                         <div id={`d-${tw.id}`} className={styles.detail}>
                           {st?.status === "unknown" && st.reason && <p className={styles.reason}>{st.reason}</p>}
+                          {hardwareHint(tw.id, hw) && (
+                            <p className={`${styles.riskNote} ${styles.riskModerate}`}>
+                              <Cpu size={13} aria-hidden="true" />
+                              {hardwareHint(tw.id, hw)!.note[language]}
+                            </p>
+                          )}
                           {tw.riskNote && (
                             <p className={`${styles.riskNote} ${tw.risk === "risky" ? styles.riskRisky : styles.riskModerate}`}>
                               <TriangleAlert size={13} aria-hidden="true" />

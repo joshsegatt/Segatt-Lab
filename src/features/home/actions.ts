@@ -2,7 +2,8 @@ import type { Language } from "@/lib/i18n";
 import type { TweakState } from "@/hooks/useTweakStates";
 import type { Action } from "@/lib/search";
 import { APP_CATEGORIES } from "@/lib/app-categories";
-import { PRESETS, TWEAKS, tweaksInPreset } from "@/lib/tweaks-catalog";
+import { PRESETS, TWEAKS } from "@/lib/tweaks-catalog";
+import { presetForPc, type Hardware } from "@/lib/hardware";
 import { fmt } from "@/lib/fmt";
 
 type T = (path: string) => string;
@@ -39,9 +40,9 @@ const FIXES: [id: string, labelKey: string, keywords: string][] = [
   ["cache", "clear_cache", "icones icons cache"],
 ];
 
-export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null): Action[] {
+export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null, hw: Hardware | null = null): Action[] {
   const presets: Action[] = PRESETS.map((p) => {
-    const ids = tweaksInPreset(p.key).map((tw) => tw.id);
+    const ids = presetForPc(p.key, hw).map((tw) => tw.id);
     const count = ids.length;
     const pending = states ? ids.filter((id) => states[id]?.status !== "active").length : null;
     return {
