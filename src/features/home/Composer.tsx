@@ -11,6 +11,7 @@ import { TWEAKS, type Risk } from "@/lib/tweaks-catalog";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTweakStates } from "@/hooks/useTweakStates";
 import { findInstalled, useApps } from "@/hooks/useApps";
+import { useHardware } from "@/hooks/useHardware";
 import screen from "@/components/ui/Screen.module.css";
 import { flattenResult, searchActions, type Action, type ActionKind } from "@/lib/search";
 import { fmt } from "@/lib/fmt";
@@ -89,7 +90,8 @@ export function Composer() {
   const { states } = useTweakStates();
   const { installed } = useApps();
 
-  const actions = useMemo(() => buildActions(language, t, states), [language, t, states]);
+  const { hw } = useHardware();
+  const actions = useMemo(() => buildActions(language, t, states, hw), [language, t, states, hw]);
   const result = useMemo(() => searchActions(query, actions), [query, actions]);
   const flat = useMemo(() => flattenResult(result), [result]);
   const open = query.trim().length > 0;
