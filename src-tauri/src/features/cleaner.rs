@@ -1,12 +1,172 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime};
 
-use crate::features::utils::run_visible_task;
+use crate::features::packages::run_with_timeout;
+use crate::features::utils::{encode_command, hidden_script, run_hidden};
 
-#[derive(Debug, Serialize, Deserialize)]
+/// A cleanup that runs longer than this is stopped and reported as failed.
+const CLEANUP_TIMEOUT: Duration = Duration::from_secs(15 * 60);
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CleanupResult {
     pub task_id: String,
-    pub success: bool,
-    pub message: String,
+    /// Bytes gone after the run; None for tasks that free no files (DNS).
+    pub freed: Option<u64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CleanupSize {
+    pub id: String,
+    /// What the task would remove now; None when it removes no files.
+    pub bytes: Option<u64>,
+}
+
+/// Which files under a folder a cleanup removes. Mirrors the scripts below,
+/// so the size shown before is the size the script goes after.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Pick {
+    /// Everything, in subfolders too.
+    All,
+    /// Files directly in the folder.
+    Files,
+    /// Files with this extension directly in the folder.
+    Ext(&'static str),
+    /// Files directly in the folder whose name starts with this and ends in ".db".
+    DbPrefix(&'static str),
+    /// One file by name.
+    Named(&'static str),
+    /// Files with this extension, in subfolders too, older than this many days.
+    OldExt(&'static str, u64),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Target {
+    pub root: PathBuf,
+    pub pick: Pick,
+}
+
+/// The folders each cleanup empties, from the same environment the scripts use.
+pub fn targets(id: &str, env: &dyn Fn(&str) -> Option<String>) -> Option<Vec<Target>> {
+    let dir = |var: &str, rest: &str| env(var).map(|v| Path::new(&v).join(rest));
+    let t = |root: Option<PathBuf>, pick: Pick| root.map(|root| Target { root, pick });
+    let list: Vec<Option<Target>> = match id {
+        "clean_temp" => vec![t(dir("TEMP", ""), Pick::All), t(dir("SystemRoot", "Temp"), Pick::All)],
+        "clean_prefetch" => vec![t(dir("SystemRoot", "Prefetch"), Pick::Files)],
+        "clean_windows_update" => vec![t(dir("SystemRoot", r"SoftwareDistribution\Download"), Pick::All)],
+        "clean_shader_cache" => [r"NVIDIA\DXCache", r"NVIDIA\GLCache", r"Temp\NVIDIA Corporation\NV_Cache", r"AMD\DxCache", "D3DSCache"]
+            .iter()
+            .map(|rest| t(dir("LOCALAPPDATA", rest), Pick::All))
+            .collect(),
+        // Clear-RecycleBin empties this account's bin only, so only that one is measured.
+        "clean_recycle_bin" => match env("USER_SID") {
+            Some(sid) => ('A'..='Z')
+                .map(|d| PathBuf::from(format!("{d}:\\$Recycle.Bin")).join(&sid))
+                .filter(|p| p.exists())
+                .map(|root| Some(Target { root, pick: Pick::All }))
+                .collect(),
+            None => Vec::new(),
+        },
+        "clean_windows_old" => vec![t(dir("SystemDrive", r"\Windows.old"), Pick::All)],
+        "clean_delivery_optimization" => vec![t(
+            dir("SystemRoot", r"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache"),
+            Pick::All,
+        )],
+        "clean_thumbnails" => vec![t(dir("LOCALAPPDATA", r"Microsoft\Windows\Explorer"), Pick::DbPrefix("thumbcache_"))],
+        "clean_logs_minidumps" => vec![
+            t(dir("SystemRoot", "Minidump"), Pick::Ext("dmp")),
+            t(dir("SystemRoot", ""), Pick::Named("MEMORY.DMP")),
+            t(dir("SystemRoot", "Logs"), Pick::OldExt("log", 7)),
+            t(dir("SystemRoot", "Panther"), Pick::OldExt("log", 7)),
+        ],
+        _ => return None,
+    };
+    Some(list.into_iter().flatten().collect())
+}
+
+fn has_ext(path: &Path, ext: &str) -> bool {
+    path.extension().is_some_and(|e| e.eq_ignore_ascii_case(ext))
+}
+
+/// Bytes a target would free. Unreadable folders count as empty, and links
+/// (symlinks and junctions) are never followed, like `rd /s /q`.
+pub fn size_of(target: &Target, now: SystemTime) -> u64 {
+    fn walk(dir: &Path, pick: Pick, deep: bool, now: SystemTime) -> u64 {
+        let Ok(entries) = std::fs::read_dir(dir) else { return 0 };
+        let mut total = 0;
+        for entry in entries.flatten() {
+            let Ok(meta) = entry.path().symlink_metadata() else { continue };
+            if meta.file_type().is_symlink() {
+                continue;
+            }
+            let path = entry.path();
+            if meta.is_dir() {
+                if deep {
+                    total += walk(&path, pick, deep, now);
+                }
+                continue;
+            }
+            let name = entry.file_name().to_string_lossy().to_lowercase();
+            let take = match pick {
+                Pick::All | Pick::Files => true,
+                Pick::Ext(ext) => has_ext(&path, ext),
+                Pick::DbPrefix(prefix) => name.starts_with(prefix) && has_ext(&path, "db"),
+                Pick::Named(n) => name == n.to_lowercase(),
+                Pick::OldExt(ext, days) => {
+                    has_ext(&path, ext)
+                        && meta.modified().ok().and_then(|m| now.duration_since(m).ok()).is_some_and(|age| age > Duration::from_secs(days * 86_400))
+                }
+            };
+            if take {
+                total += meta.len();
+            }
+        }
+        total
+    }
+    let deep = matches!(target.pick, Pick::All | Pick::OldExt(..));
+    walk(&target.root, target.pick, deep, now)
+}
+
+/// `whoami /user /fo csv /nh` -> the SID in its last quoted field.
+pub fn parse_sid(output: &str) -> Option<String> {
+    let sid = output.trim().rsplit(',').next()?.trim().trim_matches('"');
+    (sid.starts_with("S-1-") && sid[4..].chars().all(|c| c.is_ascii_digit() || c == '-')).then(|| sid.to_string())
+}
+
+fn system_env(var: &str) -> Option<String> {
+    if var == "USER_SID" {
+        return run_hidden("whoami", &["/user", "/fo", "csv", "/nh"]).ok().as_deref().and_then(parse_sid);
+    }
+    std::env::var(var).ok().filter(|v| !v.is_empty())
+}
+
+/// What a cleanup would free right now, or None when it frees no files.
+fn measure(id: &str) -> Option<u64> {
+    let now = SystemTime::now();
+    targets(id, &system_env).map(|list| list.iter().map(|t| size_of(t, now)).sum())
+}
+
+const IDS: [&str; 10] = [
+    "clean_temp", "clean_prefetch", "flush_dns", "clean_windows_update", "clean_shader_cache",
+    "clean_recycle_bin", "clean_windows_old", "clean_delivery_optimization", "clean_thumbnails",
+    "clean_logs_minidumps",
+];
+
+/// Sizes of every cleanup, measured side by side (Windows.old can take a while).
+#[tauri::command]
+pub async fn scan_cleanup() -> Result<Vec<CleanupSize>, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        std::thread::scope(|s| {
+            let jobs: Vec<_> = IDS.iter().map(|id| (id, s.spawn(move || measure(id)))).collect();
+            jobs.into_iter()
+                .map(|(id, job)| CleanupSize { id: id.to_string(), bytes: job.join().unwrap_or(None) })
+                .collect()
+        })
+    })
+    .await
+    .map_err(|e| format!("Runtime error: {e}"))
 }
 
 // Scripts run with $ErrorActionPreference = 'Stop'. Files in use are expected,
@@ -105,15 +265,28 @@ foreach ($dir in @(\"$env:SystemRoot\\Logs\", \"$env:SystemRoot\\Panther\")) {
     })
 }
 
+/// Runs one cleanup with no window and reports what it really freed
+/// (measured before and after; files in use stay and are not counted).
 #[tauri::command]
 pub async fn run_cleanup(id: String) -> Result<CleanupResult, String> {
-    let (task_name, script) = cleanup_script(&id).ok_or_else(|| format!("Unknown cleanup task: '{id}'"))?;
-    run_visible_task(task_name.into(), script.into()).await?;
-    Ok(CleanupResult {
-        task_id: id,
-        success: true,
-        message: "Task completed successfully.".to_string(),
+    let (_, script) = cleanup_script(&id).ok_or_else(|| format!("Unknown cleanup task: '{id}'"))?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let before = measure(&id);
+        let args: Vec<String> = ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand"]
+            .iter()
+            .map(|s| s.to_string())
+            .chain([encode_command(&hidden_script(script))])
+            .collect();
+        let out = run_with_timeout("powershell", &args, CLEANUP_TIMEOUT)?;
+        if !out.status.success() {
+            let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+            return Err(if err.is_empty() { "Cleanup failed.".to_string() } else { err });
+        }
+        let freed = before.map(|b| b.saturating_sub(measure(&id).unwrap_or(0)));
+        Ok(CleanupResult { task_id: id, freed })
     })
+    .await
+    .map_err(|e| format!("Runtime error: {e}"))?
 }
 
 #[cfg(test)]
@@ -122,12 +295,75 @@ mod tests {
 
     #[test]
     fn frontend_ids_are_known() {
-        for id in [
-            "clean_temp", "clean_prefetch", "flush_dns", "clean_windows_update", "clean_shader_cache",
-            "clean_recycle_bin", "clean_windows_old", "clean_delivery_optimization", "clean_thumbnails",
-            "clean_logs_minidumps",
-        ] {
+        for id in IDS {
             assert!(cleanup_script(id).is_some(), "missing cleanup {id}");
+            // Every task that deletes files says where, so its size can be shown.
+            assert_eq!(targets(id, &system_env).is_none(), id == "flush_dns", "{id}");
+        }
+    }
+
+    fn fake_env(var: &str) -> Option<String> {
+        match var {
+            "TEMP" => Some(r"C:\Users\x\AppData\Local\Temp".into()),
+            "SystemRoot" => Some(r"C:\Windows".into()),
+            "LOCALAPPDATA" => Some(r"C:\Users\x\AppData\Local".into()),
+            "SystemDrive" => Some("C:".into()),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn reads_the_sid_from_whoami() {
+        let out = "\"desktop-3t4hps2\\joshsegatt\",\"S-1-5-21-111-222-333-1001\"\r\n";
+        assert_eq!(parse_sid(out).as_deref(), Some("S-1-5-21-111-222-333-1001"));
+        assert_eq!(parse_sid("garbage"), None);
+        assert_eq!(parse_sid("\"x\",\"S-1-5-21-..\\evil\""), None);
+    }
+
+    #[test]
+    fn targets_match_the_scripts() {
+        let wu = targets("clean_windows_update", &fake_env).unwrap();
+        assert_eq!(wu, vec![Target { root: PathBuf::from(r"C:\Windows\SoftwareDistribution\Download"), pick: Pick::All }]);
+        let old = targets("clean_windows_old", &fake_env).unwrap();
+        assert_eq!(old[0].root, PathBuf::from(r"C:\Windows.old"));
+        let thumbs = targets("clean_thumbnails", &fake_env).unwrap();
+        assert_eq!(thumbs[0].pick, Pick::DbPrefix("thumbcache_"));
+        // A missing variable drops that folder instead of measuring the wrong place.
+        assert!(targets("clean_temp", &|v| (v == "SystemRoot").then(|| r"C:\Windows".into())).unwrap().len() == 1);
+    }
+
+    #[test]
+    fn sizes_count_only_what_the_script_removes() {
+        let root = std::env::temp_dir().join(format!("segatt-clean-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("sub")).unwrap();
+        let write = |name: &str, len: usize| std::fs::write(root.join(name), vec![0u8; len]).unwrap();
+        write("a.log", 100);
+        write("b.txt", 10);
+        write("thumbcache_32.db", 7);
+        write("iconcache_32.db", 5);
+        write(r"sub\c.log", 1000);
+        let old = SystemTime::now() + Duration::from_secs(30 * 86_400);
+        let t = |pick| Target { root: root.clone(), pick };
+
+        assert_eq!(size_of(&t(Pick::All), old), 1122);
+        assert_eq!(size_of(&t(Pick::Files), old), 122, "no subfolders");
+        assert_eq!(size_of(&t(Pick::Ext("log")), old), 100);
+        assert_eq!(size_of(&t(Pick::DbPrefix("thumbcache_")), old), 7);
+        assert_eq!(size_of(&t(Pick::Named("B.TXT")), old), 10);
+        // Measured "30 days from now", every .log is old; measured now, none is.
+        assert_eq!(size_of(&t(Pick::OldExt("log", 7)), old), 1100);
+        assert_eq!(size_of(&t(Pick::OldExt("log", 7)), SystemTime::now()), 0);
+        assert_eq!(size_of(&Target { root: root.join("missing"), pick: Pick::All }, old), 0);
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    /// Prints what each cleanup would free on this PC (no deletion).
+    #[test]
+    #[ignore]
+    fn dump_cleanup_sizes() {
+        for id in IDS {
+            println!("{id}: {:?}", measure(id));
         }
     }
 

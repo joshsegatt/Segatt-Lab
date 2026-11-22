@@ -3,7 +3,7 @@ mod features;
 use crate::features::packages::{list_installed, run_app_action, search_packages};
 use crate::features::tweaks::{check_admin, create_restore_point, open_system_restore};
 use crate::features::engine::{get_tweak_states, set_tweak};
-use crate::features::cleaner::run_cleanup;
+use crate::features::cleaner::{run_cleanup, scan_cleanup};
 use crate::features::hardware::get_hardware;
 use crate::features::profile::save_profile;
 use crate::features::control::{get_features, get_update_mode, set_feature, set_update_mode};
@@ -42,6 +42,7 @@ pub fn run() {
       create_restore_point,
       check_admin,
       run_cleanup,
+      scan_cleanup,
       get_system_stats,
       get_pc_info,
       get_hardware,
