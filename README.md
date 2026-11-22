@@ -31,6 +31,8 @@ The script downloads the latest installer from GitHub Releases, checks its SHA-2
 
 Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/Segatt-Lab/releases/latest) yourself.
 
+Code signing: Segatt Lab has applied to the SignPath Foundation program. Once approved, Windows builds use free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/). See the [code signing policy](CODE_SIGNING_POLICY.md).
+
 ## Why Segatt Lab
 
 - **You see it happen.** No progress bar staring back at you: Doc goes from part to part of your actual PC as each change lands, and tells you what worked and what did not.
