@@ -42,7 +42,7 @@ The reference competitor is Chris Titus Tech's WinUtil (PowerShell + WPF script,
 - Languages: 10, with the Windows display language as default and English as fallback: English, Portuguese (Brazil), Spanish, French, German, Russian, Chinese (Simplified), Japanese, Korean, Turkish. Every string must exist in every language; no mixed-language screens.
 - Local AI: the existing on-device chat (WebLLM/Ollama) is not wired into any screen. Decision 2026-11-21: remove it from the interface; revisit an optional Ollama integration later.
 - Out of scope for now: a custom Windows ISO builder (MicroWin equivalent).
-- **Open decision — product name.** Working name "Segatt Tools". The owner wants a name that sells worldwide and carries the initials S-G-T (from the surname Segatt). Rejected so far: Sagitta, SGT Tune, SGT Forge, Segatt GT, ShiftGear Turbo, Stealth Gaming Toolkit, Sigtra. Keep the name in one place in code so it can change in one edit.
+- **Product name: Segatt Lab** (decided 2026-11-22, was "Segatt Tools"). The lab fits the mascot, keeps the surname and the S-G-T initials. The mascot, a pixel-art scientist in orange goggles holding a chip, is the logo and app icon (face at small sizes) and carries the playful side; the name stays calm because the app runs as administrator. Data names stay as they were (`com.segatt.tools`, the `segatt-tools-profile` format) so nothing saved breaks. The name lives in `src/lib/brand.ts` and `tauri.conf.json`.
 
 ## Brand Commitments
 

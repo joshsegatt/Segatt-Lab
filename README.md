@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/assets/mascot-256.png" width="160" alt="The Segatt Tools mascot, a scientist in goggles holding a chip">
+<img src="docs/assets/mascot-256.png" width="160" alt="The Segatt Lab mascot, a scientist in goggles holding a chip">
 
-# Segatt Tools
+# Segatt Lab
 
 **Tune, debloat, clean and repair Windows 10 and 11 from one native app.**<br>
 It reads your PC's real state first, shows you what will change, and every tweak goes back to its original value in one click.
@@ -14,7 +14,7 @@ It reads your PC's real state first, shows you what will change, and every tweak
 
 [Download](https://github.com/joshsegatt/Segatt-Tools/releases/latest) · [Website](https://joshsegatt.github.io/Segatt-Tools/) · [Features](#features) · [Safety](#how-it-keeps-your-pc-safe) · [FAQ](#faq)
 
-<img src="docs/assets/home.png" alt="Segatt Tools home screen: a search box, actions worth doing now, live CPU, memory and disk, and the PC's hardware" width="900">
+<img src="docs/assets/home.png" alt="Segatt Lab home screen: a search box, actions worth doing now, live CPU, memory and disk, and the PC's hardware" width="900">
 
 </div>
 
@@ -30,7 +30,7 @@ The script downloads the latest installer from GitHub Releases, checks its SHA-2
 
 Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/Segatt-Tools/releases/latest) yourself.
 
-## Why Segatt Tools
+## Why Segatt Lab
 
 - **It shows before it changes.** Every tweak displays its live state on your PC, read from the registry, services and power settings, not a guess.
 - **Everything can be undone.** The original value is saved before a change, and a restore point is made first. Risky items always ask.
@@ -99,9 +99,9 @@ Windows 10/11 or Linux on a USB drive in three guided steps. Optionally skip the
 Apply a profile with no window, for example on a freshly installed PC:
 
 ```powershell
-$app = Get-ChildItem "$env:LOCALAPPDATA\Segatt Tools", "$env:ProgramFiles\Segatt Tools" -Filter *.exe -ErrorAction SilentlyContinue |
+$app = Get-ChildItem "$env:LOCALAPPDATA\Segatt Lab", "$env:ProgramFiles\Segatt Lab" -Filter *.exe -ErrorAction SilentlyContinue |
   Where-Object Name -NotMatch 'uninstall' | Select-Object -First 1
-Start-Process $app.FullName -ArgumentList '--profile', '"C:\Users\you\Documents\Segatt Tools\segatt-tools-2026-11-22.json"' -Wait
+Start-Process $app.FullName -ArgumentList '--profile', '"C:\Users\you\Documents\Segatt Lab\segatt-lab-2026-11-22.json"' -Wait
 ```
 
 It makes the Profile screen's default choices: a restore point first, Risky tweaks and tweaks that do not fit the hardware left out, and only missing apps installed. The result is written to `%APPDATA%\com.segatt.tools\profile-run.log`. Exit codes: `0` done, `1` something failed, `2` the file or the arguments are wrong.

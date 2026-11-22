@@ -1,4 +1,4 @@
-//! Saves an exported profile to Documents\Segatt Tools. The frontend builds the
+//! Saves an exported profile to Documents\Segatt Lab. The frontend builds the
 //! JSON (src/lib/profile.ts); this side only checks it is JSON of a sane size
 //! and picks the path itself, so nothing from the page names a file.
 
@@ -14,7 +14,7 @@ pub fn valid_stamp(s: &str) -> bool {
 }
 
 pub fn profile_path(documents: &Path, stamp: &str) -> PathBuf {
-    documents.join("Segatt Tools").join(format!("segatt-tools-{stamp}.json"))
+    documents.join("Segatt Lab").join(format!("segatt-lab-{stamp}.json"))
 }
 
 pub fn check_contents(contents: &str) -> Result<(), String> {
@@ -53,7 +53,7 @@ mod tests {
             assert!(!valid_stamp(bad), "{bad}");
         }
         let p = profile_path(Path::new(r"C:\Users\x\Documents"), "2026-11-22");
-        assert_eq!(p, PathBuf::from(r"C:\Users\x\Documents\Segatt Tools\segatt-tools-2026-11-22.json"));
+        assert_eq!(p, PathBuf::from(r"C:\Users\x\Documents\Segatt Lab\segatt-lab-2026-11-22.json"));
     }
 
     #[test]

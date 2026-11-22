@@ -1,5 +1,5 @@
 ---
-name: Segatt Tools
+name: Segatt Lab
 description: Command-first Windows tuner on calm graphite, one jade accent for live state and the primary action.
 colors:
   jade: "#3ddc97"
@@ -226,13 +226,13 @@ components:
     padding: "12px 16px"
 ---
 
-# Design System: Segatt Tools
+# Design System: Segatt Lab
 
 ## Overview
 
 **Creative North Star: "The Calm Command Line"**
 
-Segatt Tools reads like a modern AI desktop app (Copilot, the ChatGPT app, Antigravity), not like a gamer utility or a Windows settings page. The world is a quiet graphite room with one question and one composer at its centre: every action is found by typing, and every screen reports the PC's real state. Density is moderate and desktop-only: a 264px sidebar, a translucent 56px top bar, and a centred working column. Surfaces step up in flat greys and are separated by soft 1px light hairlines; depth comes from tone first and from two soft, diffuse shadows reserved for things that float.
+Segatt Lab reads like a modern AI desktop app (Copilot, the ChatGPT app, Antigravity), not like a gamer utility or a Windows settings page. The world is a quiet graphite room with one question and one composer at its centre: every action is found by typing, and every screen reports the PC's real state. Density is moderate and desktop-only: a 264px sidebar, a translucent 56px top bar, and a centred working column. Surfaces step up in flat greys and are separated by soft 1px light hairlines; depth comes from tone first and from two soft, diffuse shadows reserved for things that float.
 
 Colour is almost absent on purpose. A single jade accent marks what is live, on, or the one primary action; amber means pending, red means failed. Everything else is ink on graphite. Type is the Windows system face (Segoe UI Variable, Display for titles and Text for UI) and Cascadia Mono only where the user reads something literal: a key, a command, a value. The app must work offline, so there are no web fonts.
 

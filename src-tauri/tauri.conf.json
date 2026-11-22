@@ -1,5 +1,5 @@
 {
-  "productName": "Segatt Tools",
+  "productName": "Segatt Lab",
   "version": "2.0.0",
   "identifier": "com.segatt.tools",
   "build": {
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Segatt Tools",
+        "title": "Segatt Lab",
         "width": 1200,
         "height": 800,
         "resizable": true,

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Segatt Tools: free Windows 11 debloat, tweaks and cleaner app</title>
+<title>Segatt Lab: free Windows 11 debloat, tweaks and cleaner app</title>
 <meta name="description" content="Debloat, tune, clean and repair Windows 10 and 11 from one native app. See each tweak's live state, undo any of it in one click, make bootable USB drives. Free, open source, no telemetry.">
 <link rel="canonical" href="https://joshsegatt.github.io/Segatt-Tools/">
 <meta name="theme-color" content="#1a1a1a">
@@ -12,14 +12,14 @@
 <link rel="apple-touch-icon" href="assets/mascot-face.png">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Segatt Tools">
-<meta property="og:title" content="Segatt Tools: tune Windows without guessing">
+<meta property="og:site_name" content="Segatt Lab">
+<meta property="og:title" content="Segatt Lab: tune Windows without guessing">
 <meta property="og:description" content="Debloat, tune, clean and repair Windows 10 and 11. Live state for every tweak, one-click undo, bootable USB built in. Free and open source.">
 <meta property="og:url" content="https://joshsegatt.github.io/Segatt-Tools/">
 <meta property="og:image" content="https://joshsegatt.github.io/Segatt-Tools/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Segatt Tools home screen">
+<meta property="og:image:alt" content="The Segatt Lab home screen">
 <meta name="twitter:card" content="summary_large_image">
 
 <script type="application/ld+json">
@@ -28,7 +28,7 @@
   "@graph": [
     {
       "@type": "SoftwareApplication",
-      "name": "Segatt Tools",
+      "name": "Segatt Lab",
       "description": "A native Windows app to debloat, tune, clean and repair Windows 10 and 11, with the live state of every tweak, one-click undo and a built-in bootable USB maker.",
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "Windows 10, Windows 11",
@@ -44,9 +44,9 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "Is Segatt Tools free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Free and open source under the MIT license, with no account, no ads and no telemetry." } },
+        { "@type": "Question", "name": "Is Segatt Lab free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Free and open source under the MIT license, with no account, no ads and no telemetry." } },
         { "@type": "Question", "name": "Can I undo the tweaks?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The original value is saved before each tweak and written back when you turn it off, and a restore point is created before a batch of tweaks." } },
-        { "@type": "Question", "name": "How is it different from WinUtil and other debloat scripts?", "acceptedAnswer": { "@type": "Answer", "text": "Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives." } },
+        { "@type": "Question", "name": "How is it different from WinUtil and other debloat scripts?", "acceptedAnswer": { "@type": "Answer", "text": "Scripts run once and print to a console. Segatt Lab is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives." } },
         { "@type": "Question", "name": "Windows SmartScreen warns me. Is it safe?", "acceptedAnswer": { "@type": "Answer", "text": "SmartScreen warns about any publisher it has not seen often. Each release publishes the installer's SHA-256, the install command checks it for you, and all the code is on GitHub." } },
         { "@type": "Question", "name": "Why does it ask for administrator?", "acceptedAnswer": { "@type": "Answer", "text": "Tweaks for the whole PC, services, system cleanup, repairs and writing USB drives all need it, so the app asks once when it opens." } },
         { "@type": "Question", "name": "Does it work on Windows 10?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, on Windows 10 and Windows 11." } }
@@ -219,7 +219,7 @@ footer a:hover { color: var(--ink); }
 <body>
 
 <header class="wrap top">
-  <a class="brand" href="./"><img src="assets/mascot-face.png" width="32" height="32" alt="">Segatt Tools</a>
+  <a class="brand" href="./"><img src="assets/mascot-face.png" width="32" height="32" alt="">Segatt Lab</a>
   <nav aria-label="Main">
     <a class="hide-sm" href="#features">Features</a>
     <a class="hide-sm" href="#safety">Safety</a>
@@ -230,9 +230,9 @@ footer a:hover { color: var(--ink); }
 
 <main>
   <div class="wrap hero">
-    <img class="mascot" src="assets/mascot.webp" width="512" height="512" alt="The Segatt Tools mascot, a scientist in goggles holding a chip" fetchpriority="high">
+    <img class="mascot" src="assets/mascot.webp" width="512" height="512" alt="The Segatt Lab mascot, a scientist in goggles holding a chip" fetchpriority="high">
     <h1>Tune Windows <em>without guessing.</em></h1>
-    <p class="lede">Segatt Tools reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. Debloat, tweaks, cleanup, repairs and bootable USB drives in one native app for Windows 10 and 11.</p>
+    <p class="lede">Segatt Lab reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. Debloat, tweaks, cleanup, repairs and bootable USB drives in one native app for Windows 10 and 11.</p>
 
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/joshsegatt/Segatt-Tools/releases/latest">
@@ -251,14 +251,14 @@ footer a:hover { color: var(--ink); }
     <p class="facts"><span>Free and open source</span><span>No telemetry, no account</span><span>10 languages</span></p>
 
     <div class="window">
-      <img src="assets/home.webp" width="1440" height="900" alt="The Segatt Tools home screen: a search box, suggested actions read from the PC, live CPU, memory and disk, and the PC's hardware" fetchpriority="high">
+      <img src="assets/home.webp" width="1440" height="900" alt="The Segatt Lab home screen: a search box, suggested actions read from the PC, live CPU, memory and disk, and the PC's hardware" fetchpriority="high">
     </div>
   </div>
 
   <section id="why" class="wrap">
     <div class="sec-head">
       <h2>See it, change it, take it back.</h2>
-      <p>Segatt Tools treats your PC like the main machine it is: it reads before it writes, and keeps what it needs to put things back.</p>
+      <p>Segatt Lab treats your PC like the main machine it is: it reads before it writes, and keeps what it needs to put things back.</p>
     </div>
     <div class="points">
       <div>
@@ -370,7 +370,7 @@ footer a:hover { color: var(--ink); }
     <div class="sec-head"><h2>Questions</h2></div>
     <div class="faq">
       <details>
-        <summary>Is Segatt Tools free?</summary>
+        <summary>Is Segatt Lab free?</summary>
         <p>Yes. Free and open source under the MIT license, with no account, no ads and no telemetry.</p>
       </details>
       <details>
@@ -379,7 +379,7 @@ footer a:hover { color: var(--ink); }
       </details>
       <details>
         <summary>How is it different from WinUtil and other debloat scripts?</summary>
-        <p>Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives.</p>
+        <p>Scripts run once and print to a console. Segatt Lab is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives.</p>
       </details>
       <details>
         <summary>Windows SmartScreen warns me. Is it safe?</summary>

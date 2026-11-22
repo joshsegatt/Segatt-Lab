@@ -28,7 +28,7 @@ $name = 'SystemRestorePointCreationFrequency'
 $old = (Get-ItemProperty -Path $key -Name $name -ErrorAction SilentlyContinue).$name
 Set-ItemProperty -Path $key -Name $name -Value 0 -Type DWord
 try {
-    Checkpoint-Computer -Description 'Segatt Tools' -RestorePointType 'MODIFY_SETTINGS'
+    Checkpoint-Computer -Description 'Segatt Lab' -RestorePointType 'MODIFY_SETTINGS'
 } finally {
     if ($null -eq $old) { Remove-ItemProperty -Path $key -Name $name -ErrorAction SilentlyContinue }
     else { Set-ItemProperty -Path $key -Name $name -Value $old -Type DWord }
