@@ -1,49 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, GraduationCap } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { setLevel, useLevel } from "@/hooks/useLevel";
 import { LEVELS, LEVEL_TEXT } from "@/lib/level";
 import styles from "./LevelMenu.module.css";
+import { useMenu } from "./useMenu";
 import { localize } from "@/lib/i18n";
 
 /** The knowledge level chip in the top bar; changes it without redoing onboarding. */
 export function LevelMenu() {
   const { t, language } = useLanguage();
   const { level, chosen } = useLevel();
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  const items = useRef<(HTMLButtonElement | null)[]>([]);
-
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        root.current?.querySelector<HTMLButtonElement>("[aria-haspopup]")?.focus();
-      }
-    };
-    items.current[LEVELS.indexOf(level)]?.focus();
-    document.addEventListener("pointerdown", away);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("pointerdown", away);
-      document.removeEventListener("keydown", esc);
-    };
-    // Focus goes to the current level once, when the menu opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const move = (e: React.KeyboardEvent, i: number) => {
-    const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
-    if (!step) return;
-    e.preventDefault();
-    items.current[(i + step + LEVELS.length) % LEVELS.length]?.focus();
-  };
+  const { open, setOpen, root, itemRef, move } = useMenu(LEVELS.length, LEVELS.indexOf(level));
 
   if (chosen === "pending") return null;
 
@@ -60,9 +29,7 @@ export function LevelMenu() {
           {LEVELS.map((l, i) => (
             <button
               key={l}
-              ref={(el) => {
-                items.current[i] = el;
-              }}
+              ref={itemRef(i)}
               onKeyDown={(e) => move(e, i)}
               type="button"
               role="menuitemradio"
