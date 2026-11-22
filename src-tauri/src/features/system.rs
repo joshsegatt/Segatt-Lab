@@ -153,15 +153,23 @@ pub struct FixResult {
     pub details: String,
 }
 
-/// SFC writes UTF-16 when its output is redirected; everything else is 8-bit.
+/// Upper half of code page 850, the console code page of pt-BR and Western
+/// European Windows, where DISM writes its redirected output.
+const CP850_HIGH: &str = "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´\u{ad}±‗¾¶§÷¸°¨·¹³²■\u{a0}";
+
+/// SFC writes UTF-16 when its output is redirected; DISM writes the console
+/// code page (850 here; plain ASCII on an English Windows).
 pub fn decode_output(bytes: &[u8]) -> String {
     let nuls = bytes.iter().filter(|b| **b == 0).count();
     if bytes.len() >= 2 && nuls * 4 > bytes.len() {
         let units: Vec<u16> = bytes.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
-        String::from_utf16_lossy(&units)
-    } else {
-        String::from_utf8_lossy(bytes).into_owned()
+        return String::from_utf16_lossy(&units);
     }
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return text.to_string();
+    }
+    let high: Vec<char> = CP850_HIGH.chars().collect();
+    bytes.iter().map(|&b| if b < 0x80 { b as char } else { high[(b - 0x80) as usize] }).collect()
 }
 
 /// Reads SFC's verdict, in English or Portuguese. None when the text says
@@ -183,7 +191,7 @@ const NEEDS_ADMIN: &str = "Administrator required.";
 
 fn needs_admin(text: &str) -> bool {
     let t = text.to_lowercase();
-    t.contains("must be an administrator") || t.contains("precisa ser um administrador") || t.contains("elevated")
+    t.contains("must be an administrator") || t.contains("precisa ser um administrador") || t.contains("elevated") || t.contains("elevad")
 }
 
 fn run_fix(id: &str) -> Result<FixResult, String> {
@@ -260,6 +268,10 @@ mod tests {
         assert!(decoded.contains("Você precisa ser um administrador"));
         assert!(needs_admin(&decoded));
         assert_eq!(decode_output("Erro: 740".as_bytes()), "Erro: 740");
+        // Real DISM bytes on this PC without admin: "Permissões elevadas obrigatórias" in code page 850.
+        let dism = b"Permiss\xe4es elevadas obrigat\xa2rias para execu\x87\xc6o do DISM.";
+        assert_eq!(decode_output(dism), "Permissões elevadas obrigatórias para execução do DISM.");
+        assert!(needs_admin(&decode_output(dism)));
     }
 
     #[test]

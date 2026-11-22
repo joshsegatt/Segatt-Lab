@@ -53,8 +53,12 @@ export const PANELS: { cmd: string; name: Text }[] = [
   { cmd: "control", name: { pt: "Painel de Controle", en: "Control Panel" } },
 ];
 
-/** Why a repair failed, as an i18n key; null when the raw text is all there is. */
-export function fixReason(msg: string): string | null {
+/**
+ * Why a repair failed, as an i18n key; null when the raw text is all there is.
+ * `admin` covers SFC's refusal in languages whose text is not known here.
+ */
+export function fixReason(msg: string, admin: boolean | null = null): string | null {
+  if (admin === false && /^SFC exit code 1\./.test(msg)) return "fx.err_admin";
   if (/administrator required|must be an administrator|precisa ser um administrador|\b740\b|0x2E4/i.test(msg)) return "fx.err_admin";
   if (/0x800f081f|0x800f0906|0x800f0950|source files could not be found|arquivos de origem/i.test(msg)) return "fx.err_source";
   if (/stopped after \d+ minutes/i.test(msg)) return "fx.err_timeout";

@@ -29,6 +29,8 @@ export default function FixesPage() {
   const [showRaw, setShowRaw] = useState<Set<string>>(new Set());
   const [panelError, setPanelError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Results older than this screen do not flash again on every visit.
+  const [openedAt] = useState(() => Date.now());
 
   // The elapsed time on the running row, refreshed every 15 s.
   useEffect(() => {
@@ -78,7 +80,7 @@ export default function FixesPage() {
               // `now` may predate the start until the first tick: never below zero.
               const minutes = isRunning && startedAt ? Math.max(0, Math.floor((now - startedAt) / 60_000)) : 0;
               return (
-                <li key={f.id} className={`${styles.row} ${r?.status === "done" && !isRunning ? styles.flash : ""}`}>
+                <li key={f.id} className={`${styles.row} ${r?.status === "done" && r.at > openedAt ? styles.flash : ""}`}>
                   <div className={`${styles.appLine} ${styles.appLineNoCheck}`}>
                     <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
                       <b>{f.name[language]}</b>
@@ -130,7 +132,7 @@ export default function FixesPage() {
                     <>
                       <p className={styles.error} role="alert">
                         <TriangleAlert size={14} aria-hidden="true" />
-                        {fmt(t("fx.failed_at"), { time: time(r.at) })} {fixReason(r.msg) ? t(fixReason(r.msg)!) : ""}
+                        {fmt(t("fx.failed_at"), { time: time(r.at) })} {fixReason(r.msg, admin) ? t(fixReason(r.msg, admin)!) : ""}
                         {level !== "advanced" && <button type="button" onClick={() => toggleRaw(f.id)}>{t("tw.see_details")}</button>}
                       </p>
                       {(showRaw.has(f.id) || level === "advanced") && <pre className={styles.raw}>{r.msg}</pre>}
