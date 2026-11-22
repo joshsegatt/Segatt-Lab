@@ -7,6 +7,7 @@ use crate::features::cleaner::{run_cleanup, scan_cleanup};
 use crate::features::hardware::get_hardware;
 use crate::features::profile::save_profile;
 use crate::features::debloat::{list_bloat, open_store_page, remove_bloat};
+use crate::features::startup::{list_startup, set_startup};
 use crate::features::control::{get_features, get_update_mode, set_feature, set_update_mode};
 use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
@@ -54,6 +55,8 @@ pub fn run() {
       list_bloat,
       remove_bloat,
       open_store_page,
+      list_startup,
+      set_startup,
       open_legacy_panel,
       run_system_fix
     ])
