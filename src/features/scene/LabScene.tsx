@@ -24,21 +24,21 @@ import styles from "./LabScene.module.css";
 
 /** Art in public/scene: equal-width cells side by side, feet on the bottom edge. */
 const SHEETS: Record<Pose, { src: string; frames: number; fps: number }> = {
-  idle: { src: "/scene/idle.png", frames: 4, fps: 5 },
-  run: { src: "/scene/run.png", frames: 6, fps: 12 },
-  work: { src: "/scene/work.png", frames: 4, fps: 8 },
-  cheer: { src: "/scene/cheer.png", frames: 4, fps: 8 },
-  shock: { src: "/scene/shock.png", frames: 4, fps: 12 },
+  idle: { src: "/scene/idle.webp", frames: 4, fps: 5 },
+  run: { src: "/scene/run.webp", frames: 6, fps: 12 },
+  work: { src: "/scene/work.webp", frames: 4, fps: 8 },
+  cheer: { src: "/scene/cheer.webp", frames: 4, fps: 8 },
+  shock: { src: "/scene/shock.webp", frames: 4, fps: 12 },
 };
-const PROPS_SRC = "/scene/props.png"; // 7 cells in STATIONS order
-const BG_SRC = "/scene/bg.png";
+const PROPS_SRC = "/scene/props.webp"; // 7 cells in STATIONS order
+const BG_SRC = "/scene/bg.webp";
 
 const SPACING = 340;
 const MARGIN = 260;
 const HERO_H = 168; // on-screen height of the mascot
 const RUN_SPEED = 300; // px per second
 
-type Sheet = { img: CanvasImageSource; frames: number; fps: number; w: number; h: number };
+type Sheet = { img: CanvasImageSource; frames: number; fps: number; w: number; h: number; pixel: boolean };
 interface Art {
   sheets: Record<Pose, Sheet>;
   props: { img: HTMLImageElement; cell: number } | null;
@@ -60,14 +60,14 @@ async function loadArt(): Promise<Art> {
     (Object.keys(SHEETS) as Pose[]).map(async (pose) => {
       const def = SHEETS[pose];
       const img = await load(def.src);
-      if (img) return [pose, { img, frames: def.frames, fps: def.fps, w: img.width / def.frames, h: img.height }] as const;
+      if (img) return [pose, { img, frames: def.frames, fps: def.fps, w: img.width / def.frames, h: img.height, pixel: false }] as const;
       // Stand-in until the drawn sheets are in public/scene.
       const strip = document.createElement("canvas");
       const f = fallback[pose];
       strip.width = f[0].width * f.length;
       strip.height = f[0].height;
       f.forEach((c, i) => strip.getContext("2d")!.drawImage(c, i * c.width, 0));
-      return [pose, { img: strip, frames: f.length, fps: def.fps, w: f[0].width, h: f[0].height }] as const;
+      return [pose, { img: strip, frames: f.length, fps: def.fps, w: f[0].width, h: f[0].height, pixel: true }] as const;
     }),
   );
   const [propsImg, bg] = await Promise.all([load(PROPS_SRC), load(BG_SRC)]);
@@ -394,6 +394,7 @@ export function LabScene() {
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, W, H);
       if (art?.bg) {
+        ctx.imageSmoothingEnabled = true;
         const s = H / art.bg.height;
         const bw = art.bg.width * s;
         let x0 = -((d.cam * 0.5) % bw);
@@ -429,8 +430,11 @@ export function LabScene() {
         }
         if (art?.props) {
           const cell = art.props.cell;
-          const size = 190;
-          ctx.drawImage(art.props.img, STATIONS.indexOf(s) * cell, 0, cell, art.props.img.height, sx - size / 2, floor - size, size, size * (art.props.img.height / cell));
+          const ph = 200;
+          const pw = ph * (cell / art.props.img.height);
+          ctx.imageSmoothingEnabled = true;
+          ctx.drawImage(art.props.img, STATIONS.indexOf(s) * cell, 0, cell, art.props.img.height, sx - pw / 2, floor - ph, pw, ph);
+          ctx.imageSmoothingEnabled = false;
         } else {
           drawPropFallback(ctx, s, sx, floor, clock, s === active || state === "ok");
         }
@@ -501,7 +505,11 @@ export function LabScene() {
         ctx.beginPath();
         ctx.ellipse(0, 2, w * 0.32, 7, 0, 0, Math.PI * 2);
         ctx.fill();
+        // Pixel stand-ins stay sharp; drawn art is scaled smoothly.
+        ctx.imageSmoothingEnabled = !sheet.pixel;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(sheet.img, f * sheet.w, 0, sheet.w, sheet.h, -w / 2, -HERO_H, w, HERO_H);
+        ctx.imageSmoothingEnabled = false;
         ctx.restore();
       }
       ctx.restore();
