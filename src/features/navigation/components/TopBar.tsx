@@ -5,6 +5,7 @@ import { Languages } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIsAdmin } from "@/hooks/useSystem";
 import { NAV } from "./Sidebar";
+import { LevelMenu } from "./LevelMenu";
 
 export function TopBar() {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export function TopBar() {
     <header className="topbar">
       <span className="topbar-title">{current ? t(`nav.${current.key}`) : ""}</span>
       <div className="topbar-actions">
+        <LevelMenu />
         <span className="pill" title={admin === false ? t("shell.not_admin_hint") : undefined}>
           <span className={`status-dot ${admin ? "on" : admin === false ? "warn" : ""}`} aria-hidden="true" />
           {admin === null ? t("shell.checking") : admin ? t("shell.admin") : t("shell.not_admin")}

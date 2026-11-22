@@ -7,6 +7,8 @@ import { Cpu, FileUp, Loader2, RotateCw, ShieldCheck, TriangleAlert } from "luci
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIsAdmin } from "@/hooks/useSystem";
 import { useHardware } from "@/hooks/useHardware";
+import { useLevel } from "@/hooks/useLevel";
+import { allows, levelFor, LEVEL_TEXT } from "@/lib/level";
 import { useApps } from "@/hooks/useApps";
 import { applyTweaks, explainTweakError, useTweakStates, type TweakFailures } from "@/hooks/useTweakStates";
 import { clearToast, enqueue, key, reasonText, setQueueContext, useAppQueue } from "@/hooks/useAppQueue";
@@ -24,6 +26,7 @@ export default function ProfilePage() {
   const { installed, error: appsError } = useApps();
   const { hw, error: hwError } = useHardware();
   const admin = useIsAdmin();
+  const { level } = useLevel();
   const queue = useAppQueue();
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -99,7 +102,7 @@ export default function ProfilePage() {
     const profile = installed ? parsed.profile : { ...parsed.profile, apps: [] };
     const plan = planImport(profile, states ?? {}, installed ?? {}, hw);
     setLoaded({ file: file.name, plan, dropped: parsed.dropped, exportedAt: parsed.profile.exportedAt, appsUnread: !installed && parsed.profile.apps.length > 0 });
-    setPicked(new Set([...plan.tweaks.filter((p) => p.pick).map((p) => `t:${p.tweak.id}`), ...plan.apps.map((a) => `a:${key(a.id)}`)]));
+    setPicked(new Set([...plan.tweaks.filter((p) => p.pick && allows(level, p.tweak.risk)).map((p) => `t:${p.tweak.id}`), ...plan.apps.map((a) => `a:${key(a.id)}`)]));
     setFailed({});
     setConfirmRisky(null);
   };
@@ -131,7 +134,8 @@ export default function ProfilePage() {
     return null;
   };
 
-  const tweakEntries = (loaded?.plan.tweaks ?? []).filter((p) => picked.has(`t:${p.tweak.id}`) && !tweakDone(p.tweak.id));
+  // Above the person's level a tweak is listed but locked (story: "Precisa do nível Avançado").
+  const tweakEntries = (loaded?.plan.tweaks ?? []).filter((p) => picked.has(`t:${p.tweak.id}`) && !tweakDone(p.tweak.id) && allows(level, p.tweak.risk));
   const appJobs = (loaded?.plan.apps ?? []).filter((a) => picked.has(`a:${key(a.id)}`) && appState(a.id) === null);
   const total = tweakEntries.length + appJobs.length;
   const restoreForced = tweakEntries.some((p) => p.tweak.risk === "risky");
@@ -271,9 +275,9 @@ export default function ProfilePage() {
                   const done = tweakDone(tw.id);
                   const st = states?.[tw.id];
                   return (
-                    <li key={tw.id} className={`${styles.row} ${picked.has(k) && !done ? styles.changed : ""}`}>
+                    <li key={tw.id} className={`${styles.row} ${picked.has(k) && !done && allows(level, tw.risk) ? styles.changed : ""}`}>
                       <div className={`${styles.appLine} ${styles.appLineNoActions}`}>
-                        {done || busy ? <span aria-hidden="true" /> : (
+                        {done || busy || !allows(level, tw.risk) ? <span aria-hidden="true" /> : (
                           <input type="checkbox" className={styles.check} checked={picked.has(k)} onChange={() => flip(k)} aria-label={tw.name[language]} />
                         )}
                         <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
@@ -286,6 +290,7 @@ export default function ProfilePage() {
                               {t(`tw.risk_${tw.risk}`)}
                             </span>
                             {why === "not_for_pc" && <span className={styles.riskModerate}><Cpu size={12} aria-hidden="true" />{t("pc.not_for_pc")}</span>}
+                            {!done && !allows(level, tw.risk) && <span className={styles.riskModerate}>{fmt(t("lv.needs"), { level: LEVEL_TEXT[levelFor(tw.risk)].name[language] })}</span>}
                           </span>
                         </div>
                         <span className={styles.tagSlot}>

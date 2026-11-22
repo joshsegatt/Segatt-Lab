@@ -1,0 +1,48 @@
+.screen {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; justify-content: center; align-items: flex-start;
+  overflow-y: auto;
+  /* Top-anchored so the buttons stay put while steps change height. */
+  padding: max(48px, 14vh) 24px 48px;
+  background: var(--canvas);
+}
+.col { width: min(560px, 100%); display: flex; flex-direction: column; gap: 32px; }
+
+.body { display: flex; flex-direction: column; animation: step-in 0.3s var(--ease-out) both; }
+@keyframes step-in { from { opacity: 0; transform: translateY(6px); } }
+
+.mark {
+  width: 44px; height: 44px; border-radius: 12px; margin-bottom: 22px;
+  display: grid; place-items: center;
+  background: var(--brand); color: var(--brand-ink); font: 700 22px var(--font-title);
+}
+.title { font: 600 30px/1.2 var(--font-title); letter-spacing: -0.02em; text-wrap: balance; outline: none; }
+.lede { color: var(--ink-2); margin-top: 8px; font-size: 15px; line-height: 1.5; }
+
+.list {
+  list-style: none; margin-top: 28px;
+  background: var(--raise); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden;
+}
+.row { display: flex; align-items: flex-start; gap: 14px; padding: 14px 18px; }
+.row + .row { border-top: 1px solid var(--line); }
+.icon {
+  flex: none; width: 30px; height: 30px; border-radius: 9px;
+  display: grid; place-items: center;
+  background: var(--raise-2); color: var(--ink-2);
+}
+.text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.text b { font-weight: 600; }
+.text small { color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+.text .sees { color: var(--ink-3); font-size: 12.5px; }
+
+.choice { cursor: pointer; transition: background 0.15s; }
+.choice:hover { background: var(--hover); }
+.picked, .picked:hover { background: var(--brand-soft); }
+.radio { flex: none; margin-top: 3px; width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+
+.foot { display: flex; align-items: center; gap: 12px; }
+.dots { flex: 1; display: flex; justify-content: center; gap: 6px; }
+.dot, .dotOn { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); transition: background 0.2s, width 0.2s var(--ease-out); }
+.dotOn { width: 18px; border-radius: 3px; background: var(--brand); }
+.nav { display: flex; gap: 8px; }
+.spacer { width: 68px; }

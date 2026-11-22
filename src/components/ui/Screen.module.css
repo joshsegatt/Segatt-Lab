@@ -59,6 +59,12 @@
 /* Rows whose description must be read in full (Control). */
 .appInfo.appInfoWrap small { white-space: normal; }
 .dockForced { color: var(--ink-3); }
+.hiddenNote { display: flex; flex-direction: column; gap: 10px; margin: 20px 4px 0; color: var(--ink-3); font-size: 13px; }
+.hiddenNote p:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.hiddenNote p:first-child button {
+  border: 0; background: none; cursor: pointer; padding: 0;
+  color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font: inherit;
+}
 .dockForced::before { content: "— "; }
 
 .switch {

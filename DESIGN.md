@@ -403,6 +403,20 @@ Hardware-aware tweaks: when a rule in `src/lib/hardware.ts` says a tweak does no
 
 The Control screen reuses the app row (info | tag slot | 176px actions, no checkbox) with descriptions that wrap (`appInfoWrap`) because they must be read in full. Windows Update modes are rows, not cards: the current one carries the jade "Atual" tag and no button; the others offer "Usar". Risky modes confirm inline and always make a restore point first. Moderate and risky notes sit under the row in Ink 2 or red. Windows features show their real state (Ativo, Desligado, Indisponível nesta edição), one change at a time with "Mudando…" and a plain note that it can take minutes; a pending restart is said once above the list. Failures give a plain reason first and the raw Windows message under "Ver detalhes".
 
+### Onboarding
+
+First run only, until a level is stored. A full-window takeover on canvas graphite (no card, no backdrop blur), one 560px column anchored at 14vh so the buttons never move between steps, content fading in with a 6px rise per step. Three steps: what the app does, why it is safe, and the knowledge level. Steps 1–2 are a heading, a 15px Ink 2 lede and one hairline list of three rows (30px neutral icon tile, 600 title, 13px Ink 2 line); step 1 opens with the 44px jade monogram. Step 3 is a radio list of the three levels (name, who it is for in Ink 2, what it shows in Ink 3); the picked row takes the jade-soft wash. Footer: ghost "Pular" (starts as Iniciante; not on the level step) left, step dots centred (the current one a 18px jade bar), "Voltar" and the primary "Continuar" / "Começar" right. The app behind is inert while it is up.
+
+### Knowledge level
+
+Three levels gate what is listed, never how a change is protected:
+- **Tweaks, presets and the Home search** follow the risk scale: Iniciante sees Seguro, Intermediário adds Moderado, Avançado sees everything. Presets stay whole at every level (they never hold a risky tweak); their moderate rows show while pending, with the risk line. The sidebar count is out of what the level lists.
+- **Cleaner, Fixes and Control** hide only Arriscado items below Avançado.
+- Anything already on, pending or current stays listed at every level, so it can be undone.
+- Iniciante sees no registry paths in a tweak's detail; Avançado sees raw error output without "Ver detalhes".
+
+The level lives in a top-bar pill (graduation glyph, level name, chevron) left of the admin pill; it opens a raised menu of the three levels with their one-line description and a jade check on the current one. Under the Tweaks list, a 13px Ink 3 line counts what is hidden, with an underlined "Mostrar tudo" that opens the inline confirm before switching to Avançado. An imported profile lists above-level tweaks without a checkbox and with "Precisa do nível …" in the access line.
+
 ### Profile
 
 The Profile screen reuses the app row in two one-row lists: "Exportar" (this PC's count of tweaks on and winget apps, a secondary "Exportar"; once saved, the jade "Salvo" tag and the path in Ink 2 with a ghost "Mostrar na pasta") and "Importar" (the file name and export date, a secondary "Escolher arquivo" that becomes a ghost "Outro arquivo"). A bad file gives one red line saying why, never a dialog. An imported profile opens two checkbox lists, "Ajustes do perfil" and "Apps do perfil", each with "{n} já ... aqui" beside its heading and only what would change on this PC. Tweak rows keep the Access & Risk line; risky tweaks and tweaks that do not fit this hardware start unchecked (checking a risky one opens the inline risky confirm). Rows have no action track (`appLineNoActions`): state lives in the tag slot. The Pending-Changes Dock applies the selection: tweaks first (restore point, forced with a risky tweak), then the apps join the shared install queue.

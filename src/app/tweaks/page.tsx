@@ -10,6 +10,8 @@ import { applyTweaks, explainTweakError, refreshTweakStates, useTweakStates, typ
 import { PRESETS, TWEAKS, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
 import { hardwareHint, presetForPc, type Hardware } from "@/lib/hardware";
 import { useHardware } from "@/hooks/useHardware";
+import { useLevel, setLevel } from "@/hooks/useLevel";
+import { showsTweak, LEVEL_TEXT } from "@/lib/level";
 import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
@@ -18,6 +20,8 @@ import styles from "@/components/ui/Screen.module.css";
 const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
 type Pending = Record<string, boolean>;
 
+// Presets stay whole at every level: they never hold a risky tweak, and their
+// moderate rows are listed (with the risk line) while pending.
 function presetPending(key: PresetKey, states: Record<string, TweakState> | null, hw: Hardware | null): Pending {
   return Object.fromEntries(
     presetForPc(key, hw)
@@ -30,6 +34,7 @@ export default function TweaksPage() {
   const { t, language } = useLanguage();
   const { states, loading, error } = useTweakStates();
   const { hw } = useHardware();
+  const { level } = useLevel();
   const admin = useIsAdmin();
   const presetParam = useQueryParam("preset") as PresetKey | null;
   const selectParam = useQueryParam("select");
@@ -45,6 +50,7 @@ export default function TweaksPage() {
   const [restoreFirst, setRestoreFirst] = useState(true);
   const [confirmRisky, setConfirmRisky] = useState<string | null>(null);
   const [toast, setToast] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
+  const [confirmAll, setConfirmAll] = useState(false);
 
   // Arriving from the Home search: ?preset=gaming marks that preset, ?select=<id> opens that row.
   const validPreset = presetParam && PRESETS.some((p) => p.key === presetParam) ? presetParam : null;
@@ -84,6 +90,10 @@ export default function TweaksPage() {
   const target = (id: string) => (id in pending ? pending[id] : isActive(id));
 
   const riskOf = (id: string) => TWEAKS.find((tw) => tw.id === id)?.risk ?? "safe";
+  // Above-level tweaks stay listed while on or pending, so they can be undone.
+  const listedAt = (tw: (typeof TWEAKS)[number]) => showsTweak(level, tw.risk, isActive(tw.id) || tw.id in pending);
+  const listed = visible.filter(listedAt);
+  const hiddenCount = TWEAKS.filter((tw) => !listedAt(tw)).length;
 
   const toggle = (id: string, confirmed = false) => {
     const next = { ...pending };
@@ -232,12 +242,12 @@ export default function TweaksPage() {
             <button type="button" className="btn btn-sm" onClick={() => void refreshTweakStates()}>{t("tw.retry_read")}</button>
           </div>
         )}
-        {visible.length === 0 && <p className={styles.status}>{fmt(t("tw.no_match"), { q: query.trim() })}</p>}
+        {listed.length === 0 && query.trim() && <p className={styles.status}>{fmt(t("tw.no_match"), { q: query.trim() })}</p>}
 
         {GROUPS.map((group) => {
-          const items = visible.filter((tw) => tw.group === group);
+          const items = listed.filter((tw) => tw.group === group);
           if (!items.length) return null;
-          const all = TWEAKS.filter((tw) => tw.group === group);
+          const all = TWEAKS.filter((tw) => tw.group === group && listedAt(tw));
           const activeCount = all.filter((tw) => isActive(tw.id)).length;
           return (
             <section key={group} className={styles.group} aria-labelledby={`g-${group}`}>
@@ -290,15 +300,17 @@ export default function TweaksPage() {
                         <p className={styles.error} role="alert">
                           <TriangleAlert size={14} aria-hidden="true" />
                           {fmt(t("tw.failed_at"), { time: new Date(errors[tw.id].at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" }), msg: explain(errors[tw.id].msg) })}
-                          <button type="button" onClick={() => setShowRaw((prev) => { const n = new Set(prev); if (n.has(tw.id)) n.delete(tw.id); else n.add(tw.id); return n; })}>
-                            {t("tw.see_details")}
-                          </button>
+                          {level !== "advanced" && (
+                            <button type="button" onClick={() => setShowRaw((prev) => { const n = new Set(prev); if (n.has(tw.id)) n.delete(tw.id); else n.add(tw.id); return n; })}>
+                              {t("tw.see_details")}
+                            </button>
+                          )}
                           <button type="button" onClick={() => void run([[tw.id, target(tw.id)]])} disabled={busy}>
                             <RotateCw size={13} aria-hidden="true" /> {t("tw.retry")}
                           </button>
                         </p>
                       )}
-                      {errors[tw.id] && showRaw.has(tw.id) && <pre className={styles.raw}>{errors[tw.id].msg}</pre>}
+                      {errors[tw.id] && (showRaw.has(tw.id) || level === "advanced") && <pre className={styles.raw}>{errors[tw.id].msg}</pre>}
                       {expanded && (
                         <div id={`d-${tw.id}`} className={styles.detail}>
                           {st?.status === "unknown" && st.reason && <p className={styles.reason}>{st.reason}</p>}
@@ -314,7 +326,7 @@ export default function TweaksPage() {
                               {tw.riskNote[language]}
                             </p>
                           )}
-                          {st?.changes.map((c) => (
+                          {level !== "beginner" && st?.changes.map((c) => (
                             <div key={c.target} className={styles.change}>
                               <code>{c.target}</code>
                               <span className={styles.values} aria-label={`${t("tw.current")}: ${word(c.current)}. ${t("tw.wanted")}: ${word(c.wanted)}.`}>
@@ -343,6 +355,23 @@ export default function TweaksPage() {
             </section>
           );
         })}
+
+        {hiddenCount > 0 && !query.trim() && (
+          <div className={styles.hiddenNote}>
+            <p>
+              {fmt(t("lv.hidden"), { n: hiddenCount, level: LEVEL_TEXT[level].name[language] })}
+              {!confirmAll && <button type="button" onClick={() => setConfirmAll(true)}>{t("lv.show_all")}</button>}
+            </p>
+            {confirmAll && (
+              <p className={styles.confirm} role="alert" style={{ margin: 0 }}>
+                <TriangleAlert size={14} aria-hidden="true" />
+                <span className={styles.confirmText}>{t("lv.show_all_confirm")}</span>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={() => { setConfirmAll(false); setLevel("advanced"); }}>{t("lv.show_all_yes")}</button>
+                <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmAll(false)}>{t("tw.risky_no")}</button>
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {pendingEntries.length > 0 && (

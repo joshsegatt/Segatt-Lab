@@ -8,6 +8,8 @@ import { usePcInfo } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
 import { countUpdates, useApps } from "@/hooks/useApps";
 import { TWEAKS } from "@/lib/tweaks-catalog";
+import { useLevel } from "@/hooks/useLevel";
+import { showsTweak } from "@/lib/level";
 import { groupByDay, useActivity } from "@/lib/history";
 import { APP_MARK, APP_NAME } from "@/lib/brand";
 import styles from "./Sidebar.module.css";
@@ -28,7 +30,10 @@ export function Sidebar() {
   const pc = usePcInfo();
   const history = groupByDay(useActivity());
   const { states } = useTweakStates();
-  const tweakCount = states ? `${countActive(states, TWEAKS.map((tw) => tw.id))}/${TWEAKS.length}` : null;
+  const { level } = useLevel();
+  // Out of what this level lists: offered here, or already on.
+  const listed = TWEAKS.filter((tw) => showsTweak(level, tw.risk, states?.[tw.id]?.status === "active"));
+  const tweakCount = states ? `${countActive(states, listed.map((tw) => tw.id))}/${listed.length}` : null;
   const updates = countUpdates(useApps().installed);
 
   return (

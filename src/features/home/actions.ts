@@ -5,6 +5,8 @@ import { APP_CATEGORIES } from "@/lib/app-categories";
 import { PRESETS, TWEAKS } from "@/lib/tweaks-catalog";
 import { presetForPc, type Hardware } from "@/lib/hardware";
 import { fmt } from "@/lib/fmt";
+import { riskOfAction } from "@/lib/action-risk";
+import { showsAction, showsTweak, type Level } from "@/lib/level";
 
 type T = (path: string) => string;
 
@@ -40,7 +42,7 @@ const FIXES: [id: string, labelKey: string, keywords: string][] = [
   ["cache", "clear_cache", "icones icons cache"],
 ];
 
-export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null, hw: Hardware | null = null): Action[] {
+export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null, hw: Hardware | null = null, level: Level = "advanced"): Action[] {
   const presets: Action[] = PRESETS.map((p) => {
     const ids = presetForPc(p.key, hw).map((tw) => tw.id);
     const count = ids.length;
@@ -55,7 +57,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     };
   });
 
-  const tweaks: Action[] = TWEAKS.map((tw) => ({
+  const tweaks: Action[] = TWEAKS.filter((tw) => showsTweak(level, tw.risk, states?.[tw.id]?.status === "active")).map((tw) => ({
     id: `tweak:${tw.id}`,
     kind: "tweak",
     title: tw.name[lang],
@@ -75,7 +77,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     })),
   );
 
-  const cleanup: Action[] = CLEANUP.map(([id, key, keywords]) => ({
+  const cleanup: Action[] = CLEANUP.filter(([id]) => showsAction(level, riskOfAction(id).risk)).map(([id, key, keywords]) => ({
     id: `cleanup:${id}`,
     kind: "cleanup",
     title: t(`cleaner.items.${key}`),
@@ -99,6 +101,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     ["cleaner", "/cleaner", "screen_cleaner", "limpar clean espaco space"],
     ["fixes", "/fixes", "screen_fixes", "reparar repair consertar"],
     ["control", "/config", "screen_control", "controle control recursos features"],
+    ["profile", "/profile", "screen_profile", "perfil profile exportar export importar import backup outro pc"],
   ].map(([key, href, sub, keywords]) => ({
     id: `screen:${key}`,
     kind: "screen" as const,

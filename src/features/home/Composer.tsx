@@ -16,6 +16,7 @@ import screen from "@/components/ui/Screen.module.css";
 import { flattenResult, searchActions, type Action, type ActionKind } from "@/lib/search";
 import { fmt } from "@/lib/fmt";
 import { buildActions } from "./actions";
+import { useLevel } from "@/hooks/useLevel";
 import styles from "./Home.module.css";
 
 const KIND_ICON: Record<ActionKind, typeof Package> = {
@@ -91,7 +92,8 @@ export function Composer() {
   const { installed } = useApps();
 
   const { hw } = useHardware();
-  const actions = useMemo(() => buildActions(language, t, states, hw), [language, t, states, hw]);
+  const { level } = useLevel();
+  const actions = useMemo(() => buildActions(language, t, states, hw, level), [language, t, states, hw, level]);
   const result = useMemo(() => searchActions(query, actions), [query, actions]);
   const flat = useMemo(() => flattenResult(result), [result]);
   const open = query.trim().length > 0;
