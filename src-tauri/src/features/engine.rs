@@ -90,6 +90,7 @@ fn reg(id: &'static str, restart: bool, values: Vec<RegValueSpec>) -> TweakSpec 
 const DATA_COLLECTION: &str = r"SOFTWARE\Policies\Microsoft\Windows\DataCollection";
 const EXPLORER_ADVANCED: &str = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
 const PERSONALIZE: &str = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+const CONTENT_DELIVERY: &str = r"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
 const CLASSIC_MENU_CLSID: &str = r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}";
 const CLASSIC_MENU_KEY: &str = r"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32";
 pub const HIGH_PERF_GUID: &str = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
@@ -109,6 +110,23 @@ pub fn specs() -> Vec<TweakSpec> {
         reg("disable_advertising_id", false, vec![dword(Hkcu, r"SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0, Some(1))]),
         reg("disable_wifi_sense", false, vec![dword(Hklm, r"SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config", "AutoConnectAllowedOEM", 0, None)]),
         reg("disable_feedback", false, vec![dword(Hklm, DATA_COLLECTION, "DoNotShowFeedbackNotifications", 1, None)]),
+        reg("disable_copilot", true, vec![dword(Hkcu, r"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, None)]),
+        reg("disable_recall", true, vec![dword(Hkcu, r"Software\Policies\Microsoft\Windows\WindowsAI", "DisableAIDataAnalysis", 1, None)]),
+        // Lock screen tips, Start and Settings suggestions, tips notifications and apps Windows installs by itself.
+        reg("disable_windows_ads", true, vec![
+            dword(Hkcu, CONTENT_DELIVERY, "RotatingLockScreenOverlayEnabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-338387Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-338388Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-338389Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-338393Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-353694Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SubscribedContent-353696Enabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SilentInstalledAppsEnabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SystemPaneSuggestionsEnabled", 0, None),
+            dword(Hkcu, CONTENT_DELIVERY, "SoftLandingEnabled", 0, None),
+        ]),
+        reg("disable_tailored_experiences", false, vec![dword(Hkcu, r"Software\Policies\Microsoft\Windows\CloudContent", "DisableTailoredExperiencesWithDiagnosticData", 1, None)]),
+        reg("disable_app_tracking", false, vec![dword(Hkcu, EXPLORER_ADVANCED, "Start_TrackProgs", 0, None)]),
         // Performance
         TweakSpec { id: "high_performance_plan", kind: Kind::PowerPlan, restart: false },
         TweakSpec { id: "optimize_hpet", kind: Kind::Hpet, restart: true },
@@ -120,6 +138,16 @@ pub fn specs() -> Vec<TweakSpec> {
         TweakSpec { id: "disable_search_indexing", kind: Kind::Service { name: "WSearch", default_start: 2 }, restart: false },
         reg("disable_visual_fx", true, vec![dword(Hkcu, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects", "VisualFXSetting", 2, None)]),
         TweakSpec { id: "set_dns_cloudflare", kind: Kind::Dns, restart: false },
+        reg("enable_game_mode", false, vec![
+            dword(Hkcu, r"Software\Microsoft\GameBar", "AutoGameModeEnabled", 1, None),
+            dword(Hkcu, r"Software\Microsoft\GameBar", "AllowAutoGameMode", 1, None),
+        ]),
+        reg("enable_hags", true, vec![dword(Hklm, r"SYSTEM\CurrentControlSet\Control\GraphicsDrivers", "HwSchMode", 2, None)]),
+        reg("disable_power_throttling", false, vec![dword(Hklm, r"SYSTEM\CurrentControlSet\Control\Power\PowerThrottling", "PowerThrottlingOff", 1, None)]),
+        reg("disable_edge_background", false, vec![
+            dword(Hklm, r"SOFTWARE\Policies\Microsoft\Edge", "StartupBoostEnabled", 0, None),
+            dword(Hklm, r"SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled", 0, None),
+        ]),
         // Interface
         reg("dark_mode", false, vec![
             dword(Hkcu, PERSONALIZE, "AppsUseLightTheme", 0, Some(1)),
@@ -135,6 +163,12 @@ pub fn specs() -> Vec<TweakSpec> {
         },
         reg("show_file_extensions", false, vec![dword(Hkcu, EXPLORER_ADVANCED, "HideFileExt", 0, Some(1))]),
         reg("show_hidden_files", false, vec![dword(Hkcu, EXPLORER_ADVANCED, "Hidden", 1, Some(2))]),
+        reg("disable_start_recommendations", true, vec![dword(Hkcu, EXPLORER_ADVANCED, "Start_IrisRecommendations", 0, None)]),
+        reg("disable_widgets", true, vec![dword(Hklm, r"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, None)]),
+        reg("hide_task_view_button", true, vec![dword(Hkcu, EXPLORER_ADVANCED, "ShowTaskViewButton", 0, None)]),
+        reg("taskbar_align_left", true, vec![dword(Hkcu, EXPLORER_ADVANCED, "TaskbarAl", 0, None)]),
+        reg("enable_end_task", true, vec![dword(Hkcu, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings", "TaskbarEndTask", 1, None)]),
+        reg("explorer_opens_this_pc", false, vec![dword(Hkcu, EXPLORER_ADVANCED, "LaunchTo", 1, None)]),
         reg("disable_mouse_accel", true, vec![
             sz(Hkcu, r"Control Panel\Mouse", "MouseSpeed", "0", Some("1")),
             sz(Hkcu, r"Control Panel\Mouse", "MouseThreshold1", "0", Some("6")),
@@ -801,19 +835,16 @@ mod tests {
     }
 
     /// Must match src/lib/tweaks-catalog.ts.
-    const FRONTEND_IDS: &[&str] = &[
-        "disable_telemetry", "disable_cortana", "disable_activity_feed", "remove_bing_search",
-        "disable_location", "disable_advertising_id", "disable_wifi_sense", "disable_feedback",
-        "high_performance_plan", "optimize_hpet", "disable_game_bar", "disable_superfetch",
-        "disable_search_indexing", "disable_visual_fx", "set_dns_cloudflare", "dark_mode",
-        "classic_context_menu", "show_file_extensions", "show_hidden_files", "disable_mouse_accel",
-        "enable_long_paths", "enable_f8_boot", "disable_fast_startup", "disable_windows_update",
-    ];
+    /// The ids in the frontend catalog, read from the file itself so the two never drift.
+    fn frontend_ids() -> Vec<&'static str> {
+        const CATALOG: &str = include_str!("../../../src/lib/tweaks-catalog.ts");
+        CATALOG.split("{ id: \"").skip(1).filter_map(|rest| rest.split('"').next()).collect()
+    }
 
     #[test]
     fn specs_match_the_frontend_catalog() {
         let mut ids: Vec<&str> = specs().iter().map(|s| s.id).collect();
-        let mut want = FRONTEND_IDS.to_vec();
+        let mut want = frontend_ids();
         ids.sort();
         want.sort();
         assert_eq!(ids, want);
