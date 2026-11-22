@@ -6,7 +6,13 @@
 import { localeTag, type Language, type Text } from "./i18n.ts";
 import { riskOfAction } from "./action-risk.ts";
 
-export interface CleanupDef { id: string; name: Text; description: Text }
+export interface CleanupDef {
+  id: string;
+  name: Text;
+  description: Text;
+  /** Developer tools: listed only when the tool left something on this PC. */
+  dev?: boolean;
+}
 
 export const CLEANUPS: CleanupDef[] = [
   { id: "clean_temp", name: { pt: "Arquivos temporários", en: "Temporary files" }, description: { pt: "Sobras de instaladores e apps, na sua conta e no Windows.", en: "Leftovers from installers and apps, in your account and in Windows." } },
@@ -15,6 +21,11 @@ export const CLEANUPS: CleanupDef[] = [
   { id: "clean_browser_cache", name: { pt: "Cache dos navegadores", en: "Browser caches" }, description: { pt: "Cache do Chrome, Edge, Brave e Firefox. Logins, histórico e senhas ficam; os sites carregam um pouco mais devagar na primeira vez.", en: "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time." } },
   { id: "clean_discord_cache", name: { pt: "Cache do Discord", en: "Discord cache" }, description: { pt: "Imagens e arquivos que o Discord guardou. Ele baixa de novo quando precisar.", en: "Images and files Discord saved. It downloads them again when needed." } },
   { id: "clean_steam_web_cache", name: { pt: "Cache web da Steam", en: "Steam web cache" }, description: { pt: "Páginas da loja e da biblioteca que a Steam guardou. Os jogos não são tocados.", en: "Store and library pages Steam saved. Games are not touched." } },
+  { id: "clean_dev_package_caches", dev: true, name: { pt: "Cache de pacotes (npm, Yarn, pip, NuGet)", en: "Package caches (npm, Yarn, pip, NuGet)" }, description: { pt: "Pacotes baixados que ficam guardados. Seus projetos não são tocados; o próximo install baixa de novo o que precisar.", en: "Downloaded packages kept around. Your projects are not touched; the next install downloads what it needs again." } },
+  { id: "clean_vscode_cache", dev: true, name: { pt: "Cache do VS Code", en: "VS Code cache" }, description: { pt: "Cache, logs e instaladores de extensões antigos. Configurações, extensões e projetos ficam.", en: "Cache, logs and old extension installers. Settings, extensions and projects stay." } },
+  { id: "clean_gradle_cache", dev: true, name: { pt: "Cache do Gradle", en: "Gradle cache" }, description: { pt: "Dependências, versões do Gradle e logs baixados para builds Android e Java. Feche o Android Studio antes.", en: "Dependencies, Gradle versions and logs downloaded for Android and Java builds. Close Android Studio first." } },
+  { id: "clean_old_ide_versions", dev: true, name: { pt: "Versões antigas de IDEs", en: "Old IDE versions" }, description: { pt: "Índices e caches que versões antigas do Android Studio e das IDEs JetBrains deixaram. A versão mais nova de cada uma fica.", en: "Indexes and caches older Android Studio and JetBrains IDE versions left behind. The newest version of each stays." } },
+  { id: "clean_old_android_sdk", dev: true, name: { pt: "SDK Android antigo", en: "Old Android SDK" }, description: { pt: "Versões antigas de build-tools e NDK. A mais nova de cada uma fica.", en: "Old build-tools and NDK versions. The newest of each stays." } },
   { id: "clean_windows_update", name: { pt: "Downloads do Windows Update", en: "Windows Update downloads" }, description: { pt: "Atualizações já baixadas. O Windows baixa de novo o que ainda faltar.", en: "Updates already downloaded. Windows downloads again whatever is still missing." } },
   { id: "clean_delivery_optimization", name: { pt: "Cache de entrega do Windows", en: "Windows delivery cache" }, description: { pt: "Pedaços de atualização guardados para compartilhar com outros PCs.", en: "Update pieces kept to share with other PCs." } },
   { id: "clean_logs_minidumps", name: { pt: "Logs e despejos de erro", en: "Logs and crash dumps" }, description: { pt: "Despejos de tela azul e logs do Windows com mais de 7 dias.", en: "Blue screen dumps and Windows logs older than 7 days." } },

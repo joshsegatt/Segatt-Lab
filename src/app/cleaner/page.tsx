@@ -34,8 +34,9 @@ export default function CleanerPage() {
   }, [toast]);
 
   // Risky cleanups wait for the Advanced level.
-  const listed = CLEANUPS.filter((c) => showsAction(level, riskOfAction(c.id).risk));
-  const hidden = CLEANUPS.length - listed.length;
+  // Developer cleanups show only on PCs where the tool left something.
+  const listed = CLEANUPS.filter((c) => showsAction(level, riskOfAction(c.id).risk) && (!c.dev || (sizes?.[c.id] ?? 0) > 0 || results[c.id]));
+  const hidden = CLEANUPS.filter((c) => !showsAction(level, riskOfAction(c.id).risk)).length;
   const picked = pickedOverride ?? new Set(sizes ? listed.filter((c) => startsPicked(c.id, sizes[c.id])).map((c) => c.id) : []);
   const chosen = listed.filter((c) => picked.has(c.id));
   const chosenBytes = chosen.reduce((sum, c) => sum + (sizes?.[c.id] ?? 0), 0);

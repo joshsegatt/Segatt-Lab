@@ -21,6 +21,20 @@ export const ACTION_RISK: Record<string, ActionRisk> = {
   clean_browser_cache: safe,
   clean_discord_cache: safe,
   clean_steam_web_cache: safe,
+  clean_dev_package_caches: safe,
+  clean_vscode_cache: safe,
+  clean_gradle_cache: {
+    risk: "moderate",
+    note: { pt: "O próximo build baixa as dependências de novo e demora mais.", en: "The next build downloads the dependencies again and takes longer." },
+  },
+  clean_old_ide_versions: {
+    risk: "moderate",
+    note: { pt: "Se você ainda abre uma versão antiga, ela refaz os índices na primeira vez.", en: "If you still open an older version, it rebuilds its indexes the first time." },
+  },
+  clean_old_android_sdk: {
+    risk: "moderate",
+    note: { pt: "Um projeto preso a uma versão antiga baixa ela de novo no próximo build.", en: "A project pinned to an older version downloads it again on the next build." },
+  },
   clean_delivery_optimization: safe,
   clean_windows_update: safe,
   clean_prefetch: {

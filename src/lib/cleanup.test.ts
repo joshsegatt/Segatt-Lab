@@ -8,6 +8,8 @@ const BACKEND = [
   "clean_temp", "clean_prefetch", "flush_dns", "clean_windows_update", "clean_shader_cache",
   "clean_recycle_bin", "clean_windows_old", "clean_delivery_optimization", "clean_thumbnails",
   "clean_logs_minidumps", "clean_browser_cache", "clean_discord_cache", "clean_steam_web_cache",
+  "clean_dev_package_caches", "clean_gradle_cache", "clean_vscode_cache", "clean_old_ide_versions",
+  "clean_old_android_sdk",
 ];
 
 test("the list covers every backend cleanup, each with a risk", () => {
