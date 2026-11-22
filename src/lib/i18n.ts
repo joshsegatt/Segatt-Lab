@@ -158,6 +158,16 @@ export const translations = {
       not_admin_hint: "Abra como administrador para aplicar ajustes e limpezas do sistema.",
       switch_language: "Mudar idioma",
     },
+    pc: {
+      title: "Seu PC", reading: "Lendo o hardware…", read_failed: "Não deu para ler o hardware.", retry: "Tentar de novo",
+      local: "Lido do Windows agora. Nada sai deste computador.",
+      cpu: "Processador", gpu: "Placa de vídeo", ram: "Memória", board: "Placa-mãe", disk: "Disco do Windows",
+      display: "Tela", windows: "Windows", type: "Tipo",
+      cores: "{n} núcleos", threads: "{n} threads", base: "base {v} GHz", driver: "driver {v}", build: "build {v}",
+      laptop: "Notebook", desktop: "Desktop", on_battery: "na bateria", plugged: "na tomada",
+      fit: "Para o seu PC",
+      not_for_pc: "Fora do perfil neste PC",
+    },
     home: {
       title: "O que vamos ajustar hoje?",
       lede: "Procure qualquer ação ou descreva o que você quer. Tudo pode ser desfeito.",
@@ -440,6 +450,16 @@ export const translations = {
       admin: "Administrator", not_admin: "Not administrator", checking: "Checking…",
       not_admin_hint: "Open as administrator to apply system tweaks and cleanup.",
       switch_language: "Change language",
+    },
+    pc: {
+      title: "Your PC", reading: "Reading the hardware…", read_failed: "Could not read the hardware.", retry: "Try again",
+      local: "Read from Windows just now. Nothing leaves this computer.",
+      cpu: "Processor", gpu: "Graphics card", ram: "Memory", board: "Motherboard", disk: "Windows drive",
+      display: "Display", windows: "Windows", type: "Type",
+      cores: "{n} cores", threads: "{n} threads", base: "base {v} GHz", driver: "driver {v}", build: "build {v}",
+      laptop: "Laptop", desktop: "Desktop", on_battery: "on battery", plugged: "plugged in",
+      fit: "For your PC",
+      not_for_pc: "Left out of presets on this PC",
     },
     home: {
       title: "What should we tune today?",

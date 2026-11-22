@@ -7,7 +7,10 @@ import { useSystemStats } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
 import { countUpdates, useApps } from "@/hooks/useApps";
 import { Composer } from "@/features/home/Composer";
-import { TWEAKS, tweaksInPreset } from "@/lib/tweaks-catalog";
+import { YourPc } from "@/features/home/YourPc";
+import { useHardware } from "@/hooks/useHardware";
+import { presetForPc } from "@/lib/hardware";
+import { TWEAKS } from "@/lib/tweaks-catalog";
 import { fmt } from "@/lib/fmt";
 import styles from "@/features/home/Home.module.css";
 
@@ -18,12 +21,13 @@ export default function Home() {
   const { t, language } = useLanguage();
   const stats = useSystemStats();
   const { states } = useTweakStates();
+  const { hw } = useHardware();
   const installedApps = useApps().installed;
   const appUpdates = countUpdates(installedApps);
   const activeTweaks = countActive(states, TWEAKS.map((tw) => tw.id));
   // Pills say how many tweaks of the preset are still off on this PC.
   const presetDetail = (key: "gaming" | "privacy") => {
-    const ids = tweaksInPreset(key).map((tw) => tw.id);
+    const ids = presetForPc(key, hw).map((tw) => tw.id);
     if (!states) return fmt(t("home.n_tweaks"), { n: ids.length });
     const pending = ids.length - countActive(states, ids);
     return pending === 0 ? t("home.all_done") : fmt(t("home.n_pending"), { n: pending });
@@ -84,6 +88,8 @@ export default function Home() {
             <Meter value={states ? activeTweaks / TWEAKS.length : 0} brand />
           </div>
         </dl>
+
+        <YourPc />
       </section>
     </div>
   );
