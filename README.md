@@ -4,8 +4,8 @@
 
 # Segatt Lab
 
-**Tune, debloat, clean and repair Windows 10 and 11 from one native app.**<br>
-It reads your PC's real state first, shows you what will change, and every tweak goes back to its original value in one click.
+**Tune, debloat, clean and repair Windows 10 and 11, and watch it happen.**<br>
+While your changes really apply, Doc runs through a giant PC and fixes each part they touch. Every tweak shows its live state first and goes back to its original value in one click.
 
 [![Latest release](https://img.shields.io/github/v/release/joshsegatt/Segatt-Tools?label=download&color=3ddc97)](https://github.com/joshsegatt/Segatt-Tools/releases/latest)
 [![CI](https://github.com/joshsegatt/Segatt-Tools/actions/workflows/ci.yml/badge.svg)](https://github.com/joshsegatt/Segatt-Tools/actions/workflows/ci.yml)
@@ -14,7 +14,7 @@ It reads your PC's real state first, shows you what will change, and every tweak
 
 [Download](https://github.com/joshsegatt/Segatt-Tools/releases/latest) · [Website](https://joshsegatt.github.io/Segatt-Tools/) · [Features](#features) · [Safety](#how-it-keeps-your-pc-safe) · [FAQ](#faq)
 
-<img src="docs/assets/home.png" alt="Segatt Lab home screen: a search box, actions worth doing now, live CPU, memory and disk, and the PC's hardware" width="900">
+<img src="docs/assets/lab-scene.gif" alt="The lab scene: Doc runs to the processor, memory and graphics card of a giant PC while the Gaming preset applies, each part lighting up as Windows confirms it" width="900">
 
 </div>
 
@@ -32,6 +32,7 @@ Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/S
 
 ## Why Segatt Lab
 
+- **You see it happen.** No progress bar staring back at you: Doc goes from part to part of your actual PC as each change lands, and tells you what worked and what did not.
 - **It shows before it changes.** Every tweak displays its live state on your PC, read from the registry, services and power settings, not a guess.
 - **Everything can be undone.** The original value is saved before a change, and a restore point is made first. Risky items always ask.
 - **One app, no console windows.** Installs, cleanups and repairs run in the background with real progress and a real result: "Freed 5.4 GB", not "Done".
@@ -39,6 +40,12 @@ Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/S
 - **It meets you at your level.** Pick Beginner, Intermediate or Advanced; the app shows only what fits, and never hides what is already on.
 
 ## Features
+
+### The lab: your changes, played out live
+
+Apply a preset, a batch of tweaks or a cleanup and the lab opens. The parts on screen carry the names Windows reports for your PC (your processor, graphics card, memory, disk), and each one lights up only when Windows confirms the change; if one fails, Doc takes the shock and the summary says why. It ends with what worked, what freed space, and **Undo all**. Skip it whenever you like; the work goes on. With reduced motion turned on in Windows, the same story shows as a list.
+
+<img src="docs/assets/home.png" alt="Segatt Lab home screen: a search box, actions worth doing now, live CPU, memory and disk, and the PC's hardware" width="900">
 
 ### Tweaks: 47, each with its live state and one-click undo
 
@@ -81,6 +88,7 @@ Windows 10/11 or Linux on a USB drive in three guided steps. Optionally skip the
 - **Fixes:** SFC and DISM with a plain-language verdict, network reset, Windows Update reset, icon cache, and the classic control panels.
 - **Control:** Windows Update modes and optional Windows features.
 - **Profile:** export your apps and tweaks to one file and set up a new PC from it, in the app or from the command line.
+- **Updates itself:** new versions arrive inside the app, signed and verified before they install.
 - **10 languages:** English, Português, Español, Français, Deutsch, Русский, 中文, 日本語, 한국어, Türkçe.
 
 ## How it keeps your PC safe
