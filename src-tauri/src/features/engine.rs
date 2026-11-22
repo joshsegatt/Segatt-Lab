@@ -302,8 +302,12 @@ pub struct Snapshots {
 static SNAPSHOT_LOCK: Mutex<()> = Mutex::new(());
 
 fn snapshot_path(app: &AppHandle) -> Result<PathBuf, String> {
-    let dir = app.path().app_data_dir().map_err(|e| format!("No app data folder: {e}"))?;
-    std::fs::create_dir_all(&dir).map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
+    snapshot_in(&app.path().app_data_dir().map_err(|e| format!("No app data folder: {e}"))?)
+}
+
+/// The originals file inside the app data folder, which is created if needed.
+pub fn snapshot_in(dir: &Path) -> Result<PathBuf, String> {
+    std::fs::create_dir_all(dir).map_err(|e| format!("Cannot create {}: {e}", dir.display()))?;
     Ok(dir.join("tweak-originals.json"))
 }
 
@@ -762,7 +766,12 @@ pub fn split_servers(list: &str) -> Vec<&str> {
 /// Reads every tweak's real state. Slow probes (power, DNS, boot) run in parallel.
 #[tauri::command(async)]
 pub fn get_tweak_states(app: AppHandle) -> Vec<TweakState> {
-    let snaps = snapshot_path(&app).map(|p| load_snapshots(&p)).unwrap_or_default();
+    states_at(snapshot_path(&app).ok().as_deref())
+}
+
+/// Every tweak's real state, with the originals saved at `path`.
+pub fn states_at(path: Option<&Path>) -> Vec<TweakState> {
+    let snaps = path.map(load_snapshots).unwrap_or_default();
     let all = specs();
     std::thread::scope(|scope| {
         let handles: Vec<_> = all
@@ -784,10 +793,14 @@ pub fn get_tweak_states(app: AppHandle) -> Vec<TweakState> {
 /// state back and fails if the system did not end up where it was asked to.
 #[tauri::command(async)]
 pub fn set_tweak(app: AppHandle, id: String, enabled: bool) -> Result<TweakState, String> {
+    set_tweak_at(&snapshot_path(&app)?, id, enabled)
+}
+
+/// `set_tweak` with the originals file given, for the command line.
+pub fn set_tweak_at(path: &Path, id: String, enabled: bool) -> Result<TweakState, String> {
     let spec = spec(&id).ok_or_else(|| format!("Unknown tweak: '{id}'"))?;
-    let path = snapshot_path(&app)?;
     let _guard = SNAPSHOT_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-    let mut snaps = load_snapshots(&path);
+    let mut snaps = load_snapshots(path);
 
     if enabled {
         // Already on (set before the app or by hand): nothing to change, and capturing
@@ -802,7 +815,7 @@ pub fn set_tweak(app: AppHandle, id: String, enabled: bool) -> Result<TweakState
             None => capture(&spec)?,
         };
         snaps.tweaks.insert(id.clone(), snap.clone());
-        save_snapshots(&path, &snaps)?;
+        save_snapshots(path, &snaps)?;
         // A failure halfway (one value written, the next denied) or a change Windows
         // did not keep is rolled back, so the PC never stays half-tweaked with no
         // way to undo it from the screen.
@@ -816,14 +829,14 @@ pub fn set_tweak(app: AppHandle, id: String, enabled: bool) -> Result<TweakState
         match outcome {
             Ok(state) => {
                 snaps.tweaks.insert(id.clone(), snap);
-                save_snapshots(&path, &snaps)?;
+                save_snapshots(path, &snaps)?;
                 Ok(state)
             }
             Err(e) => {
                 let rolled_back = revert(&spec, Some(&snap)).is_ok();
                 if rolled_back {
                     snaps.tweaks.remove(&id);
-                    save_snapshots(&path, &snaps)?;
+                    save_snapshots(path, &snaps)?;
                 }
                 Err(if rolled_back { format!("{e} Nothing was left changed.") } else { format!("{e} Some values may be left changed; turn the tweak off to undo.") })
             }
@@ -831,7 +844,7 @@ pub fn set_tweak(app: AppHandle, id: String, enabled: bool) -> Result<TweakState
     } else {
         revert(&spec, snaps.tweaks.get(&id))?;
         snaps.tweaks.remove(&id);
-        save_snapshots(&path, &snaps)?;
+        save_snapshots(path, &snaps)?;
         let state = detect(&spec, None);
         match state.status {
             Status::Inactive | Status::Unknown => Ok(state),

@@ -37,10 +37,16 @@ try {
 /// Creates a System Restore point without opening a window, every time it is asked.
 #[tauri::command]
 pub async fn create_restore_point() -> Result<String, String> {
-    tauri::async_runtime::spawn_blocking(|| run_hidden_powershell(RESTORE_POINT_SCRIPT))
+    tauri::async_runtime::spawn_blocking(restore_point)
         .await
         .map_err(|e| format!("Runtime error: {e}"))?
         .map(|_| "Restore point created.".to_string())
+}
+
+/// Blocking: call it from a blocking thread.
+pub fn restore_point() -> Result<(), String> {
+    run_hidden_powershell(RESTORE_POINT_SCRIPT)
+        .map(|_| ())
         .map_err(|e| format!("Could not create a restore point: {e} Make sure System Protection is on for drive C:."))
 }
 
