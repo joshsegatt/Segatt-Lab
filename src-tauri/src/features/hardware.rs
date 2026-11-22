@@ -154,12 +154,14 @@ pub fn parse(json: &str) -> Result<Hardware, String> {
     serde_json::from_str(json.trim()).map_err(|e| format!("Could not read the hardware report: {e}"))
 }
 
+/// Blocking: call it from a blocking thread.
+pub fn read() -> Result<Hardware, String> {
+    parse(&run_hidden_powershell(SCRIPT)?)
+}
+
 #[tauri::command]
 pub async fn get_hardware() -> Result<Hardware, String> {
-    let out = tauri::async_runtime::spawn_blocking(|| run_hidden_powershell(SCRIPT))
-        .await
-        .map_err(|e| format!("Runtime error: {e}"))??;
-    parse(&out)
+    tauri::async_runtime::spawn_blocking(read).await.map_err(|e| format!("Runtime error: {e}"))?
 }
 
 #[cfg(test)]

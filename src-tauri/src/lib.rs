@@ -16,6 +16,10 @@ use std::sync::Mutex;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  // `--profile file.json` applies a profile with no window and exits.
+  if let Some(code) = features::cli::from_args(std::env::args()) {
+    std::process::exit(code);
+  }
   let mut builder = tauri::Builder::default();
 
   builder = builder

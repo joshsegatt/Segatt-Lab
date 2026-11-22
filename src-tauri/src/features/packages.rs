@@ -186,12 +186,12 @@ pub async fn search_packages(query: String) -> Result<Vec<PackageInfo>, String> 
 
 #[tauri::command]
 pub async fn list_installed() -> Result<Vec<InstalledApp>, String> {
-    let output = tauri::async_runtime::spawn_blocking(|| {
-        winget(&["list", "--source", "winget", "--accept-source-agreements", "--disable-interactivity"])
-    })
-    .await
-    .map_err(|e| format!("Runtime error: {e}"))??;
+    tauri::async_runtime::spawn_blocking(installed).await.map_err(|e| format!("Runtime error: {e}"))?
+}
 
+/// What winget installed on this PC. Blocking: call it from a blocking thread.
+pub fn installed() -> Result<Vec<InstalledApp>, String> {
+    let output = winget(&["list", "--source", "winget", "--accept-source-agreements", "--disable-interactivity"])?;
     if output.status.code() == Some(WINGET_NO_PACKAGE_FOUND) {
         return Ok(Vec::new());
     }
@@ -251,16 +251,19 @@ static WINGET_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 /// carries winget's exit code and the last lines it printed.
 #[tauri::command]
 pub async fn run_app_action(id: String, action: AppAction) -> Result<(), String> {
-    if !is_valid_package_id(&id) {
+    tauri::async_runtime::spawn_blocking(move || app_action(&id, action)).await.map_err(|e| format!("Runtime error: {e}"))?
+}
+
+/// Installs, updates or removes one app. Blocking: call it from a blocking thread.
+pub fn app_action(id: &str, action: AppAction) -> Result<(), String> {
+    if !is_valid_package_id(id) {
         return Err(format!("Invalid package id: '{id}'"));
     }
-    let (args, done) = action_args(action, &id);
-    let output = tauri::async_runtime::spawn_blocking(move || {
+    let (args, done) = action_args(action, id);
+    let output = {
         let _one_at_a_time = WINGET_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-        run_with_timeout("winget", &args, ACTION_TIMEOUT)
-    })
-    .await
-    .map_err(|e| format!("Runtime error: {e}"))??;
+        run_with_timeout("winget", &args, ACTION_TIMEOUT)?
+    };
 
     let code = output.status.code().unwrap_or(-1);
     if output.status.success() || done.contains(&code) {
