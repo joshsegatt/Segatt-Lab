@@ -6,6 +6,8 @@
   padding: max(48px, 14vh) 24px 48px;
   background: var(--canvas);
 }
+/* Language first: visible on every step, before anything else is read. */
+.lang { position: absolute; top: 20px; right: 24px; }
 .col { width: min(560px, 100%); display: flex; flex-direction: column; gap: 32px; }
 
 .body { display: flex; flex-direction: column; animation: step-in 0.3s var(--ease-out) both; }
