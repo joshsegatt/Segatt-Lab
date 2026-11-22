@@ -148,4 +148,4 @@ Built with Tauri 2 and Rust, and a Next.js 16 + React 19 interface.
 
 ## License
 
-[MIT](LICENSE) © Josh Segatt
+[MIT](LICENSE) © Josh Segatt · [Code signing policy](CODE_SIGNING_POLICY.md)
