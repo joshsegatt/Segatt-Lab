@@ -612,5 +612,13 @@ const de: Locale = {
     "Your PC is a laptop: on battery this plan drains faster and runs hotter. Use it only when plugged in.": "Ihr PC ist ein Laptop: Im Akkubetrieb entlädt dieser Plan schneller und wird heißer. Nur am Netz verwenden.",
     "Your Windows is on a hard drive: here SysMain helps apps open faster. Better to keep it on.": "Ihr Windows liegt auf einer Festplatte (HDD): Hier hilft SysMain, Apps schneller zu öffnen. Besser aktiviert lassen.",
   },
+  plural: {
+    "dash.app_updates": { one: "{n} App aktualisieren" },
+    "dash.essential_sub": { one: "{n} Tweak noch aus. Sie prüfen vor dem Anwenden." },
+    "dash.gaming_sub": { one: "{n} Tweak noch aus. Sie prüfen vor dem Anwenden." },
+    "lv.hidden": { one: "{n} Tweak oberhalb der Stufe {level} ist ausgeblendet." },
+    "lv.hidden_actions": { one: "{n} riskantes Element bleibt unterhalb der Stufe Experte ausgeblendet." },
+    "pf.dropped": { one: "{n} Element der Datei wurde ausgelassen: Diese App kennt es nicht oder es ist fehlerhaft." },
+  },
 };
 export default de;

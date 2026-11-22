@@ -38,10 +38,14 @@ export const localeTag = (lang: Language) => LANGUAGES.find((l) => l.code === la
 
 /** The shape every locale's UI strings must have: the English one. */
 export type Dict = typeof en.ui;
+/** Other plural forms of a UI string, by Intl.PluralRules category; the `ui` string is the "other" form. */
+export type Plurals = Record<string, Partial<Record<Intl.LDMLPluralRule, string>>>;
 export interface Locale {
   ui: Dict;
   /** English catalog text -> this language. Empty for pt and en. */
   catalog: Record<string, string>;
+  /** Forms for counts that read differently ("1 tweak" vs "2 tweaks"), keyed by UI path. */
+  plural?: Plurals;
 }
 
 export const translations: Record<Language, Locale> = { pt, en, es, fr, de, ru, zh, ja, ko, tr };
@@ -56,4 +60,10 @@ export function localize(text: Text | null | undefined, lang: Language): string 
   if (!text) return undefined;
   if (lang === "pt" || lang === "en") return text[lang];
   return translations[lang].catalog[text.en] ?? text.en;
+}
+
+/** The plural form of a UI string for this count, when the language has one; else undefined. */
+export function pluralForm(lang: Language, path: string, count: number): string | undefined {
+  const rule = new Intl.PluralRules(localeTag(lang)).select(count);
+  return translations[lang].plural?.[path]?.[rule];
 }

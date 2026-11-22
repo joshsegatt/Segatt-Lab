@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LANGUAGES, translations, type Text } from "./i18n.ts";
+import { LANGUAGES, localeTag, pluralForm, translations, type Text } from "./i18n.ts";
 import * as tweaks from "./tweaks-catalog.ts";
 import * as control from "./control.ts";
 import * as cleanup from "./cleanup.ts";
@@ -50,6 +50,17 @@ for (const { code } of LANGUAGES) {
     }
   });
 
+  test(`${code}: plural forms point at real strings, real rules and the same placeholders`, () => {
+    const rules = new Intl.PluralRules(localeTag(code)).resolvedOptions().pluralCategories;
+    for (const [path, forms] of Object.entries(translations[code].plural ?? {})) {
+      assert.ok(ui.has(path), `${code} plural for unknown string ${path}`);
+      for (const [rule, text] of Object.entries(forms)) {
+        assert.ok((rules as string[]).includes(rule), `${code} has no "${rule}" plural (${path})`);
+        assert.equal(vars(text!), vars(EN.get(path)!), `${code}.${path}[${rule}] placeholders`);
+      }
+    }
+  });
+
   if (code === "pt" || code === "en") continue;
 
   test(`${code}: is translated, not a copy of English`, () => {
@@ -70,3 +81,12 @@ for (const { code } of LANGUAGES) {
     assert.deepEqual(stale, [], `${code} has catalog entries for texts that no longer exist`);
   });
 }
+
+test("counts pick the right form", () => {
+  // The screenshot case: one Game-mode tweak pending, German UI.
+  assert.equal(pluralForm("de", "dash.gaming_sub", 1), "{n} Tweak noch aus. Sie prüfen vor dem Anwenden.");
+  assert.equal(pluralForm("de", "dash.gaming_sub", 2), undefined, "2 uses the ui string");
+  assert.equal(pluralForm("pt", "pf.already", 1), "{n} já ligado aqui");
+  assert.equal(pluralForm("fr", "pf.already", 0), "{n} déjà activé ici", "French treats 0 as singular");
+  assert.equal(pluralForm("ja", "dash.gaming_sub", 1), undefined, "no plural in Japanese");
+});

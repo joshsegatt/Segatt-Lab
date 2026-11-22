@@ -422,5 +422,15 @@ const ui = {
 };
 
 /** English catalog texts live in the catalogs themselves (src/lib/*.ts). */
-const en = { ui, catalog: {} as Record<string, string> };
+/** "one" forms; Plurals type lives in i18n.ts, which imports this file. */
+const plural: Record<string, Partial<Record<Intl.LDMLPluralRule, string>>> = {
+  "dash.app_updates": { one: "Update {n} app" },
+  "dash.essential_sub": { one: "{n} tweak still off. You review before applying." },
+  "dash.gaming_sub": { one: "{n} tweak still off. You review before applying." },
+  "lv.hidden": { one: "{n} tweak above the {level} level is hidden." },
+  "lv.hidden_actions": { one: "{n} risky item stays hidden below the Advanced level." },
+  "pf.dropped": { one: "{n} item in the file was left out: this app does not know it or it is malformed." },
+};
+
+const en = { ui, catalog: {} as Record<string, string>, plural };
 export default en;

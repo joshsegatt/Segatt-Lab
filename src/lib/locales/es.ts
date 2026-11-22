@@ -612,5 +612,15 @@ const es: Locale = {
     "Your PC is a laptop: on battery this plan drains faster and runs hotter. Use it only when plugged in.": "Tu PC es un portátil: con batería este plan la gasta más rápido y se calienta más. Úsalo solo cuando esté enchufado.",
     "Your Windows is on a hard drive: here SysMain helps apps open faster. Better to keep it on.": "Tu Windows está en un disco duro: aquí SysMain ayuda a que las apps se abran más rápido. Mejor dejarlo activado.",
   },
+  plural: {
+    "dash.app_updates": { one: "Actualizar {n} app" },
+    "dash.essential_sub": { one: "{n} ajuste sigue desactivado. Lo revisas antes de aplicar." },
+    "dash.gaming_sub": { one: "{n} ajuste sigue desactivado. Lo revisas antes de aplicar." },
+    "lv.hidden": { one: "{n} ajuste por encima del nivel {level} está oculto." },
+    "lv.hidden_actions": { one: "{n} elemento arriesgado sigue oculto por debajo del nivel Avanzado." },
+    "pf.dropped": { one: "Se omitió {n} elemento del archivo: esta app no lo conoce o tiene un formato incorrecto." },
+    "pf.already": { one: "{n} ya activado aquí" },
+    "pf.already_apps": { one: "{n} ya instalada aquí" },
+  },
 };
 export default es;

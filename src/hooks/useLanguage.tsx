@@ -1,12 +1,13 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useSyncExternalStore, ReactNode } from "react";
-import { isLanguage, LANGUAGES, localeTag, translations, type Language } from "@/lib/i18n";
+import { isLanguage, LANGUAGES, localeTag, pluralForm, translations, type Language } from "@/lib/i18n";
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (path: string) => string;
+  /** With `count`, picks the plural form for that number when the language has one. */
+  t: (path: string, count?: number) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -61,7 +62,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // A key missing in this language falls back to English, then to the key itself.
-  const t = useCallback((path: string): string => lookup(translations[language].ui, path) ?? lookup(translations.en.ui, path) ?? path, [language]);
+  const t = useCallback((path: string, count?: number): string => {
+    const form = count === undefined ? undefined : pluralForm(language, path, count);
+    if (form) return form;
+    return lookup(translations[language].ui, path) ?? lookup(translations.en.ui, path) ?? path;
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

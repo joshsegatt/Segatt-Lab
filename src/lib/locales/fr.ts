@@ -612,5 +612,15 @@ const fr: Locale = {
     "Your PC is a laptop: on battery this plan drains faster and runs hotter. Use it only when plugged in.": "Votre PC est un portable : sur batterie, ce mode vide la batterie plus vite et chauffe davantage. Ne l'utilisez que sur secteur.",
     "Your Windows is on a hard drive: here SysMain helps apps open faster. Better to keep it on.": "Votre Windows est sur un disque dur : ici, SysMain aide les applications à s'ouvrir plus vite. Mieux vaut le laisser activé.",
   },
+  plural: {
+    "dash.app_updates": { one: "Mettre à jour {n} application" },
+    "dash.essential_sub": { one: "{n} réglage encore désactivé. Vous vérifiez avant d'appliquer." },
+    "dash.gaming_sub": { one: "{n} réglage encore désactivé. Vous vérifiez avant d'appliquer." },
+    "lv.hidden": { one: "{n} réglage au-dessus du niveau {level} est masqué." },
+    "lv.hidden_actions": { one: "{n} élément risqué reste masqué en dessous du niveau Avancé." },
+    "pf.dropped": { one: "{n} élément du fichier a été ignoré : l'application ne le connaît pas ou il est mal formé." },
+    "pf.already": { one: "{n} déjà activé ici" },
+    "pf.already_apps": { one: "{n} déjà installée ici" },
+  },
 };
 export default fr;
