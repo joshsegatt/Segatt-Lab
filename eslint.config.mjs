@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Rust build output (generated JS from Tauri).
+    "src-tauri/target/**",
   ]),
 ]);
 

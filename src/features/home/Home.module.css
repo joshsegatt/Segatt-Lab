@@ -85,6 +85,8 @@
 .itemText b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .itemText small { color: var(--ink-3); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item :global(.kbd), .itemTag { margin-left: auto; }
+.tagGroup { display: inline-flex; align-items: center; gap: 10px; }
+.riskWord { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
 .lead {
   margin: 4px 0 6px; padding: 12px;
   border-radius: var(--r-m);

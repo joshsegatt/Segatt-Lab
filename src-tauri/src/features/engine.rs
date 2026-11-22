@@ -169,10 +169,36 @@ pub struct Change {
     pub wanted: String,
 }
 
+/// What a tweak reaches, read from what it actually changes: only the signed-in
+/// user (HKCU), the whole PC (HKLM, services, power, network, needs admin) or
+/// the Windows boot configuration (bcdedit, needs admin and a restart).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Scope {
+    User,
+    Machine,
+    Boot,
+}
+
+impl TweakSpec {
+    pub fn scope(&self) -> Scope {
+        match &self.kind {
+            Kind::Registry { values, delete_key_on_revert } => {
+                let machine = values.iter().any(|v| v.hive == Hive::Hklm)
+                    || matches!(delete_key_on_revert, Some((Hive::Hklm, _)));
+                if machine { Scope::Machine } else { Scope::User }
+            }
+            Kind::Service { .. } | Kind::PowerPlan | Kind::Dns => Scope::Machine,
+            Kind::Hpet | Kind::BootMenu => Scope::Boot,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct TweakState {
     pub id: String,
     pub status: Status,
+    pub scope: Scope,
     /// Why the state could not be read, when status is unknown.
     pub reason: Option<String>,
     pub changes: Vec<Change>,
@@ -181,7 +207,7 @@ pub struct TweakState {
 
 impl TweakState {
     fn new(spec: &TweakSpec, status: Status, changes: Vec<Change>, reason: Option<String>) -> Self {
-        TweakState { id: spec.id.to_string(), status, reason, changes, restart: spec.restart }
+        TweakState { id: spec.id.to_string(), status, scope: spec.scope(), reason, changes, restart: spec.restart }
     }
 }
 
@@ -761,6 +787,18 @@ pub fn set_tweak(app: AppHandle, id: String, enabled: bool) -> Result<TweakState
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scope_comes_from_what_the_tweak_changes() {
+        let scope = |id: &str| spec(id).unwrap().scope();
+        assert_eq!(scope("dark_mode"), Scope::User);
+        assert_eq!(scope("classic_context_menu"), Scope::User);
+        assert_eq!(scope("disable_telemetry"), Scope::Machine);
+        assert_eq!(scope("disable_superfetch"), Scope::Machine);
+        assert_eq!(scope("set_dns_cloudflare"), Scope::Machine);
+        assert_eq!(scope("optimize_hpet"), Scope::Boot);
+        assert_eq!(scope("enable_f8_boot"), Scope::Boot);
+    }
 
     /// Must match src/lib/tweaks-catalog.ts.
     const FRONTEND_IDS: &[&str] = &[

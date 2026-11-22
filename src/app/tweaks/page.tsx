@@ -43,6 +43,7 @@ export default function TweaksPage() {
   const [working, setWorking] = useState<string | null>(null);
   const [busyNote, setBusyNote] = useState<string | null>(null);
   const [restoreFirst, setRestoreFirst] = useState(true);
+  const [confirmRisky, setConfirmRisky] = useState<string | null>(null);
   const [toast, setToast] = useState<{ kind: "success" | "error"; msg: string } | null>(null);
 
   // Arriving from the Home search: ?preset=gaming marks that preset, ?select=<id> opens that row.
@@ -76,9 +77,17 @@ export default function TweaksPage() {
   const isActive = (id: string) => states?.[id]?.status === "active";
   const target = (id: string) => (id in pending ? pending[id] : isActive(id));
 
-  const toggle = (id: string) => {
+  const riskOf = (id: string) => TWEAKS.find((tw) => tw.id === id)?.risk ?? "safe";
+
+  const toggle = (id: string, confirmed = false) => {
     const next = { ...pending };
     const want = !target(id);
+    // Turning on a risky tweak waits for a confirmation on its own row.
+    if (want && !confirmed && riskOf(id) === "risky") {
+      setConfirmRisky(id);
+      return;
+    }
+    setConfirmRisky(null);
     if (want === isActive(id)) delete next[id];
     else next[id] = want;
     setPending(next);
@@ -86,6 +95,7 @@ export default function TweaksPage() {
   };
 
   const choosePreset = (key: PresetKey | "current") => {
+    setConfirmRisky(null);
     setPreset(key);
     setPending(key === "current" ? {} : presetPending(key, states));
   };
@@ -103,7 +113,8 @@ export default function TweaksPage() {
 
   const run = async (entries: [string, boolean][]) => {
     if (!entries.length) return;
-    if (restoreFirst) {
+    // A risky change always gets a restore point, whatever the checkbox says.
+    if (restoreFirst || entries.some(([id, on]) => on && riskOf(id) === "risky")) {
       setBusyNote(t("tw.creating_restore"));
       try {
         await invoke("create_restore_point");
@@ -169,6 +180,7 @@ export default function TweaksPage() {
   const pendingEntries = Object.entries(pending);
   const busy = working !== null || busyNote !== null;
   const restartCount = pendingEntries.filter(([id]) => states?.[id]?.restart).length;
+  const restoreForced = pendingEntries.some(([id, on]) => on && riskOf(id) === "risky");
 
   const tagFor = (id: string) => {
     if (working === id) return <span className="tag pending"><Loader2 size={12} className="animate-spin" aria-hidden="true" />&nbsp;{t("tw.st_working")}</span>;
@@ -257,6 +269,13 @@ export default function TweaksPage() {
                         <button type="button" className={styles.info} onClick={() => toggleOpen(tw.id)} aria-expanded={expanded} aria-controls={`d-${tw.id}`}>
                           <b>{tw.name[language]}</b>
                           <small>{tw.description[language]}</small>
+                          <span className={styles.access}>
+                            {st && <span title={t(`tw.scope_${st.scope}_hint`)}>{t(`tw.scope_${st.scope}`)}</span>}
+                            <span className={tw.risk === "risky" ? styles.riskRisky : tw.risk === "moderate" ? styles.riskModerate : undefined}>
+                              {tw.risk !== "safe" && <TriangleAlert size={12} aria-hidden="true" />}
+                              {t(`tw.risk_${tw.risk}`)}
+                            </span>
+                          </span>
                         </button>
                         {tagFor(tw.id)}
                         <button
@@ -269,6 +288,14 @@ export default function TweaksPage() {
                           disabled={!states || busy}
                         />
                       </div>
+                      {confirmRisky === tw.id && (
+                        <p className={`${styles.confirm} ${styles.confirmRisky}`} role="alert">
+                          <TriangleAlert size={14} aria-hidden="true" />
+                          <span className={styles.confirmText}>{fmt(t("tw.risky_confirm"), { note: tw.riskNote?.[language] ?? "" })}</span>
+                          <button type="button" className="btn btn-sm btn-secondary" onClick={() => toggle(tw.id, true)}>{t("tw.risky_yes")}</button>
+                          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmRisky(null)}>{t("tw.risky_no")}</button>
+                        </p>
+                      )}
                       {errors[tw.id] && (
                         <p className={styles.error} role="alert">
                           <TriangleAlert size={14} aria-hidden="true" />
@@ -285,6 +312,12 @@ export default function TweaksPage() {
                       {expanded && (
                         <div id={`d-${tw.id}`} className={styles.detail}>
                           {st?.status === "unknown" && st.reason && <p className={styles.reason}>{st.reason}</p>}
+                          {tw.riskNote && (
+                            <p className={`${styles.riskNote} ${tw.risk === "risky" ? styles.riskRisky : styles.riskModerate}`}>
+                              <TriangleAlert size={13} aria-hidden="true" />
+                              {tw.riskNote[language]}
+                            </p>
+                          )}
                           {st?.changes.map((c) => (
                             <div key={c.target} className={styles.change}>
                               <code>{c.target}</code>
@@ -296,7 +329,7 @@ export default function TweaksPage() {
                             </div>
                           ))}
                           <p className={styles.meta}>
-                            <span>{st?.restart ? t("tw.restart") : t("tw.no_restart")}</span>
+                            <span>{st ? `${t(`tw.scope_${st.scope}_hint`)} ` : ""}{st?.restart ? t("tw.restart") : t("tw.no_restart")}</span>
                             <span>
                               {st && st.status !== "active" && st.changes.length === 1
                                 ? st.changes[0].current === "—"
@@ -321,15 +354,16 @@ export default function TweaksPage() {
           <div className={styles.dockInfo}>
           <span className={styles.dockCount}>{pendingEntries.length === 1 ? t("tw.dock_one") : fmt(t("tw.dock_changes"), { n: pendingEntries.length })}</span>
           <label className={styles.dockCheck}>
-            <input type="checkbox" checked={restoreFirst} onChange={(e) => setRestoreFirst(e.target.checked)} />
+            <input type="checkbox" checked={restoreFirst || restoreForced} disabled={restoreForced} onChange={(e) => setRestoreFirst(e.target.checked)} />
             <ShieldCheck size={15} strokeWidth={1.75} aria-hidden="true" />
             {t("tw.dock_restore")}
+            {restoreForced && <span className={styles.dockForced}>{t("tw.dock_restore_forced")}</span>}
           </label>
           {restartCount > 0 && <span className={styles.dockNote}>{restartCount === 1 ? t("tw.dock_restart_one") : fmt(t("tw.dock_restart"), { n: restartCount })}</span>}
           {admin === false && <span className={styles.dockWarn}>{t("tw.dock_not_admin")}</span>}
           {busyNote && <span className={styles.dockNote} role="status"><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {busyNote}</span>}
           </div>
-          <button type="button" className="btn" onClick={() => { setPending({}); setPreset("current"); }} disabled={busy}>{t("tw.dock_discard")}</button>
+          <button type="button" className="btn" onClick={() => { setPending({}); setPreset("current"); setConfirmRisky(null); }} disabled={busy}>{t("tw.dock_discard")}</button>
           <button type="button" className="btn btn-primary" onClick={() => void run(pendingEntries)} disabled={busy}>
             {busy && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
             {t("tw.dock_apply")} {pendingEntries.length}

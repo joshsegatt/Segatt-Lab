@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   ArrowUp, Gamepad2, Package, ShieldCheck, SlidersHorizontal, Trash2, Wrench, LayoutGrid, Sparkles,
   Activity, BellOff, Cpu, EyeOff, File, FileX, FolderOpen, Gauge, Globe, History, MapPinOff, Megaphone,
-  Monitor, MousePointer2, Moon, Network, Power, RefreshCw, Search, Timer, Wifi, Mic, Zap,
+  Monitor, MousePointer2, Moon, Network, Power, RefreshCw, Search, Timer, Wifi, Mic, Zap, TriangleAlert,
 } from "lucide-react";
+import { TWEAKS, type Risk } from "@/lib/tweaks-catalog";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTweakStates } from "@/hooks/useTweakStates";
 import { findInstalled, useApps } from "@/hooks/useApps";
@@ -43,12 +44,24 @@ function iconFor(a: Action) {
   return KIND_ICON[a.kind];
 }
 
-function TweakTag({ status }: { status?: string }) {
+function TweakTag({ status, risk }: { status?: string; risk: Risk }) {
   const { t } = useLanguage();
-  if (status === "active") return <span className={`tag on ${styles.itemTag}`}>{t("tw.st_active")}</span>;
-  if (status === "inactive") return <span className={`tag off ${styles.itemTag}`}>{t("tw.st_inactive")}</span>;
-  if (status === "unknown") return <span className={`tag off ${styles.itemTag}`}>{t("tw.st_unknown")}</span>;
-  return null;
+  const tag =
+    status === "active" ? <span className="tag on">{t("tw.st_active")}</span>
+    : status === "inactive" ? <span className="tag off">{t("tw.st_inactive")}</span>
+    : status === "unknown" ? <span className="tag off">{t("tw.st_unknown")}</span>
+    : null;
+  return (
+    <span className={`${styles.itemTag} ${styles.tagGroup}`}>
+      {risk !== "safe" && (
+        <span className={`${styles.riskWord} ${risk === "risky" ? screen.riskRisky : screen.riskModerate}`}>
+          <TriangleAlert size={12} aria-hidden="true" />
+          {t(`tw.risk_${risk}`)}
+        </span>
+      )}
+      {tag}
+    </span>
+  );
 }
 
 function AppTag({ app }: { app?: { version: string; available: string | null } }) {
@@ -130,7 +143,7 @@ export function Composer() {
           <small>{a.subtitle}</small>
         </span>
         {lead && <span className="kbd">Enter</span>}
-        {a.kind === "tweak" && <TweakTag status={states?.[a.id.slice("tweak:".length)]?.status} />}
+        {a.kind === "tweak" && <TweakTag status={states?.[a.id.slice("tweak:".length)]?.status} risk={TWEAKS.find((tw) => `tweak:${tw.id}` === a.id)?.risk ?? "safe"} />}
         {a.kind === "app" && <AppTag app={findInstalled(installed, a.id.slice("app:".length))} />}
       </li>
     );

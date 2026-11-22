@@ -46,6 +46,18 @@
 }
 .info b { font-weight: 600; }
 .info small { color: var(--ink-2); font-size: 13px; margin-top: 1px; }
+/* Access line: what the tweak reaches, then how much can go wrong. Text, not chips. */
+.access { display: flex; align-items: center; gap: 8px; margin-top: 3px; color: var(--ink-3); font-size: 12px; }
+.access > span { display: inline-flex; align-items: center; gap: 4px; }
+.access > span + span { padding-left: 8px; border-left: 1px solid var(--line-2); }
+.riskModerate, .riskModerate svg { color: var(--ink-2); }
+.riskRisky, .riskRisky svg { color: var(--danger); }
+.riskNote { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; }
+.riskNote svg { flex: none; margin-top: 2px; }
+.confirm.confirmRisky svg { color: var(--danger); }
+.confirmText { flex: 1 1 320px; }
+.dockForced { color: var(--ink-3); }
+.dockForced::before { content: "— "; }
 
 .switch {
   width: 40px; height: 22px; border-radius: 11px; border: 0; cursor: pointer; padding: 0;

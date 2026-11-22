@@ -14,6 +14,8 @@ export interface TweakChange {
 export interface TweakState {
   id: string;
   status: TweakStatus;
+  /** What the tweak reaches: this user only, the whole PC, or Windows boot. */
+  scope: "user" | "machine" | "boot";
   reason: string | null;
   changes: TweakChange[];
   restart: boolean;

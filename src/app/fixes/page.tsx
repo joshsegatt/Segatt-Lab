@@ -21,14 +21,17 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLanguage } from "@/hooks/useLanguage";
 import { recordActivity } from "@/lib/history";
+import { riskOfAction } from "@/lib/action-risk";
+import { RiskLine } from "@/components/ui/RiskLine";
 
 const FIX_LABEL: Record<string, string> = { sfc: "fixes.sfc_scan", dism: "fixes.dism_repair", net: "fixes.net_reset", update: "fixes.update_reset", cache: "fixes.clear_cache" };
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
 export default function FixesPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [running, setRunning] = useState<string | null>(null);
+  const riskLine = (id: string) => <RiskLine risk={riskOfAction(id).risk} note={riskOfAction(id).note?.[language]} />;
   const [logs, setLogs] = useState<string[]>([]);
 
   const runFix = async (id: string, command: string) => {
@@ -133,6 +136,7 @@ export default function FixesPage() {
               <div className="tool-info">
                 <span className="tool-name">{t("fixes.net_reset")}</span>
                 <span className="tool-desc">Reseta stack TCP/IP e DNS.</span>
+                {riskLine("net")}
               </div>
             </button>
 
@@ -144,6 +148,7 @@ export default function FixesPage() {
               <div className="tool-info">
                 <span className="tool-name">{t("fixes.update_reset")}</span>
                 <span className="tool-desc">Limpa fila do Windows Update.</span>
+                {riskLine("update")}
               </div>
             </button>
           </div>

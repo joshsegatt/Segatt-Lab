@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useLanguage } from "@/hooks/useLanguage";
 import { recordActivity } from "@/lib/history";
+import { riskOfAction } from "@/lib/action-risk";
+import { RiskLine } from "@/components/ui/RiskLine";
+import { fmt } from "@/lib/fmt";
 import {
   Trash2,
   Zap,
@@ -23,8 +26,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 
 // ─── Main Page ───────────────────────────────────────────────
 export default function CleanerPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [running, setRunning] = useState<string | null>(null);
+  const [confirmRisky, setConfirmRisky] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [safetyConfirmed, setSafetyConfirmed] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -50,6 +54,20 @@ export default function CleanerPage() {
 
   // `confirmed` lets runAll pass the fresh result: inside runAll the
   // safetyConfirmed state is still the value from before the restore point.
+  // Risky items (Windows.old, Recycle Bin) run only from their own card, after a confirmation.
+  const askOrRun = (id: string) => {
+    if (riskOfAction(id).risk === "risky" && !safetyConfirmed) {
+      void runTask(id); // asks for the restore point first
+      return;
+    }
+    if (riskOfAction(id).risk === "risky" && confirmRisky !== id) {
+      setConfirmRisky(id);
+      return;
+    }
+    setConfirmRisky(null);
+    void runTask(id);
+  };
+
   const runTask = async (id: string, silent = false, confirmed = safetyConfirmed) => {
     if (!confirmed && id !== "flush_dns") {
        if (!silent) alert(t("cleaner.safety_first"));
@@ -89,7 +107,7 @@ export default function CleanerPage() {
     setIsProcessingAll(true);
     try {
       const confirmed = safetyConfirmed || (await createRestorePoint());
-      for (const task of CLEANUP_TASKS) await runTask(task.id, true, confirmed);
+      for (const task of CLEANUP_TASKS.filter((c) => riskOfAction(c.id).risk !== "risky")) await runTask(task.id, true, confirmed);
     } finally {
       setIsProcessingAll(false);
     }
@@ -137,6 +155,8 @@ export default function CleanerPage() {
         </div>
       </PageHeader>
 
+      <p className="cleaner-card-desc" style={{ margin: "0 0 12px" }}>{fmt(t("cleaner.all_skips_risky"), { btn: t("cleaner.clean_btn") })}</p>
+
       {!safetyConfirmed && (
         <div className="admin-banner-elite">
           <ShieldAlert size={16} />
@@ -161,6 +181,14 @@ export default function CleanerPage() {
                       {completedTasks.has(task.id) && <CheckCircle2 size={14} className="text-accent" />}
                     </div>
                     <div className="cleaner-card-desc">{task.description}</div>
+                    <RiskLine risk={riskOfAction(task.id).risk} note={riskOfAction(task.id).note?.[language]} />
+                    {confirmRisky === task.id && (
+                      <div className="cleaner-card-desc" role="alert" style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", color: "var(--ink)" }}>
+                        {t("cleaner.risky_confirm")}
+                        <button type="button" className="btn btn-sm btn-secondary" onClick={() => askOrRun(task.id)}>{t("cleaner.risky_yes")}</button>
+                        <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmRisky(null)}>{t("cleaner.risky_no")}</button>
+                      </div>
+                    )}
                     {errors[task.id] && (
                       <div className="cleaner-card-desc" role="alert" style={{ color: "var(--danger)" }}>
                         {errors[task.id]}
@@ -170,7 +198,7 @@ export default function CleanerPage() {
                   
                   <button 
                     className={`btn btn-sm ${completedTasks.has(task.id) ? 'btn-ghost' : 'btn-secondary'}`} 
-                    onClick={() => runTask(task.id)}
+                    onClick={() => askOrRun(task.id)}
                     disabled={running === task.id || isProcessingAll}
                     style={{ padding: '6px 10px' }}
                   >
