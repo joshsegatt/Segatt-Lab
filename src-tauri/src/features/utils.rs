@@ -1,4 +1,4 @@
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 
 /// winget exit codes (HRESULTs as the signed i32 Windows reports).
 pub const WINGET_NO_PACKAGE_FOUND: i32 = 0x8A150014_u32 as i32;
@@ -30,46 +30,6 @@ pub fn is_valid_package_id(id: &str) -> bool {
         && id.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_' | '+'))
 }
 
-/// Builds the full script run in the visible window. The exit code is real:
-/// 0 only when the script finished without an error and the last native
-/// command it ran returned 0.
-pub fn wrap_script(task_name: &str, script: &str) -> String {
-    let title = ps_quote(&format!("Segatt Tools - {task_name}"));
-    let task = ps_quote(&format!("Task: {task_name}"));
-    format!(
-        "$host.UI.RawUI.WindowTitle = {title}
-Clear-Host
-Write-Host '========================================' -ForegroundColor Cyan
-Write-Host '          SEGATT TOOLS ENGINE           ' -ForegroundColor White -BackgroundColor DarkBlue
-Write-Host '========================================' -ForegroundColor Cyan
-Write-Host {task} -ForegroundColor Yellow
-Write-Host '----------------------------------------' -ForegroundColor DarkGray
-$ErrorActionPreference = 'Stop'
-$global:LASTEXITCODE = 0
-$segattOk = $true
-try {{
-{script}
-    if ($LASTEXITCODE -ne 0) {{
-        $segattOk = $false
-        Write-Host \"Command exited with code $LASTEXITCODE\" -ForegroundColor Red
-    }}
-}} catch {{
-    $segattOk = $false
-    Write-Host \"Error: $($_.Exception.Message)\" -ForegroundColor Red
-}}
-Write-Host '----------------------------------------' -ForegroundColor DarkGray
-if ($segattOk) {{
-    Write-Host '[OK] Completed. Closing in 3s...' -ForegroundColor Green
-    Start-Sleep -Seconds 3
-    exit 0
-}}
-Write-Host '[FAILED] See the error above. Closing in 10s...' -ForegroundColor Red
-Start-Sleep -Seconds 10
-exit 1
-"
-    )
-}
-
 /// Base64 of the UTF-16LE script, the format `powershell -EncodedCommand` expects.
 /// Avoids every command-line quoting problem with quotes, braces and backslashes.
 pub fn encode_command(script: &str) -> String {
@@ -88,22 +48,8 @@ pub fn encode_command(script: &str) -> String {
     out
 }
 
-/// Runs a script in a visible PowerShell window so the user can follow it.
-/// Blocking: call it from `spawn_blocking`, never directly in an async command.
-pub fn spawn_visible_powershell(task_name: &str, script: &str) -> std::io::Result<ExitStatus> {
-    Command::new("powershell")
-        .args([
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-EncodedCommand",
-            &encode_command(&wrap_script(task_name, script)),
-        ])
-        .status()
-}
-
-/// Runs a script with no window and returns its standard output. Same honesty
-/// rules as the visible wrapper: any error or non-zero native exit code fails.
+/// Runs a script with no window and returns its standard output. Any error or
+/// non-zero native exit code fails.
 /// Blocking: call it from a blocking thread.
 pub fn run_hidden_powershell(script: &str) -> Result<String, String> {
     let wrapped = hidden_script(script);
@@ -155,25 +101,6 @@ pub fn run_hidden(program: &str, args: &[&str]) -> Result<String, String> {
     }
 }
 
-/// Runs a blocking PowerShell task off the async runtime and maps the exit code.
-pub async fn run_visible_task(task_name: String, script: String) -> Result<(), String> {
-    let status = tauri::async_runtime::spawn_blocking(move || {
-        spawn_visible_powershell(&task_name, &script)
-    })
-    .await
-    .map_err(|e| format!("Runtime error: {e}"))?
-    .map_err(|e| format!("Failed to start PowerShell: {e}"))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!(
-            "Task failed (exit code {}). Check the PowerShell window for details.",
-            status.code().unwrap_or(-1)
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -215,11 +142,11 @@ mod tests {
             .unwrap_or(-1)
     }
 
-    /// The old wrapper always exited 0, so every failure was shown as success.
+    /// The first wrapper always exited 0, so every failure was shown as success.
     #[cfg(windows)]
     #[test]
     fn wrapper_reports_real_failures() {
-        let fast = |s: &str| wrap_script("test", s).replace("Start-Sleep -Seconds 10", "").replace("Start-Sleep -Seconds 3", "");
+        let fast = |s: &str| hidden_script(s);
         assert_eq!(run_hidden(&fast("cmd /c exit 5")), 1, "native exit code must fail the task");
         assert_eq!(run_hidden(&fast("Get-Item 'C:\\does\\not\\exist'")), 1, "cmdlet error must fail the task");
         assert_eq!(run_hidden(&fast("Write-Host \"quotes 'ok' {braces}\"")), 0);
