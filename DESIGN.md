@@ -393,6 +393,12 @@ The Tweaks screen's grouped list. Each group has a Title-size heading with its "
 - **Detail panel:** opens under the row with a 0.2s fade-and-rise (4px). 14px corners, hairline outline, 12px 14px inset. One line per change: the exact command or registry path in mono Ink 2 on the left; on the right the old value struck through in Ink 3, an arrow, and the new value in jade 600. When the value did not exist, the old side reads "não definido" in Ink 3, unstruck. A meta line in 12.5px Ink 3 says whether a restart is needed and how to undo ("Para desfazer, desligue: volta a …").
 - **Failure line:** under the row, in red at 13px with a 14px warning glyph: the time and a translated reason ("Falhou às 00:46: acesso negado…"), then two underlined Ink text buttons, "Ver detalhes" and "Tentar de novo" (with a 13px retry glyph). "Ver detalhes" opens the raw engine message as a mono block on canvas graphite with 10px corners.
 
+### Your PC (spec sheet)
+
+On Home, under the live numbers: a 15px "Seu PC" heading with an Ink 3 note ("Lido do Windows agora. Nada sai deste computador.", or the reading/failed state with a plain "Tentar de novo" text button). Below, one 760px hairline container, two columns of label (12px Ink 3) over value (14px semibold Ink) and detail (12.5px Ink 3), ellipsis with the full text in a tooltip; one column under 640px. Eight cells: Processador, Placa de vídeo, Memória, Placa-mãe, Disco do Windows, Tela, Windows, Tipo. Values use the box's words: binary GB for RAM/VRAM, decimal TB for drives, vendor short names (MSI, ASUS).
+
+Hardware-aware tweaks: when a rule in `src/lib/hardware.ts` says a tweak does not fit this PC, its access line adds "Fora do perfil neste PC" (Ink 2, CPU glyph), the detail panel says why, and presets leave it out.
+
 ### Access & Risk line
 
 Every tweak row carries a third line in 12px Ink 3 under its description, plain text with a hairline (Line 2) between the two parts, no chips:
