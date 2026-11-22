@@ -10,7 +10,7 @@ import { cancelUsb, clearResult, pickIso, readDisks, secondsLeft, useUsb, writeU
 import { formatBytes } from "@/lib/cleanup";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
-import { driveLabel, matchesName, usbErrorKey, validAccount, PRE_ERASE } from "@/lib/usb";
+import { driveLabel, driveUntouched, errorArg, matchesName, usbErrorKey, validAccount } from "@/lib/usb";
 import screen from "@/components/ui/Screen.module.css";
 import styles from "./usb.module.css";
 
@@ -18,14 +18,15 @@ const WINDOWS_DOWNLOAD = "https://www.microsoft.com/software-download/windows11"
 
 function stagesFor(job: Job): Stage[] {
   if (job.iso.kind === "linux") return ["erase", "copy", "verify"];
-  return job.iso.splits ? ["erase", "copy", "split", "verify"] : ["erase", "copy", "verify"];
+  // install.wim is split on this PC before the drive is erased.
+  return job.iso.splits ? ["split", "erase", "copy", "verify"] : ["erase", "copy", "verify"];
 }
 
 export default function UsbPage() {
   const { t, language } = useLanguage();
   const admin = useIsAdmin();
   const { level } = useLevel();
-  const { disks, reading, readError, iso, inspecting, isoError, job, result } = useUsb();
+  const { disks, reading, readError, iso, inspecting, isoError, job, result, closeBlocked } = useUsb();
   const [chosen, setChosen] = useState<UsbDisk | null>(null);
   const [skipChecks, setSkipChecks] = useState(false);
   const [localOn, setLocalOn] = useState(false);
@@ -104,8 +105,8 @@ export default function UsbPage() {
               </>
             ) : (
               <>
-                {errKey && errKey !== "err_cancelled" && <p>{fmt(t(`usb.${errKey}`), { size: size(Number(result.error?.split(":")[1] ?? 0)) })}</p>}
-                {!PRE_ERASE.has(errKey ?? "") && <p className={styles.muted}>{t("usb.failed_partial")}</p>}
+                {errKey && errKey !== "err_cancelled" && <p>{fmt(t(`usb.${errKey}`), { size: size(Number(errorArg(result.error ?? "")) || 0), name: errorArg(result.error ?? "") })}</p>}
+                <p className={styles.muted}>{driveUntouched(result.error ?? "") ? t("usb.untouched") : t("usb.failed_partial")}</p>
                 {!errKey && (
                   <>
                     {level !== "advanced" && !showRaw && <button type="button" className={styles.link} onClick={() => setShowRaw(true)}>{t("tw.see_details")}</button>}
@@ -156,6 +157,7 @@ export default function UsbPage() {
               </button>
               <span className={styles.muted}>{t("usb.keep_plugged")}</span>
             </div>
+            {closeBlocked && <p className={`${styles.note} ${styles.warn}`} role="alert"><TriangleAlert size={14} aria-hidden="true" />{t("usb.close_blocked")}</p>}
           </section>
         ) : (
           <>

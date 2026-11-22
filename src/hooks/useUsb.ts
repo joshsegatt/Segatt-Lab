@@ -6,6 +6,7 @@
 import { useSyncExternalStore } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export interface UsbVolume {
   letter: string;
@@ -65,9 +66,11 @@ interface Store {
   isoError: string | null;
   job: Job | null;
   result: Result | null;
+  /** The user tried to close the app during a write. */
+  closeBlocked: boolean;
 }
 
-const EMPTY: Store = { disks: null, reading: false, readError: null, iso: null, inspecting: false, isoError: null, job: null, result: null };
+const EMPTY: Store = { disks: null, reading: false, readError: null, iso: null, inspecting: false, isoError: null, job: null, result: null, closeBlocked: false };
 let store: Store = EMPTY;
 const listeners = new Set<() => void>();
 
@@ -107,7 +110,16 @@ export async function writeUsb(disk: UsbDisk, options: WinOptions): Promise<Resu
     const same = p.stage === job.stage;
     set({ job: { ...job, stage: p.stage, done: p.done, total: p.total, stageAt: same ? job.stageAt : Date.now(), stageFrom: same ? job.stageFrom : p.done } });
   };
-  set({ result: null, job: { disk, iso, stage: "erase", done: 0, total: 1, stageAt: Date.now(), stageFrom: 0, cancelling: false } });
+  const first: Stage = iso.kind === "windows" && iso.splits ? "split" : "erase";
+  set({ result: null, job: { disk, iso, stage: first, done: 0, total: 1, stageAt: Date.now(), stageFrom: 0, cancelling: false } });
+  // Closing the app mid-write would leave the drive half written: the window
+  // stays open until the write ends (Cancel stops it cleanly).
+  const unlisten = await getCurrentWindow()
+    .onCloseRequested((e) => {
+      e.preventDefault();
+      set({ closeBlocked: true });
+    })
+    .catch(() => null);
   let result: Result;
   try {
     await invoke("write_usb", { disk: disk.number, serial: disk.serial, size: disk.size, iso: iso.path, options, onProgress });
@@ -115,7 +127,8 @@ export async function writeUsb(disk: UsbDisk, options: WinOptions): Promise<Resu
   } catch (e) {
     result = { ok: false, disk, iso, error: String(e) };
   }
-  set({ job: null, result });
+  unlisten?.();
+  set({ job: null, result, closeBlocked: false });
   readDisks();
   return result;
 }

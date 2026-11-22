@@ -29,11 +29,13 @@ export function driveLabel(d: Pick<UsbDisk, "name" | "volumes">): string {
 const CODES: Record<string, string> = {
   USB_CHANGED: "err_changed",
   USB_CANCELLED: "err_cancelled",
+  USB_CANCELLED_EARLY: "err_cancelled",
   USB_ISO_ON_TARGET: "err_iso_on_target",
   USB_UNSUPPORTED: "err_unsupported",
   USB_NOT_ISO: "err_not_iso",
   USB_TOO_SMALL: "err_too_small",
-  USB_ESD_TOO_BIG: "err_esd_too_big",
+  USB_FILE_TOO_BIG: "err_file_too_big",
+  USB_NO_TEMP_SPACE: "err_no_temp_space",
   USB_VERIFY_FAILED: "err_verify",
   USB_BUSY: "err_busy",
 };
@@ -47,4 +49,13 @@ export function usbErrorKey(error: string): string | null {
 }
 
 /** Errors raised before anything was erased: the drive is as it was. */
-export const PRE_ERASE = new Set(["err_changed", "err_iso_on_target", "err_unsupported", "err_not_iso", "err_too_small", "err_esd_too_big", "err_busy"]);
+const UNTOUCHED = new Set(["USB_CHANGED", "USB_ISO_ON_TARGET", "USB_UNSUPPORTED", "USB_NOT_ISO", "USB_TOO_SMALL", "USB_FILE_TOO_BIG", "USB_NO_TEMP_SPACE", "USB_BUSY", "USB_CANCELLED_EARLY"]);
+
+export function driveUntouched(error: string): boolean {
+  return UNTOUCHED.has(error.split(":")[0].trim());
+}
+
+/** The value a code carries after its colon: a size in bytes or a file name. */
+export function errorArg(error: string): string {
+  return error.split(":").slice(1).join(":");
+}

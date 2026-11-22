@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { driveLabel, matchesName, usbErrorKey, validAccount, PRE_ERASE } from "./usb.ts";
+import { driveLabel, driveUntouched, errorArg, matchesName, usbErrorKey, validAccount } from "./usb.ts";
 
 test("account names follow the same rules as usb.rs", () => {
   for (const ok of ["Josh", "Player 1", "joão", "a.b-c_d"]) assert.ok(validAccount(ok), ok);
@@ -25,5 +25,9 @@ test("backend codes become sentences, and only pre-erase ones keep the drive", (
   assert.equal(usbErrorKey("USB_CHANGED"), "err_changed");
   assert.equal(usbErrorKey("Clear-Disk : Access denied"), "err_access");
   assert.equal(usbErrorKey("DISM could not split install.wim: Error 112"), null);
-  assert.ok(PRE_ERASE.has("err_changed") && !PRE_ERASE.has("err_verify") && !PRE_ERASE.has("err_cancelled"));
+  assert.equal(usbErrorKey("USB_FILE_TOO_BIG:install.esd"), "err_file_too_big");
+  assert.equal(errorArg("USB_FILE_TOO_BIG:install.esd"), "install.esd");
+  assert.equal(usbErrorKey("USB_CANCELLED_EARLY"), "err_cancelled");
+  assert.ok(driveUntouched("USB_CHANGED") && driveUntouched("USB_CANCELLED_EARLY") && driveUntouched("USB_NO_TEMP_SPACE:5000"));
+  assert.ok(!driveUntouched("USB_VERIFY_FAILED") && !driveUntouched("USB_CANCELLED") && !driveUntouched("Clear-Disk failed"), "after the erase the drive is incomplete");
 });

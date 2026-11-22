@@ -35,11 +35,14 @@ const FILE_FLAG_WRITE_THROUGH: u32 = 0x8000_0000;
 pub const ERR_BUSY: &str = "USB_BUSY";
 pub const ERR_CHANGED: &str = "USB_CHANGED";
 pub const ERR_CANCELLED: &str = "USB_CANCELLED";
+/// Cancelled before the drive was touched: it is as it was.
+pub const ERR_CANCELLED_EARLY: &str = "USB_CANCELLED_EARLY";
 pub const ERR_ISO_ON_TARGET: &str = "USB_ISO_ON_TARGET";
 pub const ERR_UNSUPPORTED: &str = "USB_UNSUPPORTED";
 pub const ERR_NOT_ISO: &str = "USB_NOT_ISO";
 pub const ERR_TOO_SMALL: &str = "USB_TOO_SMALL";
-pub const ERR_ESD_TOO_BIG: &str = "USB_ESD_TOO_BIG";
+pub const ERR_FILE_TOO_BIG: &str = "USB_FILE_TOO_BIG";
+pub const ERR_NO_TEMP_SPACE: &str = "USB_NO_TEMP_SPACE";
 pub const ERR_VERIFY: &str = "USB_VERIFY_FAILED";
 
 static BUSY: AtomicBool = AtomicBool::new(false);
@@ -287,10 +290,9 @@ fn windows_files(root: &Path) -> Result<Option<WinFiles>, String> {
     }
     let files = list_files(root)?;
     let wim = files.iter().find(|(p, _)| is_wim(p)).map(|(_, n)| *n);
-    if let Some((_, n)) = files.iter().find(|(p, _)| p.as_os_str().eq_ignore_ascii_case(r"sources\install.esd")) {
-        if *n > FAT32_MAX_FILE {
-            return Err(ERR_ESD_TOO_BIG.into());
-        }
+    // Only install.wim can be split; any other file over 4 GB cannot go on FAT32.
+    if let Some((p, _)) = files.iter().find(|(p, n)| !is_wim(p) && *n > FAT32_MAX_FILE) {
+        return Err(format!("{ERR_FILE_TOO_BIG}:{}", file_name(p)));
     }
     Ok(Some(WinFiles { files, wim }))
 }
@@ -414,6 +416,15 @@ impl<'a> Reporter<'a> {
             self.last = Instant::now();
             (self.channel)(Progress { stage, done, total });
         }
+    }
+}
+
+/// The last point where Cancel leaves the drive as it was.
+fn cancelled_early() -> Result<(), String> {
+    if CANCEL.load(Ordering::SeqCst) {
+        Err(ERR_CANCELLED_EARLY.into())
+    } else {
+        Ok(())
     }
 }
 
@@ -558,29 +569,61 @@ fn same_file(src: &Path, dst: &Path, mut on_bytes: impl FnMut(u64)) -> Result<()
     }
 }
 
-/// Erases the disk and leaves one GPT FAT32 partition; returns its root.
-/// The script checks the disk once more on its own before touching it.
-fn prepare_fat32(disk: &RawDisk) -> Result<PathBuf, String> {
-    let serial = ps_quote(&disk.serial);
-    let script = format!(
+/// The PowerShell that checks the disk once more on its own, frees it and
+/// erases it. A drive with no partition table (RAW) can still hold a mounted
+/// volume, which would block raw writes: it is dismounted instead.
+pub fn erase_script(disk: &RawDisk) -> String {
+    let letters: Vec<String> = disk
+        .volumes
+        .iter()
+        .filter(|v| v.letter.len() == 1 && v.letter.chars().all(|c| c.is_ascii_alphabetic()))
+        .map(|v| format!("'{}'", v.letter))
+        .collect();
+    format!(
         r#"$n = {n}
 $d = Get-Disk -Number $n
 if ($d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem -or ([string]$d.SerialNumber).Trim() -ne {serial} -or [uint64]$d.Size -ne {size}) {{ throw '{changed}' }}
-if ($d.PartitionStyle -ne 'RAW') {{ Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false }}
+if ($d.PartitionStyle -eq 'RAW') {{
+    foreach ($l in @({letters})) {{ mountvol "$($l):" /p | Out-Null }}
+    $global:LASTEXITCODE = 0
+}} else {{
+    Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false
+}}
+"#,
+        n = disk.number,
+        serial = ps_quote(&disk.serial),
+        size = disk.size,
+        changed = ERR_CHANGED,
+        letters = letters.join(","),
+    )
+}
+
+fn erase_error(e: String) -> String {
+    if e.contains(ERR_CHANGED) {
+        ERR_CHANGED.into()
+    } else {
+        e
+    }
+}
+
+/// Erases the disk and leaves one GPT FAT32 partition; returns its root.
+fn fat32_script(disk: &RawDisk) -> String {
+    format!(
+        r#"{erase}
 Initialize-Disk -Number $n -PartitionStyle GPT
 $free = [uint64](Get-Disk -Number $n).LargestFreeExtent
-$size = [Math]::Min($free, [uint64]{max})
-$p = New-Partition -DiskNumber $n -Size $size -AssignDriveLetter
+if ($free -le [uint64]{max}) {{ $p = New-Partition -DiskNumber $n -UseMaximumSize -AssignDriveLetter }} else {{ $p = New-Partition -DiskNumber $n -Size ([uint64]{max}) -AssignDriveLetter }}
 Format-Volume -Partition $p -FileSystem FAT32 -NewFileSystemLabel 'WINDOWS' -Confirm:$false -Force | Out-Null
 $p = Get-Partition -DiskNumber $n -PartitionNumber $p.PartitionNumber
 if (-not $p.DriveLetter) {{ $p | Add-PartitionAccessPath -AssignDriveLetter; $p = Get-Partition -DiskNumber $n -PartitionNumber $p.PartitionNumber }}
 [string]$p.DriveLetter"#,
-        n = disk.number,
-        size = disk.size,
+        erase = erase_script(disk),
         max = FAT32_MAX_PARTITION,
-        changed = ERR_CHANGED,
-    );
-    let letter = run_hidden_powershell(&script).map_err(|e| if e.contains(ERR_CHANGED) { ERR_CHANGED.into() } else { e })?;
+    )
+}
+
+fn prepare_fat32(disk: &RawDisk) -> Result<PathBuf, String> {
+    let letter = run_hidden_powershell(&fat32_script(disk)).map_err(erase_error)?;
     let letter = letter.trim();
     if letter.len() != 1 {
         return Err("The new partition got no drive letter.".into());
@@ -591,17 +634,7 @@ if (-not $p.DriveLetter) {{ $p | Add-PartitionAccessPath -AssignDriveLetter; $p 
 /// Erases the partition table so no volume holds sectors of the disk while
 /// it is written raw.
 fn clear_disk(disk: &RawDisk) -> Result<(), String> {
-    let serial = ps_quote(&disk.serial);
-    let script = format!(
-        r#"$n = {n}
-$d = Get-Disk -Number $n
-if ($d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem -or ([string]$d.SerialNumber).Trim() -ne {serial} -or [uint64]$d.Size -ne {size}) {{ throw '{changed}' }}
-if ($d.PartitionStyle -ne 'RAW') {{ Clear-Disk -Number $n -RemoveData -RemoveOEM -Confirm:$false }}"#,
-        n = disk.number,
-        size = disk.size,
-        changed = ERR_CHANGED,
-    );
-    run_hidden_powershell(&script).map(|_| ()).map_err(|e| if e.contains(ERR_CHANGED) { ERR_CHANGED.into() } else { e })
+    run_hidden_powershell(&erase_script(disk)).map(|_| ()).map_err(erase_error)
 }
 
 /// Splits install.wim into install.swm parts under 4 GB, reporting the bytes
@@ -662,6 +695,25 @@ pub struct WinOptions {
     pub local_account: Option<String>,
 }
 
+/// A working folder removed when the write ends, however it ends.
+struct TempDir(PathBuf);
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// Free bytes on the disk holding `path`, when sysinfo knows that disk.
+fn free_space(path: &Path) -> Option<u64> {
+    let disks = sysinfo::Disks::new_with_refreshed_list();
+    disks
+        .iter()
+        .filter(|d| path.starts_with(d.mount_point()))
+        .max_by_key(|d| d.mount_point().as_os_str().len())
+        .map(|d| d.available_space())
+}
+
 fn write_windows(iso: &Path, disk: &RawDisk, opts: &WinOptions, report: &mut Reporter) -> Result<(), String> {
     let account = match opts.local_account.as_deref() {
         Some(name) if !valid_account(name) => return Err("Invalid local account name.".into()),
@@ -669,12 +721,49 @@ fn write_windows(iso: &Path, disk: &RawDisk, opts: &WinOptions, report: &mut Rep
     };
     let mounted = Mounted::new(iso)?;
     let files = windows_files(&mounted.root)?.ok_or(ERR_UNSUPPORTED)?;
-    let needed = files.total();
     let room = disk.size.saturating_sub(GPT_OVERHEAD).min(FAT32_MAX_PARTITION);
-    if needed + COPY_SLACK > room {
-        return Err(format!("{ERR_TOO_SMALL}:{}", needed + COPY_SLACK + GPT_OVERHEAD));
+    if files.total() + COPY_SLACK > room {
+        return Err(format!("{ERR_TOO_SMALL}:{}", files.total() + COPY_SLACK + GPT_OVERHEAD));
     }
-    let split = files.wim.is_some_and(|n| n > FAT32_MAX_FILE);
+    let split = files.wim.filter(|&n| n > FAT32_MAX_FILE);
+
+    // What goes on the drive: (source, path on the drive). Everything that can
+    // fail runs before the drive is touched, so install.wim is split first, into
+    // a folder on this PC; its parts are then copied and checked like any file.
+    let mut copies: Vec<(PathBuf, PathBuf)> = files
+        .files
+        .iter()
+        .filter(|(p, _)| split.is_none() || !is_wim(p))
+        .map(|(p, _)| (mounted.root.join(p), p.clone()))
+        .collect();
+    let temp = TempDir(std::env::temp_dir().join(format!("segatt-usb-{}", std::process::id())));
+    if let Some(wim) = split {
+        let need = wim + COPY_SLACK;
+        if free_space(&temp.0).is_some_and(|free| free < need) {
+            return Err(format!("{ERR_NO_TEMP_SPACE}:{need}"));
+        }
+        let _ = std::fs::remove_dir_all(&temp.0);
+        std::fs::create_dir_all(&temp.0).map_err(|e| format!("Could not create {}: {e}", temp.0.display()))?;
+        split_wim(&mounted.root.join(r"sources\install.wim"), &temp.0, |n| report.send("split", n.min(wim), wim))
+            .map_err(|e| if e == ERR_CANCELLED { ERR_CANCELLED_EARLY.into() } else { e })?;
+        report.send("split", wim, wim);
+        let mut parts: Vec<PathBuf> = std::fs::read_dir(&temp.0)
+            .map_err(|e| e.to_string())?
+            .flatten()
+            .map(|e| e.path())
+            .filter(|p| p.extension().is_some_and(|x| x.eq_ignore_ascii_case("swm")))
+            .collect();
+        parts.sort();
+        if parts.is_empty() {
+            return Err("DISM did not write any install.swm part.".into());
+        }
+        for part in parts {
+            let name = PathBuf::from("sources").join(part.file_name().unwrap_or_default());
+            copies.push((part, name));
+        }
+    }
+    let total: u64 = copies.iter().filter_map(|(src, _)| std::fs::metadata(src).ok()).map(|m| m.len()).sum();
+    cancelled_early()?;
 
     // From here on the drive is erased.
     report.send("erase", 0, 1);
@@ -682,23 +771,15 @@ fn write_windows(iso: &Path, disk: &RawDisk, opts: &WinOptions, report: &mut Rep
     report.send("erase", 1, 1);
 
     let mut done = 0u64;
-    for (rel, _) in &files.files {
-        if split && is_wim(rel) {
-            continue;
-        }
+    for (src, rel) in &copies {
         let dst = root.join(rel);
         if let Some(dir) = dst.parent() {
             std::fs::create_dir_all(dir).map_err(|e| format!("Could not write {}: {e}", dir.display()))?;
         }
-        copy_file(&mounted.root.join(rel), &dst, |n| {
+        copy_file(src, &dst, |n| {
             done += n;
-            report.send("copy", done, needed);
+            report.send("copy", done, total);
         })?;
-    }
-    if split {
-        let base = done;
-        let src = mounted.root.join(r"sources\install.wim");
-        split_wim(&src, &root.join("sources"), |n| report.send("split", (base + n).min(needed), needed))?;
     }
     if account.is_some() || opts.skip_hardware_checks {
         std::fs::write(root.join("autounattend.xml"), unattend(opts.skip_hardware_checks, account))
@@ -706,17 +787,15 @@ fn write_windows(iso: &Path, disk: &RawDisk, opts: &WinOptions, report: &mut Rep
     }
     flush_volume(&root);
 
-    // Read everything back from the drive. The split parts were checked by
-    // DISM (/CheckIntegrity) as it wrote them.
-    let to_check: u64 = files.files.iter().filter(|(p, _)| !(split && is_wim(p))).map(|(_, n)| n).sum();
+    // Every file, the install.wim parts included, is read back from the drive.
     let mut checked = 0u64;
-    for (rel, _) in files.files.iter().filter(|(p, _)| !(split && is_wim(p))) {
-        same_file(&mounted.root.join(rel), &root.join(rel), |n| {
+    for (src, rel) in &copies {
+        same_file(src, &root.join(rel), |n| {
             checked += n;
-            report.send("verify", checked, to_check);
+            report.send("verify", checked, total);
         })?;
     }
-    report.send("verify", to_check, to_check);
+    report.send("verify", total, total);
     Ok(())
 }
 
@@ -726,6 +805,7 @@ fn write_linux(iso: &Path, disk: &RawDisk, report: &mut Reporter) -> Result<(), 
     if size.div_ceil(CHUNK as u64) * CHUNK as u64 > disk.size {
         return Err(format!("{ERR_TOO_SMALL}:{size}"));
     }
+    cancelled_early()?;
     report.send("erase", 0, 1);
     clear_disk(disk)?;
     report.send("erase", 1, 1);
@@ -964,6 +1044,32 @@ mod tests {
         println!("{:#?}", read_disks().map(|d| d.into_iter().filter(usable).map(to_usb).collect::<Vec<_>>()));
         if let Ok(iso) = std::env::var("SEGATT_ISO") {
             println!("{:#?}", iso_path(&iso).and_then(|p| inspect(&p)));
+        }
+    }
+
+    #[test]
+    fn the_erase_script_checks_the_disk_and_frees_raw_volumes() {
+        let mut d = disk(4, "USB", false, false);
+        d.volumes.push(Volume { letter: "F".into(), label: "x".into() });
+        d.volumes.push(Volume { letter: "'; Format C:".into(), label: String::new() });
+        let s = erase_script(&d);
+        assert!(s.contains("$n = 4"));
+        assert!(s.contains("-ne '4C53'") && s.contains("-ne 32000000000"), "same serial and size, checked by the script itself");
+        assert!(s.contains("@('E','F')"), "only plain letters reach the script");
+        assert!(!s.contains("Format C"));
+    }
+
+    /// The erase scripts parse: a syntax error would surface only on a real drive.
+    #[cfg(windows)]
+    #[test]
+    fn erase_scripts_are_valid_powershell() {
+        let d = disk(4, "USB", false, false);
+        for script in [erase_script(&d), fat32_script(&d), erase_script(&RawDisk { volumes: vec![], ..d.clone() })] {
+            let check = format!(
+                "$e = $null; [void][System.Management.Automation.Language.Parser]::ParseInput({}, [ref]$null, [ref]$e); if ($e.Count) {{ throw ($e | Out-String) }}",
+                ps_quote(&script)
+            );
+            assert!(run_hidden_powershell(&check).is_ok(), "{script}");
         }
     }
 
