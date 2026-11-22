@@ -265,3 +265,5 @@ button { font: inherit; color: inherit; }
 .animate-spin { animation: spin 1s linear infinite; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
+.pill-update { cursor: pointer; color: var(--brand); border-color: rgba(61, 220, 151, 0.35); background: var(--brand-soft); }
+.pill-update:hover { background: rgba(61, 220, 151, 0.2); }

@@ -13,6 +13,8 @@ import { useLevel } from "@/hooks/useLevel";
 import { showsTweak } from "@/lib/level";
 import { groupByDay, useActivity } from "@/lib/history";
 import { APP_MARK, APP_NAME } from "@/lib/brand";
+import { checkForUpdate, openUpdate, useUpdate } from "@/hooks/useUpdate";
+import { fmt } from "@/lib/fmt";
 import styles from "./Sidebar.module.css";
 
 export const NAV = [
@@ -39,6 +41,13 @@ export function Sidebar() {
   const listed = TWEAKS.filter((tw) => showsTweak(level, tw.risk, states?.[tw.id]?.status === "active"));
   const tweakCount = states ? `${countActive(states, listed.map((tw) => tw.id))}/${listed.length}` : null;
   const updates = countUpdates(useApps().installed);
+  const up = useUpdate();
+  const upLabel =
+    up.status === "checking" ? t("up.checking")
+    : up.status === "none" ? t("up.latest")
+    : up.status === "check_failed" ? t("up.check_failed")
+    : up.version && up.status !== "idle" ? fmt(t("up.available"), { v: up.version })
+    : t("up.check");
 
   return (
     <aside className={styles.side}>
@@ -90,6 +99,17 @@ export function Sidebar() {
           <span>{pc?.host_name ?? "—"}</span>
           <small>{pc?.os_version ?? ""}</small>
         </div>
+      </div>
+      <div className={styles.version}>
+        <span>{up.current ? fmt(t("up.version"), { v: up.current }) : ""}</span>
+        <button
+          type="button"
+          onClick={() => (up.version && up.status !== "none" && up.status !== "idle" ? openUpdate(true) : void checkForUpdate())}
+          disabled={up.status === "checking"}
+          title={up.status === "check_failed" ? up.error ?? undefined : undefined}
+        >
+          {upLabel}
+        </button>
       </div>
     </aside>
   );
