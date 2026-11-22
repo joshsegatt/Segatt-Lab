@@ -16,6 +16,9 @@ from PIL import Image
 
 OUT = Path(__file__).resolve().parent.parent / "public" / "scene"
 SHEETS = {"idle": 4, "run": 6, "work": 4, "cheer": 4, "shock": 4}
+# The generator drew each pose at its own size; these bring the mascot to the
+# idle size (measured by eye on head and boots). New art: re-check them.
+SIZE = {"idle": 1.0, "run": 1.2, "work": 1.25, "cheer": 1.15, "shock": 1.08}
 STATIONS = ["board", "cpu", "ram", "gpu", "display", "disk", "net"]  # src/lib/scene.ts order
 CELL_H = 440  # sprite cell height: twice the on-screen height, for sharp HiDPI
 PROP_H = 400
@@ -58,8 +61,40 @@ def clear_background(im: Image.Image) -> Image.Image:
     return im
 
 
-def split(im: Image.Image, n: int) -> list[Image.Image]:
-    """The n figures of a strip: by empty columns when they are clean, else equal slices."""
+def drop_specks(im: Image.Image, min_area: int = 500) -> Image.Image:
+    """Removes the loose specks image generators leave around a figure (small
+    islands of pixels not connected to anything bigger)."""
+    w, h = im.size
+    px = im.load()
+    alpha = im.getchannel("A").load()
+    seen = bytearray(w * h)
+    for y0 in range(h):
+        for x0 in range(w):
+            if seen[y0 * w + x0] or alpha[x0, y0] <= 40:
+                continue
+            comp, q = [], deque([(x0, y0)])
+            seen[y0 * w + x0] = 1
+            while q:
+                x, y = q.popleft()
+                comp.append((x, y))
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx] and alpha[nx, ny] > 40:
+                        seen[ny * w + nx] = 1
+                        q.append((nx, ny))
+            if len(comp) < min_area:
+                for x, y in comp:
+                    px[x, y] = (0, 0, 0, 0)
+    # Faint haze below the threshold goes too.
+    for y in range(h):
+        for x in range(w):
+            if 0 < alpha[x, y] <= 40:
+                px[x, y] = (0, 0, 0, 0)
+    return im
+
+
+def split(im: Image.Image, n: int, rows: tuple[int, int] | None = None) -> list[Image.Image]:
+    """The n figures of a strip: by empty columns when they are clean, else equal slices.
+    With `rows`, every frame keeps that vertical window, so a jump stays a jump."""
     w, h = im.size
     alpha = im.getchannel("A")
     filled = [any(alpha.getpixel((x, y)) > 20 for y in range(0, h, 2)) for x in range(w)]
@@ -77,14 +112,25 @@ def split(im: Image.Image, n: int) -> list[Image.Image]:
     for a, b in runs:
         part = im.crop((a, 0, b, h))
         box = part.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
+        if box and rows:
+            box = (box[0], rows[0], box[2], rows[1])
         frames.append(part.crop(box) if box else part)
     return frames
 
 
-def strip(frames: list[Image.Image], cell_h: int) -> Image.Image:
-    """Equal cells, feet on the bottom edge, centred; scaled so the tallest frame fills the cell."""
+def opaque_rows(im: Image.Image) -> tuple[int, int]:
+    box = im.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
+    return (box[1], box[3]) if box else (0, im.height)
+
+
+def strip(frames: list[Image.Image], cell_h: int, scale: float | None = None) -> Image.Image:
+    """Equal cells, feet on the bottom edge, centred; scaled so the tallest frame fills the cell,
+    or by `scale` when given (then the cell is as tall as the scaled frames)."""
     tallest = max(f.height for f in frames)
-    scale = cell_h / tallest
+    if scale is None:
+        scale = cell_h / tallest
+    else:
+        cell_h = round(tallest * scale)
     scaled = [f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS) for f in frames]
     cell_w = max(f.width for f in scaled) + 8
     out = Image.new("RGBA", (cell_w * len(scaled), cell_h), (0, 0, 0, 0))
@@ -95,14 +141,26 @@ def strip(frames: list[Image.Image], cell_h: int) -> Image.Image:
 
 def main(src: Path) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, n in SHEETS.items():
+    # One vertical window for every pose: the generator drew them at one scale,
+    # so the mascot keeps his size between poses and jumps stay off the floor.
+    sheets = {}
+    for name in SHEETS:
         f = src / f"{name}.png"
-        if not f.exists():
+        if f.exists():
+            sheets[name] = drop_specks(clear_background(Image.open(f)))
+        else:
             print(f"skip {name}: no {f.name}")
-            continue
-        s = strip(split(clear_background(Image.open(f)), n), CELL_H)
-        s.save(OUT / f"{name}.webp", "WEBP", quality=92, method=6)
-        print(f"{name}: {n} frames, {s.width}x{s.height}")
+    if sheets:
+        # Each pose keeps its own vertical window (a jump stays a jump); one unit
+        # of scale, set by idle, keeps the mascot the same size in every pose.
+        unit = None
+        for name, im in sheets.items():
+            rows = opaque_rows(im)
+            if unit is None:
+                unit = CELL_H / (rows[1] - rows[0])
+            s = strip(split(im, SHEETS[name], rows), CELL_H, unit * SIZE[name])
+            s.save(OUT / f"{name}.webp", "WEBP", quality=92, method=6)
+            print(f"{name}: {SHEETS[name]} frames, {s.width}x{s.height}")
     # Props: one sheet with 7 cells, or one file per station (board.png ... net.png).
     props = src / "props.png"
     singles = [src / f"{s}.png" for s in STATIONS]
@@ -114,7 +172,7 @@ def main(src: Path) -> None:
             box = im.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
             frames.append(im.crop(box) if box else im)
     elif props.exists():
-        frames = split(clear_background(Image.open(props)), 7)
+        frames = split(drop_specks(clear_background(Image.open(props))), 7)
     if frames:
         p = strip(frames, PROP_H)
         p.save(OUT / "props.webp", "WEBP", quality=92, method=6)

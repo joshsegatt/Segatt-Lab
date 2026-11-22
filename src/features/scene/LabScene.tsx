@@ -35,7 +35,9 @@ const BG_SRC = "/scene/bg.webp";
 
 const SPACING = 340;
 const MARGIN = 260;
-const HERO_H = 168; // on-screen height of the mascot
+const HERO_H = 230; // on-screen height of the idle mascot; other poses keep his size
+/** Where the floor surface sits in bg.webp, as a share of its height. */
+const BG_FLOOR = 0.778;
 const RUN_SPEED = 300; // px per second
 
 type Sheet = { img: CanvasImageSource; frames: number; fps: number; w: number; h: number; pixel: boolean };
@@ -227,25 +229,25 @@ export function LabScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const atEndRef = useRef(false);
   const [say, setSay] = useState("");
-  const [atEnd, setAtEnd] = useState(false);
-  const [reduced, setReduced] = useState(false);
+  // The run whose cheer has played; the summary shows after it.
+  const [endRun, setEndRun] = useState(0);
+  const [reduced] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const parts = partNames(hw);
-
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
 
   const name = (step: SceneStep) => {
     if (step.id === RESTORE_STEP) return t("sc.restore");
     const list = scene.kind === "cleanup" ? CLEANUPS : TWEAKS;
     return localize(list.find((x) => x.id === step.id)?.name, language) ?? step.id;
   };
+  // The canvas loop reads the latest texts and part names through refs.
   const nameRef = useRef(name);
-  nameRef.current = name;
   const tRef = useRef(t);
-  tRef.current = t;
   const partsRef = useRef(parts);
-  partsRef.current = parts;
+  useEffect(() => {
+    nameRef.current = name;
+    tRef.current = t;
+    partsRef.current = parts;
+  });
 
   // Esc skips the scene; the work goes on and each screen shows its result.
   useEffect(() => {
@@ -257,9 +259,8 @@ export function LabScene() {
 
   useEffect(() => {
     if (!scene.open || reduced) return;
-    setAtEnd(false);
     atEndRef.current = false;
-    setSay(tRef.current("sc.say_intro"));
+    const thisRun = scene.run;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
@@ -279,7 +280,7 @@ export function LabScene() {
       canvas.width = Math.round(W * dpr);
       canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      floor = Math.round(H * 0.72);
+      floor = Math.round(H * (art?.bg ? BG_FLOOR : 0.72));
       backdrop = paintBackdrop(Math.round(worldW * 0.5 + W), H, floor);
     };
     resize();
@@ -308,6 +309,7 @@ export function LabScene() {
 
     void loadArt().then((a) => {
       art = a;
+      resize();
     });
 
     const tick = (now: number) => {
@@ -323,6 +325,7 @@ export function LabScene() {
       d.time += dt * boost;
 
       const step = steps[d.i];
+      if (d.phase === "intro") speak(tRef.current("sc.say_intro"));
       if (d.phase === "intro" && d.time > 1.1) {
         d.phase = "goto";
         d.time = 0;
@@ -374,7 +377,7 @@ export function LabScene() {
           if (Math.random() < dt * 14) burst(d.x + (Math.random() - 0.5) * 300, floor - 260, 6, [JADE, "#ff9b1f", "#ffffff", "#9af5cf"], 180, 260, 1.6);
           if (d.time > 0.4 && !atEndRef.current) {
             atEndRef.current = true;
-            setAtEnd(true);
+            setEndRun(thisRun);
             speak(tRef.current("sc.say_done"));
           }
         } else {
@@ -394,24 +397,27 @@ export function LabScene() {
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, W, H);
       if (art?.bg) {
+        // Cover the screen and the parallax travel; the drawn floor meets ours.
         ctx.imageSmoothingEnabled = true;
-        const s = H / art.bg.height;
+        const s = Math.max(H / art.bg.height, (W + (worldW - W) * 0.5) / art.bg.width);
         const bw = art.bg.width * s;
-        let x0 = -((d.cam * 0.5) % bw);
-        for (; x0 < W; x0 += bw) ctx.drawImage(art.bg, x0, 0, bw, H);
+        const bh = art.bg.height * s;
+        ctx.drawImage(art.bg, -d.cam * 0.5, floor - BG_FLOOR * bh, bw, bh);
       } else if (backdrop) {
         ctx.drawImage(backdrop, -d.cam * 0.5, 0);
       }
 
       ctx.save();
       ctx.translate(-Math.round(d.cam), 0);
-      // Floor.
+      // Floor, unless the drawn background brings its own.
+      if (!art?.bg) {
       ctx.fillStyle = "#141c18";
       ctx.fillRect(d.cam, floor, W, H - floor);
       ctx.fillStyle = "rgba(61, 220, 151, 0.22)";
       ctx.fillRect(d.cam, floor, W, 2);
       ctx.fillStyle = "#1b2420";
       for (let x = Math.floor(d.cam / 64) * 64; x < d.cam + W; x += 64) ctx.fillRect(x, floor + 2, 2, H - floor);
+      }
 
       // Stations.
       const active = d.phase === "work" || d.phase === "react" ? step?.station : undefined;
@@ -430,7 +436,7 @@ export function LabScene() {
         }
         if (art?.props) {
           const cell = art.props.cell;
-          const ph = 200;
+          const ph = 210;
           const pw = ph * (cell / art.props.img.height);
           ctx.imageSmoothingEnabled = true;
           ctx.drawImage(art.props.img, STATIONS.indexOf(s) * cell, 0, cell, art.props.img.height, sx - pw / 2, floor - ph, pw, ph);
@@ -439,13 +445,17 @@ export function LabScene() {
           drawPropFallback(ctx, s, sx, floor, clock, s === active || state === "ok");
         }
         // Label under the floor line: the part's name and what Windows calls it.
+        ctx.fillStyle = "rgba(8, 12, 10, 0.72)";
+        ctx.beginPath();
+        ctx.roundRect(sx - 140, floor + 12, 280, partsRef.current[s] ? 46 : 28, 10);
+        ctx.fill();
         ctx.textAlign = "center";
         ctx.fillStyle = "#ededed";
         ctx.font = '600 14px "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif';
         ctx.fillText(stationLabel(s), sx, floor + 30);
         const part = partsRef.current[s];
         if (part) {
-          ctx.fillStyle = "#8a8a8a";
+          ctx.fillStyle = "#b9c2bd";
           ctx.font = '12px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif';
           let txt = part;
           while (ctx.measureText(txt).width > 260 && txt.length > 4) txt = txt.slice(0, -2);
@@ -496,8 +506,10 @@ export function LabScene() {
           d.frame = (d.frame + 1) % sheet.frames;
         }
         const f = d.frame % sheet.frames;
-        const scale = HERO_H / sheet.h;
-        const w = sheet.w * scale;
+        // One scale for every pose (set by idle), so he keeps his size.
+        const unit = HERO_H / art.sheets.idle.h;
+        const w = sheet.w * unit;
+        const h = sheet.h * unit;
         ctx.save();
         ctx.translate(Math.round(d.x), floor);
         if (d.face < 0) ctx.scale(-1, 1);
@@ -508,7 +520,7 @@ export function LabScene() {
         // Pixel stand-ins stay sharp; drawn art is scaled smoothly.
         ctx.imageSmoothingEnabled = !sheet.pixel;
         ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(sheet.img, f * sheet.w, 0, sheet.w, sheet.h, -w / 2, -HERO_H, w, HERO_H);
+        ctx.drawImage(sheet.img, f * sheet.w, 0, sheet.w, sheet.h, -w / 2, -h, w, h);
         ctx.imageSmoothingEnabled = false;
         ctx.restore();
       }
@@ -540,7 +552,7 @@ export function LabScene() {
   const failed = real.filter((s) => s.status === "fail");
   const done = ok.length + failed.length;
   const title = fmt(t(`sc.title_${scene.kind}`), { n: real.length });
-  const showSummary = scene.finished && (atEnd || reduced);
+  const showSummary = scene.finished && (endRun === scene.run || reduced);
 
   const undo = () => {
     const ids = ok.map((s) => s.id);
