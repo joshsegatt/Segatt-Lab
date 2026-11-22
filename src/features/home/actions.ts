@@ -110,6 +110,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     ["profile", "/profile", "screen_profile", "perfil profile exportar export importar import backup outro pc"],
     ["debloat", "/debloat", "screen_debloat", "debloat bloatware remover remove apps copilot xbox onedrive teams lixo"],
     ["startup", "/startup", "screen_startup", "inicializacao startup boot abrir com o windows iniciar programas lento lenta"],
+    ["usb", "/usb", "screen_usb", "pendrive usb boot bootavel iso rufus formatar instalar windows 11 linux ubuntu"],
   ].map(([key, href, sub, keywords]) => ({
     id: `screen:${key}`,
     kind: "screen" as const,
