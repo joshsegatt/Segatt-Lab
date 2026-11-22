@@ -5,6 +5,8 @@ import { APP_CATEGORIES } from "@/lib/app-categories";
 import { PRESETS, TWEAKS } from "@/lib/tweaks-catalog";
 import { presetForPc, type Hardware } from "@/lib/hardware";
 import { fmt } from "@/lib/fmt";
+import { CLEANUPS } from "@/lib/cleanup";
+import { FIXES as FIX_DEFS } from "@/lib/fixes";
 import { riskOfAction } from "@/lib/action-risk";
 import { showsAction, showsTweak, type Level } from "@/lib/level";
 
@@ -80,7 +82,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
   const cleanup: Action[] = CLEANUP.filter(([id]) => showsAction(level, riskOfAction(id).risk)).map(([id, key, keywords]) => ({
     id: `cleanup:${id}`,
     kind: "cleanup",
-    title: t(`cleaner.items.${key}`),
+    title: CLEANUPS.find((c) => c.id === id)?.name[lang] ?? key,
     subtitle: t("home.cleanup_sub"),
     href: "/cleaner",
     keywords: `limpar limpeza clean ${keywords}`,
@@ -89,7 +91,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
   const fixes: Action[] = FIXES.map(([id, key, keywords]) => ({
     id: `fix:${id}`,
     kind: "fix",
-    title: t(`fixes.${key}`),
+    title: FIX_DEFS.find((f) => f.id === id)?.name[lang] ?? key,
     subtitle: t("home.fix_sub"),
     href: "/fixes",
     keywords: `reparar reparo repair fix ${keywords}`,

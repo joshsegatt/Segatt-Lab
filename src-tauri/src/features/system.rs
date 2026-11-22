@@ -1,10 +1,12 @@
 use serde::Serialize;
 use std::process::Command;
 use std::sync::Mutex;
+use std::time::Duration;
 use sysinfo::{CpuRefreshKind, Disks, MemoryRefreshKind, System};
-use tauri::{Emitter, State, Window};
+use tauri::State;
 
-use crate::features::utils::run_visible_task;
+use crate::features::packages::{output_tail, run_with_timeout};
+use crate::features::utils::{encode_command, hidden_script};
 
 #[derive(Serialize)]
 pub struct SystemStats {
@@ -94,21 +96,19 @@ pub fn open_legacy_panel(panel: String) -> Result<(), String> {
     cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
-/// (task name, script) for each fix id the Fixes page offers.
-fn fix_script(id: &str) -> Option<(&'static str, &'static str)> {
+/// PowerShell script for the fixes that are not SFC or DISM (those two run
+/// directly, so their own output and exit code can be read).
+fn fix_script(id: &str) -> Option<&'static str> {
     Some(match id {
-        "sfc" => ("System File Checker (SFC)", "sfc /scannow"),
-        "dism" => ("Deployment Image Servicing (DISM)", "DISM /Online /Cleanup-Image /RestoreHealth"),
         // `netsh int ip reset` often returns 1 for a few protected keys while the
         // reset itself works, so only the Winsock reset decides success.
-        "net" => ("Network Reset", "
+        "net" => "
 netsh winsock reset
 if ($LASTEXITCODE -ne 0) { throw 'Winsock reset failed.' }
 netsh int ip reset
 ipconfig /flushdns
-$global:LASTEXITCODE = 0
-Write-Host 'Restart the PC to finish the network reset.' -ForegroundColor Yellow"),
-        "update" => ("Windows Update Reset", "
+$global:LASTEXITCODE = 0",
+        "update" => "
 $services = 'wuauserv', 'bits', 'cryptsvc'
 Stop-Service -Name $services -Force -ErrorAction SilentlyContinue
 try {
@@ -117,30 +117,134 @@ try {
     $cr = \"$env:SystemRoot\\System32\\catroot2\"
     if (Test-Path $sd) { Rename-Item -Path $sd -NewName \"SoftwareDistribution.bak$stamp\" }
     if (Test-Path $cr) { Rename-Item -Path $cr -NewName \"catroot2.bak$stamp\" }
-    Write-Host 'Windows Update cache reset.'
 } finally {
     Start-Service -Name $services -ErrorAction SilentlyContinue
-}"),
-        "cache" => ("Rebuild Icon Cache", "ie4uinit.exe -show"),
+}",
+        "cache" => "ie4uinit.exe -show",
         _ => return None,
     })
 }
 
-#[tauri::command]
-pub async fn run_system_fix(window: Window, id: String) -> Result<(), String> {
-    let (task_name, script) = fix_script(&id).ok_or_else(|| format!("Unknown fix: '{id}'"))?;
+/// SFC and DISM can take half an hour on a slow disk; past this they are stopped.
+const FIX_TIMEOUT: Duration = Duration::from_secs(90 * 60);
+/// One repair at a time: SFC and DISM fight over the component store.
+static FIX_LOCK: Mutex<()> = Mutex::new(());
 
-    let _ = window.emit("system-fix-log", format!("Starting: {task_name}"));
-    match run_visible_task(task_name.into(), script.into()).await {
-        Ok(()) => {
-            let _ = window.emit("system-fix-log", format!("Done: {task_name}"));
-            Ok(())
+#[derive(Serialize, Debug, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum FixOutcome {
+    /// SFC found nothing to repair.
+    Clean,
+    /// SFC found damage and repaired it.
+    Repaired,
+    /// SFC found damage it could not repair (DISM first, then SFC again).
+    Unrepaired,
+    /// Finished; the tool does not say more.
+    Done,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct FixResult {
+    pub outcome: FixOutcome,
+    /// Windows must restart to finish (network reset).
+    pub restart: bool,
+    /// Last lines the tool printed, for "Ver detalhes".
+    pub details: String,
+}
+
+/// Upper half of code page 850, the console code page of pt-BR and Western
+/// European Windows, where DISM writes its redirected output.
+const CP850_HIGH: &str = "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´\u{ad}±‗¾¶§÷¸°¨·¹³²■\u{a0}";
+
+/// SFC writes UTF-16 when its output is redirected; DISM writes the console
+/// code page (850 here; plain ASCII on an English Windows).
+pub fn decode_output(bytes: &[u8]) -> String {
+    let nuls = bytes.iter().filter(|b| **b == 0).count();
+    if bytes.len() >= 2 && nuls * 4 > bytes.len() {
+        let units: Vec<u16> = bytes.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
+        return String::from_utf16_lossy(&units);
+    }
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return text.to_string();
+    }
+    let high: Vec<char> = CP850_HIGH.chars().collect();
+    bytes.iter().map(|&b| if b < 0x80 { b as char } else { high[(b - 0x80) as usize] }).collect()
+}
+
+/// Reads SFC's verdict, in English or Portuguese. None when the text says
+/// none of these (another language, or SFC stopped early).
+pub fn sfc_outcome(text: &str) -> Option<FixOutcome> {
+    let t = text.to_lowercase();
+    if t.contains("did not find any integrity violations") || t.contains("não encontrou nenhuma violação de integridade") {
+        Some(FixOutcome::Clean)
+    } else if t.contains("unable to fix some") || t.contains("não conseguiu corrigir") || t.contains("não pôde corrigir") {
+        Some(FixOutcome::Unrepaired)
+    } else if t.contains("successfully repaired") || t.contains("reparou com êxito") || t.contains("reparou-os com êxito") {
+        Some(FixOutcome::Repaired)
+    } else {
+        None
+    }
+}
+
+const NEEDS_ADMIN: &str = "Administrator required.";
+
+fn needs_admin(text: &str) -> bool {
+    let t = text.to_lowercase();
+    t.contains("must be an administrator") || t.contains("precisa ser um administrador") || t.contains("elevated") || t.contains("elevad")
+}
+
+fn run_fix(id: &str) -> Result<FixResult, String> {
+    let _guard = FIX_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let root = std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".into());
+    match id {
+        "sfc" => {
+            let out = run_with_timeout(&format!(r"{root}\System32\sfc.exe"), &["/scannow".to_string()], FIX_TIMEOUT)?;
+            let text = decode_output(&out.stdout);
+            let details = output_tail(&text, 8);
+            if needs_admin(&text) {
+                return Err(format!("{NEEDS_ADMIN}\n{details}"));
+            }
+            match sfc_outcome(&text) {
+                Some(outcome) => Ok(FixResult { outcome, restart: false, details }),
+                None if out.status.success() => Ok(FixResult { outcome: FixOutcome::Done, restart: false, details }),
+                None => Err(format!("SFC exit code {}.\n{details}", out.status.code().unwrap_or(-1))),
+            }
         }
-        Err(e) => {
-            let _ = window.emit("system-fix-log", format!("Failed: {task_name}"));
-            Err(e)
+        "dism" => {
+            let args: Vec<String> = ["/Online", "/Cleanup-Image", "/RestoreHealth"].iter().map(|s| s.to_string()).collect();
+            let out = run_with_timeout(&format!(r"{root}\System32\dism.exe"), &args, FIX_TIMEOUT)?;
+            let details = output_tail(&decode_output(&out.stdout), 8);
+            match out.status.code() {
+                Some(0) => Ok(FixResult { outcome: FixOutcome::Done, restart: false, details }),
+                Some(740) => Err(format!("{NEEDS_ADMIN}\n{details}")),
+                code => Err(format!("DISM exit code {:#X}.\n{details}", code.unwrap_or(-1) as u32)),
+            }
+        }
+        _ => {
+            let script = fix_script(id).ok_or_else(|| format!("Unknown fix: '{id}'"))?;
+            let args: Vec<String> = ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand"]
+                .iter()
+                .map(|s| s.to_string())
+                .chain([encode_command(&hidden_script(script))])
+                .collect();
+            let out = run_with_timeout("powershell", &args, Duration::from_secs(10 * 60))?;
+            let details = output_tail(&String::from_utf8_lossy(&out.stdout), 8);
+            if !out.status.success() {
+                let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+                return Err(if err.is_empty() { format!("Fix failed.\n{details}") } else { err });
+            }
+            Ok(FixResult { outcome: FixOutcome::Done, restart: id == "net", details })
         }
     }
+}
+
+/// Runs one repair with no window and says how it went.
+#[tauri::command]
+pub async fn run_system_fix(id: String) -> Result<FixResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_fix(&id))
+        .await
+        .map_err(|e| format!("Runtime error: {e}"))?
 }
 
 #[cfg(test)]
@@ -149,9 +253,46 @@ mod tests {
 
     #[test]
     fn every_fixes_page_button_has_a_script() {
-        for id in ["sfc", "dism", "net", "update", "cache"] {
+        for id in ["net", "update", "cache"] {
             assert!(fix_script(id).is_some(), "missing fix {id}");
         }
+        assert!(fix_script("calc").is_none());
+    }
+
+    #[test]
+    fn reads_sfc_utf16_output() {
+        // Real bytes from `sfc /scannow > file` on this PC, without administrator (pt-BR).
+        let text = "\r\r\nVocê precisa ser um administrador executando uma sessão do console\r\npara poder usar o utilitário sfc.\r\n";
+        let bytes: Vec<u8> = text.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+        let decoded = decode_output(&bytes);
+        assert!(decoded.contains("Você precisa ser um administrador"));
+        assert!(needs_admin(&decoded));
+        assert_eq!(decode_output("Erro: 740".as_bytes()), "Erro: 740");
+        // Real DISM bytes on this PC without admin: "Permissões elevadas obrigatórias" in code page 850.
+        let dism = b"Permiss\xe4es elevadas obrigat\xa2rias para execu\x87\xc6o do DISM.";
+        assert_eq!(decode_output(dism), "Permissões elevadas obrigatórias para execução do DISM.");
+        assert!(needs_admin(&decode_output(dism)));
+    }
+
+    /// Runs SFC, DISM and the icon cache rebuild for real through run_fix.
+    /// Without administrator SFC and DISM stop at their own admin check.
+    #[test]
+    #[ignore]
+    fn real_fixes_report_honestly() {
+        for id in ["sfc", "dism", "cache"] {
+            println!("--- {id}: {:?}", run_fix(id));
+        }
+    }
+
+    #[test]
+    fn reads_the_sfc_verdict_in_both_languages() {
+        assert_eq!(sfc_outcome("Windows Resource Protection did not find any integrity violations."), Some(FixOutcome::Clean));
+        assert_eq!(sfc_outcome("A Proteção de Recursos do Windows não encontrou nenhuma violação de integridade."), Some(FixOutcome::Clean));
+        assert_eq!(sfc_outcome("Windows Resource Protection found corrupt files and successfully repaired them."), Some(FixOutcome::Repaired));
+        assert_eq!(sfc_outcome("A Proteção de Recursos do Windows encontrou arquivos corrompidos e os reparou com êxito."), Some(FixOutcome::Repaired));
+        assert_eq!(sfc_outcome("Windows Resource Protection found corrupt files but was unable to fix some of them."), Some(FixOutcome::Unrepaired));
+        assert_eq!(sfc_outcome("A Proteção de Recursos do Windows encontrou arquivos corrompidos, mas não conseguiu corrigir alguns deles."), Some(FixOutcome::Unrepaired));
+        assert_eq!(sfc_outcome("Verification 42% complete."), None);
     }
 
     #[cfg(windows)]
