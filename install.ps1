@@ -1,14 +1,14 @@
 # Segatt Lab: downloads the latest installer from GitHub Releases, checks it
 # against the SHA-256 GitHub publishes for it, and runs it.
 #
-#   irm https://raw.githubusercontent.com/joshsegatt/Segatt-Tools/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/joshsegatt/Segatt-Lab/main/install.ps1 | iex
 
 # A script block, so nothing here (preferences, variables) stays in your session after `iex`.
 & {
     $ErrorActionPreference = 'Stop'
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    $release = Invoke-RestMethod 'https://api.github.com/repos/joshsegatt/Segatt-Tools/releases/latest'
+    $release = Invoke-RestMethod 'https://api.github.com/repos/joshsegatt/Segatt-Lab/releases/latest'
     $asset = $release.assets | Where-Object { $_.name -like '*_x64-setup.exe' } | Select-Object -First 1
     if (-not $asset) { throw "Release $($release.tag_name) has no Windows installer." }
 
