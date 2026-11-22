@@ -1,6 +1,6 @@
 mod features;
 
-use crate::features::packages::{search_packages, install_package_stream, uninstall_package_stream};
+use crate::features::packages::{list_installed, run_app_action, search_packages};
 use crate::features::tweaks::{check_admin, create_restore_point, open_system_restore};
 use crate::features::engine::{get_tweak_states, set_tweak};
 use crate::features::cleaner::run_cleanup;
@@ -31,8 +31,8 @@ pub fn run() {
     })
     .invoke_handler(tauri::generate_handler![
       search_packages,
-      install_package_stream,
-      uninstall_package_stream,
+      list_installed,
+      run_app_action,
       get_tweak_states,
       set_tweak,
       open_system_restore,
