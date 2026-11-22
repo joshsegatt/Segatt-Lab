@@ -24,7 +24,9 @@ pub fn run() {
 
   builder = builder
     .plugin(tauri_plugin_opener::init())
-    .plugin(tauri_plugin_dialog::init());
+    .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_updater::Builder::new().build())
+    .plugin(tauri_plugin_process::init());
 
   if cfg!(debug_assertions) {
     builder = builder.plugin(
