@@ -2,6 +2,9 @@
 
 import { useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { finishScene, getScene, startScene, stepScene, RESTORE_STEP } from "@/features/scene/store";
+import { stationOfTweak } from "@/lib/scene";
+import { TWEAKS } from "@/lib/tweaks-catalog";
 
 export type TweakStatus = "active" | "inactive" | "unknown";
 
@@ -69,16 +72,30 @@ export type TweakFailures = Record<string, { msg: string; at: number }>;
  * Applies changes one at a time (the engine is not built for parallel writes),
  * storing each verified state. Returns the ones that failed.
  */
+/** Opens the lab scene for a batch, with the restore point as its first step when one is taken. */
+export function sceneForTweaks(entries: [string, boolean][], withRestore: boolean): void {
+  const steps = entries.map(([id]) => ({ id, station: stationOfTweak(id, TWEAKS.find((tw) => tw.id === id)?.group ?? "system") }));
+  startScene(entries.every(([, on]) => !on) ? "undo" : "tweaks", withRestore ? [{ id: RESTORE_STEP, station: "board" }, ...steps] : steps);
+}
+
 export async function applyTweaks(entries: [string, boolean][], onWorking: (id: string | null) => void): Promise<TweakFailures> {
   const failed: TweakFailures = {};
+  // The screen may have opened this run already (with its restore point), and
+  // the user may have skipped it: reuse it rather than open it again.
+  const run = getScene();
+  if (!(!run.finished && run.steps.some((s) => s.id === entries[0]?.[0]))) sceneForTweaks(entries, false);
   for (const [id, enabled] of entries) {
     onWorking(id);
+    stepScene(id, "run");
     try {
       updateTweakState(await invoke<TweakState>("set_tweak", { id, enabled }));
+      stepScene(id, "ok");
     } catch (e) {
       failed[id] = { msg: String(e), at: Date.now() };
+      stepScene(id, "fail", String(e));
     }
   }
+  finishScene();
   onWorking(null);
   void refreshTweakStates();
   return failed;

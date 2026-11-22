@@ -5,6 +5,8 @@
 
 import { useSyncExternalStore } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { finishScene, startScene, stepScene, RESTORE_STEP } from "@/features/scene/store";
+import { stationOfCleanup } from "@/lib/scene";
 
 export interface CleanupResult { taskId: string; freed: number | null }
 export type RunState = { status: "done"; freed: number | null } | { status: "failed"; msg: string; at: number };
@@ -47,12 +49,18 @@ export function scanCleanup(fresh = false): void {
  */
 export async function runCleanups(ids: string[], restorePoint: boolean): Promise<{ freed: number; failed: number } | { error: string }> {
   if (store.running || !ids.length) return { freed: 0, failed: 0 };
+  const steps = ids.map((id) => ({ id, station: stationOfCleanup(id) }));
+  startScene("cleanup", restorePoint ? [{ id: RESTORE_STEP, station: "board" }, ...steps] : steps);
   if (restorePoint) {
     set({ restoring: true });
+    stepScene(RESTORE_STEP, "run");
     try {
       await invoke("create_restore_point");
+      stepScene(RESTORE_STEP, "ok");
     } catch (e) {
       set({ restoring: false });
+      stepScene(RESTORE_STEP, "fail", String(e));
+      finishScene();
       return { error: String(e) };
     }
     set({ restoring: false });
@@ -64,16 +72,20 @@ export async function runCleanups(ids: string[], restorePoint: boolean): Promise
   set({ results });
   for (const [i, id] of ids.entries()) {
     set({ running: id, progress: { i: i + 1, n: ids.length } });
+    stepScene(id, "run");
     try {
       const r = await invoke<CleanupResult>("run_cleanup", { id });
       freed += r.freed ?? 0;
       set({ results: { ...store.results, [id]: { status: "done", freed: r.freed } } });
+      stepScene(id, "ok");
     } catch (e) {
       failed++;
       set({ results: { ...store.results, [id]: { status: "failed", msg: String(e), at: Date.now() } } });
+      stepScene(id, "fail", String(e));
     }
   }
   set({ running: null, progress: null });
+  finishScene(freed);
   // Sizes changed: read them again so the list shows what is left.
   scanCleanup();
   return { freed, failed };

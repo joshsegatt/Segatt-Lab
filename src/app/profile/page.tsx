@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { finishScene, stepScene, RESTORE_STEP } from "@/features/scene/store";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { Cpu, FileUp, Loader2, RotateCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -10,7 +11,7 @@ import { useHardware } from "@/hooks/useHardware";
 import { useLevel } from "@/hooks/useLevel";
 import { allows, levelFor, LEVEL_TEXT } from "@/lib/level";
 import { useApps } from "@/hooks/useApps";
-import { applyTweaks, explainTweakError, useTweakStates, type TweakFailures } from "@/hooks/useTweakStates";
+import { applyTweaks, explainTweakError, useTweakStates, type TweakFailures, sceneForTweaks } from "@/hooks/useTweakStates";
 import { clearToast, enqueue, key, reasonText, setQueueContext, useAppQueue } from "@/hooks/useAppQueue";
 import { buildProfile, fileStamp, MAX_PROFILE_BYTES, parseProfile, planImport, type ImportPlan, type ParseError } from "@/lib/profile";
 import { hardwareHint } from "@/lib/hardware";
@@ -147,9 +148,14 @@ export default function ProfilePage() {
     if (tweakEntries.length) {
       if (restoreFirst || restoreForced) {
         setBusyNote(t("tw.creating_restore"));
+        sceneForTweaks(tweakEntries.map((p) => [p.tweak.id, true]), true);
+        stepScene(RESTORE_STEP, "run");
         try {
           await invoke("create_restore_point");
+          stepScene(RESTORE_STEP, "ok");
         } catch (e) {
+          stepScene(RESTORE_STEP, "fail", String(e));
+          finishScene();
           // No tweak runs without its restore point; apps never needed one.
           setBusyNote(null);
           setToast({ kind: "error", msg: fmt(t("tw.restore_failed"), { msg: String(e) }) });

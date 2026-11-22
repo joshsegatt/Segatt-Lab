@@ -3,6 +3,7 @@ import "./globals.css";
 import { Sidebar } from "@/features/navigation/components/Sidebar";
 import { TopBar } from "@/features/navigation/components/TopBar";
 import { Onboarding } from "@/features/onboarding/Onboarding";
+import { LabScene } from "@/features/scene/LabScene";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { APP_NAME } from "@/lib/brand";
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </main>
           </div>
           <Onboarding />
+          <LabScene />
         </LanguageProvider>
       </body>
     </html>
