@@ -26,7 +26,12 @@ const NOT_PROFILE: &str = "This file is not a Segatt Tools profile.";
 const RISKY: &[&str] = &["disable_windows_update"];
 
 /// Mirrors hardwareHint in src/lib/hardware.ts: tweaks left out on this PC.
-pub fn skip_for_pc(id: &str, hw: &hardware::Hardware) -> Option<&'static str> {
+/// With the hardware unknown, those tweaks are left out too: no screen asks.
+pub fn skip_for_pc(id: &str, hw: Option<&hardware::Hardware>) -> Option<&'static str> {
+    const HW_RULES: [&str; 3] = ["disable_power_throttling", "high_performance_plan", "disable_superfetch"];
+    let Some(hw) = hw else {
+        return HW_RULES.contains(&id).then_some("the hardware could not be read");
+    };
     match id {
         "disable_power_throttling" | "high_performance_plan" if hw.laptop => Some("this PC is a laptop"),
         "disable_superfetch" if hw.system_disk.as_ref().and_then(|d| d.media.as_deref()) == Some("HDD") => {
@@ -149,7 +154,7 @@ fn apply(path: &Path, out: &mut Out) -> i32 {
                 continue;
             } else if RISKY.contains(&id.as_str()) {
                 Some("risky; turn it on in the app if you want it")
-            } else if let Some(reason) = hw.as_ref().and_then(|hw| skip_for_pc(id, hw)) {
+            } else if let Some(reason) = skip_for_pc(id, hw.as_ref()) {
                 Some(reason)
             } else if status != Some(engine::Status::Inactive) {
                 Some("this PC cannot read its state")
@@ -192,11 +197,13 @@ fn apply(path: &Path, out: &mut Out) -> i32 {
 
     // Apps: what winget has not installed yet.
     if !profile.apps.is_empty() {
+        // Without the list, `winget install` would upgrade apps already there.
         let have: HashSet<String> = match packages::installed() {
             Ok(list) => list.into_iter().map(|a| a.id.to_lowercase()).collect(),
             Err(e) => {
-                out.line(format!("Could not list the installed apps ({e}); installing all of them."));
-                HashSet::new()
+                failed += profile.apps.len();
+                out.line(format!("Could not list the installed apps ({e}); no app was installed."));
+                return finish(out, on, installed, already, skipped, failed);
             }
         };
         for (id, name) in &profile.apps {
@@ -218,6 +225,10 @@ fn apply(path: &Path, out: &mut Out) -> i32 {
         }
     }
 
+    finish(out, on, installed, already, skipped, failed)
+}
+
+fn finish(out: &mut Out, on: usize, installed: usize, already: usize, skipped: usize, failed: usize) -> i32 {
     out.line(format!(
         "Done: {on} tweaks on, {installed} apps installed, {already} already set, {skipped} skipped, {failed} failed."
     ));
@@ -303,13 +314,17 @@ mod tests {
     #[test]
     fn hardware_rules_leave_out_what_does_not_fit() {
         let mut hw = hardware::Hardware { laptop: true, ..Default::default() };
-        assert!(skip_for_pc("disable_power_throttling", &hw).is_some());
-        assert!(skip_for_pc("high_performance_plan", &hw).is_some());
-        assert!(skip_for_pc("disable_superfetch", &hw).is_none());
+        assert!(skip_for_pc("disable_power_throttling", Some(&hw)).is_some());
+        assert!(skip_for_pc("high_performance_plan", Some(&hw)).is_some());
+        assert!(skip_for_pc("disable_superfetch", Some(&hw)).is_none());
         hw.laptop = false;
         hw.system_disk = Some(hardware::Disk { media: Some("HDD".into()), ..Default::default() });
-        assert!(skip_for_pc("disable_superfetch", &hw).is_some());
-        assert!(skip_for_pc("disable_power_throttling", &hw).is_none());
+        assert!(skip_for_pc("disable_superfetch", Some(&hw)).is_some());
+        assert!(skip_for_pc("disable_power_throttling", Some(&hw)).is_none());
+        // Unknown hardware: the cautious side.
+        assert!(skip_for_pc("disable_power_throttling", None).is_some());
+        assert!(skip_for_pc("disable_superfetch", None).is_some());
+        assert!(skip_for_pc("dark_mode", None).is_none());
     }
 
     /// The rules above copy the frontend; these read the frontend itself so they never drift.
