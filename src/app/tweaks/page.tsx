@@ -6,7 +6,7 @@ import { Cpu, LifeBuoy, Loader2, RotateCw, Search, ShieldCheck, TriangleAlert } 
 import { useLanguage } from "@/hooks/useLanguage";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { useIsAdmin } from "@/hooks/useSystem";
-import { refreshTweakStates, updateTweakState, useTweakStates, type TweakState } from "@/hooks/useTweakStates";
+import { applyTweaks, explainTweakError, refreshTweakStates, useTweakStates, type TweakState } from "@/hooks/useTweakStates";
 import { PRESETS, TWEAKS, type PresetKey, type TweakGroup } from "@/lib/tweaks-catalog";
 import { hardwareHint, presetForPc, type Hardware } from "@/lib/hardware";
 import { useHardware } from "@/hooks/useHardware";
@@ -17,9 +17,6 @@ import styles from "@/components/ui/Screen.module.css";
 
 const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
 type Pending = Record<string, boolean>;
-
-/** Failure time, read in event handlers only. */
-const stamp = () => Date.now();
 
 function presetPending(key: PresetKey, states: Record<string, TweakState> | null, hw: Hardware | null): Pending {
   return Object.fromEntries(
@@ -134,23 +131,13 @@ export default function TweaksPage() {
       }
     }
     setBusyNote(null);
-    const failed: Record<string, { msg: string; at: number }> = {};
-    for (const [id, enabled] of entries) {
-      setWorking(id);
-      try {
-        updateTweakState(await invoke<TweakState>("set_tweak", { id, enabled }));
-      } catch (e) {
-        failed[id] = { msg: String(e), at: stamp() };
-      }
-    }
-    setWorking(null);
+    const failed = await applyTweaks(entries, setWorking);
     setErrors((prev) => {
       const next = { ...prev };
       for (const [id] of entries) delete next[id];
       return { ...next, ...failed };
     });
     setPending(Object.fromEntries(Object.entries(pending).filter(([id]) => failed[id] || !entries.some(([e]) => e === id))));
-    void refreshTweakStates();
 
     const ok = entries.length - Object.keys(failed).length;
     const names = Object.keys(failed).map((id) => TWEAKS.find((tw) => tw.id === id)?.name[language] ?? id);
@@ -175,16 +162,7 @@ export default function TweaksPage() {
     return translated === key ? value : translated;
   };
 
-  // Known backend errors in the user's language; anything else is shown as is.
-  const explain = (msg: string) => {
-    if (/access denied|acesso negado|administrator/i.test(msg)) return t("tw.err_access");
-    if (/did not keep/i.test(msg)) return t("tw.err_not_kept");
-    if (/may be left changed/i.test(msg)) return t("tw.err_partial");
-    if (/could not be restored/i.test(msg)) return t("tw.err_restore");
-    if (/no active network adapter/i.test(msg)) return t("tw.err_no_adapter");
-    if (/not available on this pc/i.test(msg)) return t("tw.err_power");
-    return msg;
-  };
+  const explain = (msg: string) => explainTweakError(msg, t);
 
   const pendingEntries = Object.entries(pending);
   const busy = working !== null || busyNote !== null;

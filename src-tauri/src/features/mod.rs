@@ -5,4 +5,5 @@ pub mod cleaner;
 pub mod system;
 pub mod hardware;
 pub mod control;
+pub mod profile;
 pub mod utils;

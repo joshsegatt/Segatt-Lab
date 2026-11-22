@@ -379,7 +379,7 @@ Quiet pills; only the primary one has colour.
 - **Focus:** the composer border brightens to 20% white; elsewhere the global 2px jade focus ring.
 
 ### Navigation
-- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), six 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Nav items may carry a live count at the right edge (12px Ink 3, tabular numbers); Tweaks shows active of total ("9/24"), Apps shows the number of app updates available (only when above zero, with "Atualizações" as its tooltip), and an item with no real number shows nothing. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2 clamped to two lines, failed entries in red with the detail in Ink 3. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
+- **Sidebar:** sidebar graphite with a hairline on its right edge. Brand row (28px jade monogram tile, product name in Title), seven 38px nav items (18px line icon at 1.75 stroke, Ink 2, 500 weight); hover takes the hover wash, the active item takes raised graphite and Ink. Nav items may carry a live count at the right edge (12px Ink 3, tabular numbers); Tweaks shows active of total ("9/24"), Apps shows the number of app updates available (only when above zero, with "Atualizações" as its tooltip), and an item with no real number shows nothing. Below, the activity history grouped by day under 12px Ink 3 labels, entries in 13.5px Ink 2 clamped to two lines, failed entries in red with the detail in Ink 3. The PC chip (30px circle icon, host name, OS version in Ink 3) closes the column.
 - **Top bar:** translucent, screen name in Title at Ink 2, actions right with 8px gaps.
 
 ### Command Results (signature)
@@ -402,6 +402,10 @@ Hardware-aware tweaks: when a rule in `src/lib/hardware.ts` says a tweak does no
 ### Control list
 
 The Control screen reuses the app row (info | tag slot | 176px actions, no checkbox) with descriptions that wrap (`appInfoWrap`) because they must be read in full. Windows Update modes are rows, not cards: the current one carries the jade "Atual" tag and no button; the others offer "Usar". Risky modes confirm inline and always make a restore point first. Moderate and risky notes sit under the row in Ink 2 or red. Windows features show their real state (Ativo, Desligado, Indisponível nesta edição), one change at a time with "Mudando…" and a plain note that it can take minutes; a pending restart is said once above the list. Failures give a plain reason first and the raw Windows message under "Ver detalhes".
+
+### Profile
+
+The Profile screen reuses the app row in two one-row lists: "Exportar" (this PC's count of tweaks on and winget apps, a secondary "Exportar"; once saved, the jade "Salvo" tag and the path in Ink 2 with a ghost "Mostrar na pasta") and "Importar" (the file name and export date, a secondary "Escolher arquivo" that becomes a ghost "Outro arquivo"). A bad file gives one red line saying why, never a dialog. An imported profile opens two checkbox lists, "Ajustes do perfil" and "Apps do perfil", each with "{n} já ... aqui" beside its heading and only what would change on this PC. Tweak rows keep the Access & Risk line; risky tweaks and tweaks that do not fit this hardware start unchecked (checking a risky one opens the inline risky confirm). Rows have no action track (`appLineNoActions`): state lives in the tag slot. The Pending-Changes Dock applies the selection: tweaks first (restore point, forced with a risky tweak), then the apps join the shared install queue.
 
 ### Access & Risk line
 

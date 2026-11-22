@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Package, SlidersHorizontal, Trash2, Wrench, Settings2, Monitor } from "lucide-react";
+import { House, Package, SlidersHorizontal, Trash2, Wrench, Settings2, FolderSync, Monitor } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePcInfo } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
@@ -19,6 +19,7 @@ export const NAV = [
   { key: "cleaner", href: "/cleaner", icon: Trash2 },
   { key: "fixes", href: "/fixes", icon: Wrench },
   { key: "control", href: "/config", icon: Settings2 },
+  { key: "profile", href: "/profile", icon: FolderSync },
 ] as const;
 
 export function Sidebar() {

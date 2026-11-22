@@ -5,6 +5,7 @@ use crate::features::tweaks::{check_admin, create_restore_point, open_system_res
 use crate::features::engine::{get_tweak_states, set_tweak};
 use crate::features::cleaner::run_cleanup;
 use crate::features::hardware::get_hardware;
+use crate::features::profile::save_profile;
 use crate::features::control::{get_features, get_update_mode, set_feature, set_update_mode};
 use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
@@ -48,6 +49,7 @@ pub fn run() {
       set_update_mode,
       get_features,
       set_feature,
+      save_profile,
       open_legacy_panel,
       run_system_fix
     ])
