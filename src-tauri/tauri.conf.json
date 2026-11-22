@@ -1,6 +1,6 @@
 {
   "productName": "Segatt Tools",
-  "version": "1.7.8",
+  "version": "2.0.0",
   "identifier": "com.segatt.tools",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -11,19 +11,19 @@
   "app": {
     "windows": [
       {
-        "title": "Segatt Tools v1.7.8 — RE-ELITE System",
+        "title": "Segatt Tools",
         "width": 1200,
         "height": 800,
         "resizable": true,
         "fullscreen": false,
-        "transparent": true,
+        "transparent": false,
         "shadow": true,
         "decorations": true,
         "center": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     }
   },
   "bundle": {

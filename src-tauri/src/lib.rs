@@ -16,7 +16,6 @@ pub fn run() {
   let mut builder = tauri::Builder::default();
 
   builder = builder
-    .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_opener::init());
 
   if cfg!(debug_assertions) {
