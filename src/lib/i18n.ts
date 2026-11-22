@@ -60,18 +60,6 @@ export const translations = {
     },
     // Cleaner
     cleaner: {
-      title: "Segatt Cleaner",
-      subtitle: "Limpeza profunda para manter o FPS no topo.",
-      restore_btn: "Restaurar Sistema",
-      analyze_btn: "Analisar Sistema",
-      clean_btn: "Executar Limpeza Gamer",
-      cleaning: "Limpando...",
-      success: "Sistema otimizado com sucesso!",
-      safety_first: "Segurança Primeiro",
-      safety_desc: "Um ponto de restauração é recomendado antes de qualquer limpeza.",
-      risky_confirm: "Isso não dá para desfazer. Continuar?",
-      risky_yes: "Apagar", risky_no: "Cancelar",
-      all_skips_risky: "“{btn}” não inclui os itens arriscados: rode cada um no próprio cartão.",
       items: {
         temp: "Arquivos Temporários",
         win_update: "Cache do Windows Update",
@@ -161,7 +149,7 @@ export const translations = {
     },
     cl: {
       title: "Limpeza",
-      lede: "Medido agora no seu PC. Marque o que quer limpar; arquivos em uso ficam e não contam.",
+      lede: "Medido agora no seu PC. Marque o que quer limpar: arquivos em uso ficam, e o resultado mostra o que saiu de verdade.",
       scanning: "Medindo o que dá para liberar…", can_free: "Dá para liberar", rescan: "Medir de novo",
       scan_failed: "Não deu para medir as pastas de limpeza.",
       cleaning: "Limpando…", done_tag: "Feito", freed: "Liberou {size}",
@@ -431,18 +419,6 @@ export const translations = {
     },
     // Cleaner
     cleaner: {
-      title: "Segatt Cleaner",
-      subtitle: "Deep cleaning to keep your FPS at the top.",
-      restore_btn: "Restore System",
-      analyze_btn: "Analyze System",
-      clean_btn: "Run Gamer Cleanup",
-      cleaning: "Cleaning...",
-      success: "System optimized successfully!",
-      safety_first: "Safety First",
-      safety_desc: "A restore point is recommended before any cleaning.",
-      risky_confirm: "This cannot be undone. Continue?",
-      risky_yes: "Delete", risky_no: "Cancel",
-      all_skips_risky: "“{btn}” leaves out the risky items: run each one from its own card.",
       items: {
         temp: "Temporary Files",
         win_update: "Windows Update Cache",
@@ -532,7 +508,7 @@ export const translations = {
     },
     cl: {
       title: "Cleaner",
-      lede: "Measured on your PC just now. Check what to clean; files in use stay and are not counted.",
+      lede: "Measured on your PC just now. Check what to clean: files in use stay, and the result shows what really went.",
       scanning: "Measuring what can be freed…", can_free: "You can free", rescan: "Measure again",
       scan_failed: "Could not measure the cleanup folders.",
       cleaning: "Cleaning…", done_tag: "Done", freed: "Freed {size}",

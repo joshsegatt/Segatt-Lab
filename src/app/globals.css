@@ -196,8 +196,6 @@ button { font: inherit; color: inherit; }
 /* ============================================================
    Legacy screens (restyled in place until each is rebuilt)
    ============================================================ */
-.elite-columns { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; }
-
 .glass-panel {
   background: var(--raise);
   border: 1px solid var(--line);
@@ -220,30 +218,15 @@ button { font: inherit; color: inherit; }
 
 .category-col { background: var(--raise); border: 1px solid var(--line); border-radius: var(--r-l); overflow: hidden; }
 .category-header { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
-.category-title, .category-title-elite { font: 600 15px var(--font-title); color: var(--ink); display: flex; align-items: center; gap: 10px; }
-.category-title-elite { margin-bottom: 12px; }
+.category-title { font: 600 15px var(--font-title); color: var(--ink); display: flex; align-items: center; gap: 10px; }
 
 .item-row { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background 0.15s; }
 .item-row:hover { background: var(--hover); }
 .item-checkbox { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid var(--ink-3); }
 .item-row.selected .item-checkbox { background: var(--brand); border-color: var(--brand); }
 
-.admin-banner-elite {
-  background: var(--danger-soft);
-  border: 1px solid rgba(255, 107, 107, 0.25);
-  padding: 12px 18px; margin: 0 0 20px;
-  border-radius: var(--r-m);
-  display: flex; align-items: center; gap: 12px;
-  color: var(--danger); font-weight: 500;
-}
-
 .tooltip-elite { position: absolute; z-index: 1000; padding: 10px 12px; background: var(--raise-2); border: 1px solid var(--line-2); border-radius: var(--r-s); max-width: 250px; font-size: 12px; box-shadow: var(--shadow-float); pointer-events: none; }
 
-.cleaner-card { display: flex; justify-content: space-between; align-items: center; background: var(--raise); border: 1px solid var(--line); padding: 14px 18px; border-radius: var(--r-m); margin-bottom: 10px; transition: border-color 0.15s, background 0.15s; }
-.cleaner-card:hover { background: var(--raise-2); border-color: var(--line-2); }
-.cleaner-card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-.cleaner-card.completed { border-color: rgba(61, 220, 151, 0.35); }
-.cleaner-card-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin-top: 2px; }
 
 .preset-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .preset-btn {

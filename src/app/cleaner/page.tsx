@@ -88,7 +88,7 @@ export default function CleanerPage() {
               <>{t("cl.can_free")} <b>{formatBytes(total, language)}</b></>
             ) : null}
           </p>
-          <button type="button" className="icon-btn" onClick={scanCleanup} disabled={scanning || busy} aria-label={t("cl.rescan")} title={t("cl.rescan")}>
+          <button type="button" className="icon-btn" onClick={() => scanCleanup(true)} disabled={scanning || busy} aria-label={t("cl.rescan")} title={t("cl.rescan")}>
             {scanning ? <Loader2 size={17} className="animate-spin" /> : <RotateCw size={17} strokeWidth={1.75} />}
           </button>
           <button type="button" className="icon-btn" onClick={() => invoke("open_system_restore").catch(() => undefined)} aria-label={t("tw.system_restore")} title={t("tw.system_restore")}>
@@ -100,7 +100,7 @@ export default function CleanerPage() {
           <div className={styles.status} role="alert">
             <TriangleAlert size={16} aria-hidden="true" />
             {t("cl.scan_failed")}
-            <button type="button" className="btn btn-sm" onClick={scanCleanup}>{t("tw.retry_read")}</button>
+            <button type="button" className="btn btn-sm" onClick={() => scanCleanup(true)}>{t("tw.retry_read")}</button>
           </div>
         )}
 

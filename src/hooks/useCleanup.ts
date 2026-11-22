@@ -31,9 +31,10 @@ function set(next: Partial<Store>) {
   listeners.forEach((l) => l());
 }
 
-export function scanCleanup(): void {
+/** `fresh`: the person asked to measure again, so old "Liberou" results go. */
+export function scanCleanup(fresh = false): void {
   if (store.scanning || store.running) return;
-  set({ scanning: true, scanError: null });
+  set({ scanning: true, scanError: null, ...(fresh ? { results: {} } : {}) });
   invoke<{ id: string; bytes: number | null }[]>("scan_cleanup")
     .then((list) => set({ sizes: Object.fromEntries(list.map((s) => [s.id, s.bytes])), scanning: false }))
     .catch((e) => set({ scanning: false, scanError: String(e) }));

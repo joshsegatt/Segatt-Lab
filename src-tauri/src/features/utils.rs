@@ -106,7 +106,24 @@ pub fn spawn_visible_powershell(task_name: &str, script: &str) -> std::io::Resul
 /// rules as the visible wrapper: any error or non-zero native exit code fails.
 /// Blocking: call it from a blocking thread.
 pub fn run_hidden_powershell(script: &str) -> Result<String, String> {
-    let wrapped = format!(
+    let wrapped = hidden_script(script);
+    let output = silent_cmd("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", &encode_command(&wrapped)])
+        .output()
+        .map_err(|e| format!("Failed to start PowerShell: {e}"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if output.status.success() {
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(if stderr.is_empty() { "PowerShell task failed.".to_string() } else { stderr })
+    }
+}
+
+/// The honest wrapper used by hidden scripts: stop on any error, fail on a
+/// non-zero native exit code, error text on stderr.
+pub fn hidden_script(script: &str) -> String {
+    format!(
         "$ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -120,18 +137,7 @@ try {{
 }}
 exit 0
 "
-    );
-    let output = silent_cmd("powershell")
-        .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", &encode_command(&wrapped)])
-        .output()
-        .map_err(|e| format!("Failed to start PowerShell: {e}"))?;
-    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if output.status.success() {
-        Ok(stdout)
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        Err(if stderr.is_empty() { "PowerShell task failed.".to_string() } else { stderr })
-    }
+    )
 }
 
 /// Runs a program with no window and returns stdout, or stderr/stdout on failure.

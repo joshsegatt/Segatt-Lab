@@ -2,7 +2,11 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
-use crate::features::utils::run_hidden_powershell;
+use crate::features::packages::run_with_timeout;
+use crate::features::utils::{encode_command, hidden_script, run_hidden};
+
+/// A cleanup that runs longer than this is stopped and reported as failed.
+const CLEANUP_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -56,11 +60,15 @@ pub fn targets(id: &str, env: &dyn Fn(&str) -> Option<String>) -> Option<Vec<Tar
             .iter()
             .map(|rest| t(dir("LOCALAPPDATA", rest), Pick::All))
             .collect(),
-        "clean_recycle_bin" => ('A'..='Z')
-            .map(|d| PathBuf::from(format!("{d}:\\$Recycle.Bin")))
-            .filter(|p| p.exists())
-            .map(|root| Some(Target { root, pick: Pick::All }))
-            .collect(),
+        // Clear-RecycleBin empties this account's bin only, so only that one is measured.
+        "clean_recycle_bin" => match env("USER_SID") {
+            Some(sid) => ('A'..='Z')
+                .map(|d| PathBuf::from(format!("{d}:\\$Recycle.Bin")).join(&sid))
+                .filter(|p| p.exists())
+                .map(|root| Some(Target { root, pick: Pick::All }))
+                .collect(),
+            None => Vec::new(),
+        },
         "clean_windows_old" => vec![t(dir("SystemDrive", r"\Windows.old"), Pick::All)],
         "clean_delivery_optimization" => vec![t(
             dir("SystemRoot", r"ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows\DeliveryOptimization\Cache"),
@@ -121,7 +129,16 @@ pub fn size_of(target: &Target, now: SystemTime) -> u64 {
     walk(&target.root, target.pick, deep, now)
 }
 
+/// `whoami /user /fo csv /nh` -> the SID in its last quoted field.
+pub fn parse_sid(output: &str) -> Option<String> {
+    let sid = output.trim().rsplit(',').next()?.trim().trim_matches('"');
+    (sid.starts_with("S-1-") && sid[4..].chars().all(|c| c.is_ascii_digit() || c == '-')).then(|| sid.to_string())
+}
+
 fn system_env(var: &str) -> Option<String> {
+    if var == "USER_SID" {
+        return run_hidden("whoami", &["/user", "/fo", "csv", "/nh"]).ok().as_deref().and_then(parse_sid);
+    }
     std::env::var(var).ok().filter(|v| !v.is_empty())
 }
 
@@ -255,7 +272,16 @@ pub async fn run_cleanup(id: String) -> Result<CleanupResult, String> {
     let (_, script) = cleanup_script(&id).ok_or_else(|| format!("Unknown cleanup task: '{id}'"))?;
     tauri::async_runtime::spawn_blocking(move || {
         let before = measure(&id);
-        run_hidden_powershell(script)?;
+        let args: Vec<String> = ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand"]
+            .iter()
+            .map(|s| s.to_string())
+            .chain([encode_command(&hidden_script(script))])
+            .collect();
+        let out = run_with_timeout("powershell", &args, CLEANUP_TIMEOUT)?;
+        if !out.status.success() {
+            let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+            return Err(if err.is_empty() { "Cleanup failed.".to_string() } else { err });
+        }
         let freed = before.map(|b| b.saturating_sub(measure(&id).unwrap_or(0)));
         Ok(CleanupResult { task_id: id, freed })
     })
@@ -284,6 +310,14 @@ mod tests {
             "SystemDrive" => Some("C:".into()),
             _ => None,
         }
+    }
+
+    #[test]
+    fn reads_the_sid_from_whoami() {
+        let out = "\"desktop-3t4hps2\\joshsegatt\",\"S-1-5-21-111-222-333-1001\"\r\n";
+        assert_eq!(parse_sid(out).as_deref(), Some("S-1-5-21-111-222-333-1001"));
+        assert_eq!(parse_sid("garbage"), None);
+        assert_eq!(parse_sid("\"x\",\"S-1-5-21-..\\evil\""), None);
     }
 
     #[test]
