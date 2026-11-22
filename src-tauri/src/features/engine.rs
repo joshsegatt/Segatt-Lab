@@ -281,7 +281,7 @@ pub fn save_snapshots(path: &Path, snaps: &Snapshots) -> Result<(), String> {
 // ── Registry access ──────────────────────────────────────────────────────────
 
 #[cfg(windows)]
-mod regio {
+pub(crate) mod regio {
     use super::{Hive, RegData};
     use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE};
     use winreg::{RegKey, RegValue};
@@ -357,7 +357,7 @@ mod regio {
 }
 
 #[cfg(not(windows))]
-mod regio {
+pub(crate) mod regio {
     use super::{Hive, RegData};
     fn no() -> std::io::Error {
         std::io::Error::new(std::io::ErrorKind::Unsupported, "registry is Windows-only")

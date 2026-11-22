@@ -87,7 +87,7 @@ pub struct Hardware {
 }
 
 /// PowerShell turns a one-item list into a bare object; accept both (and null).
-fn one_or_many<'de, D, T>(d: D) -> Result<Vec<T>, D::Error>
+pub(crate) fn one_or_many<'de, D, T>(d: D) -> Result<Vec<T>, D::Error>
 where
     D: Deserializer<'de>,
     T: Deserialize<'de>,
