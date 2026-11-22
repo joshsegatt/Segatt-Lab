@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Gamepad2, ShieldCheck, Trash2, Wrench } from "lucide-react";
+import { Gamepad2, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSystemStats } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
+import { countUpdates, useApps } from "@/hooks/useApps";
 import { Composer } from "@/features/home/Composer";
 import { TWEAKS, tweaksInPreset } from "@/lib/tweaks-catalog";
 import { fmt } from "@/lib/fmt";
@@ -17,6 +18,8 @@ export default function Home() {
   const { t, language } = useLanguage();
   const stats = useSystemStats();
   const { states } = useTweakStates();
+  const installedApps = useApps().installed;
+  const appUpdates = countUpdates(installedApps);
   const activeTweaks = countActive(states, TWEAKS.map((tw) => tw.id));
   // Pills say how many tweaks of the preset are still off on this PC.
   const presetDetail = (key: "gaming" | "privacy") => {
@@ -35,8 +38,9 @@ export default function Home() {
   const suggestions = [
     { href: "/tweaks?preset=gaming", icon: Gamepad2, label: t("home.sug_gaming"), detail: presetDetail("gaming") },
     { href: "/tweaks?preset=privacy", icon: ShieldCheck, label: t("home.sug_privacy"), detail: presetDetail("privacy") },
+    // Fixed slot: the count fills in once winget has been read, the pill never swaps.
+    { href: "/install?view=updates", icon: RefreshCw, label: t("home.sug_update"), detail: installedApps ? (appUpdates > 0 ? fmt(t("home.n_apps"), { n: appUpdates }) : t("home.up_to_date")) : undefined },
     { href: "/cleaner", icon: Trash2, label: t("home.sug_clean") },
-    { href: "/fixes", icon: Wrench, label: t("home.sug_repair") },
   ];
 
   return (
