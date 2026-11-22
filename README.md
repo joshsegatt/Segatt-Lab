@@ -62,7 +62,9 @@ Copilot, News, Bing Search, Solitaire, the Xbox Game Bar, Teams, OneDrive and mo
 
 ### Cleaner: measured on your PC before you clean
 
-13 cleanups: temporary files, Windows Update downloads, Prefetch, the DNS cache, shader caches, thumbnails, Delivery Optimization, logs and dumps, Windows.old, the Recycle Bin, and the caches of Chrome, Edge, Brave, Firefox, Discord and Steam. Logins, history and passwords are never touched.
+18 cleanups: temporary files, Windows Update downloads, Prefetch, the DNS cache, shader caches, thumbnails, Delivery Optimization, logs and dumps, Windows.old, the Recycle Bin, and the caches of Chrome, Edge, Brave, Firefox, Discord and Steam. Logins, history and passwords are never touched.
+
+For developers: npm, Yarn, pip and NuGet caches, VS Code and Gradle caches, and what old Android Studio, JetBrains IDE and Android SDK versions left behind (the newest of each stays). They show up only on a PC that has those tools.
 
 <img src="docs/assets/cleaner.png" alt="Cleaner screen showing how much each cleanup can free" width="900">
 
