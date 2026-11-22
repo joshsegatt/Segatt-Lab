@@ -278,10 +278,10 @@ pub async fn list_startup() -> Result<Vec<StartupItem>, String> {
     tauri::async_runtime::spawn_blocking(list).await.map_err(|e| format!("Runtime error: {e}"))
 }
 
-/// Turns one item on or off, then reads the list again. Only items that exist
+/// Turns one item on or off and reads its switch back. Only items that exist
 /// can be changed; machine-wide ones need administrator.
 #[tauri::command]
-pub async fn set_startup(id: String, enabled: bool) -> Result<Vec<StartupItem>, String> {
+pub async fn set_startup(id: String, enabled: bool) -> Result<bool, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let (key, name) = id.split_once('|').ok_or_else(|| format!("Bad startup id: '{id}'"))?;
         let source = Source::from_key(key).ok_or_else(|| format!("Bad startup source: '{key}'"))?;
@@ -296,10 +296,12 @@ pub async fn set_startup(id: String, enabled: bool) -> Result<Vec<StartupItem>, 
                 e.to_string()
             }
         })?;
-        let items = list();
-        match items.iter().find(|i| i.id == id) {
-            Some(i) if i.enabled == enabled => Ok(items),
-            _ => Err("Windows did not keep the change.".into()),
+        // Only this item's switch is read back; the slow publisher lookup is not redone.
+        let now = approved_enabled(reg::approved(source, name).as_deref());
+        if now == enabled {
+            Ok(now)
+        } else {
+            Err("Windows did not keep the change.".into())
         }
     })
     .await

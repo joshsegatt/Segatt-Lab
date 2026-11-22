@@ -46,7 +46,8 @@ export async function switchStartup(id: string, enabled: boolean): Promise<boole
   delete errors[id];
   set({ busy: id, errors });
   try {
-    set({ items: await invoke<StartupItem[]>("set_startup", { id, enabled }) });
+    const now = await invoke<boolean>("set_startup", { id, enabled });
+    set({ items: store.items?.map((i) => (i.id === id ? { ...i, enabled: now } : i)) ?? null });
     return true;
   } catch (e) {
     set({ errors: { ...store.errors, [id]: { msg: String(e), at: Date.now() } } });

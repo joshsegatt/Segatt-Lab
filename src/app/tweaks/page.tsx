@@ -92,7 +92,9 @@ export default function TweaksPage() {
 
   const riskOf = (id: string) => TWEAKS.find((tw) => tw.id === id)?.risk ?? "safe";
   // Above-level tweaks stay listed while on or pending, so they can be undone.
-  const listedAt = (tw: (typeof TWEAKS)[number]) => showsTweak(level, tw.risk, isActive(tw.id) || tw.id in pending);
+  // A service this PC does not have (Fax is optional) reads as unknown: nothing to switch, so it is not listed.
+  const notInstalled = (tw: (typeof TWEAKS)[number]) => tw.group === "services" && states?.[tw.id]?.status === "unknown";
+  const listedAt = (tw: (typeof TWEAKS)[number]) => !notInstalled(tw) && showsTweak(level, tw.risk, isActive(tw.id) || tw.id in pending);
   const listed = visible.filter(listedAt);
   const hiddenCount = TWEAKS.filter((tw) => !listedAt(tw)).length;
 
