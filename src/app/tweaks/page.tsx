@@ -11,7 +11,7 @@ import { PRESETS, TWEAKS, tweaksInPreset, type PresetKey, type TweakGroup } from
 import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
-import styles from "@/features/tweaks/Tweaks.module.css";
+import styles from "@/components/ui/Screen.module.css";
 
 const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
 type Pending = Record<string, boolean>;
