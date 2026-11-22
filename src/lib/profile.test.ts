@@ -32,6 +32,9 @@ test("anything that is not a profile is refused with a reason", () => {
   assert.deepEqual(parseProfile("[]"), { ok: false, error: "not_profile" });
   assert.deepEqual(parseProfile(JSON.stringify({ format: "other", version: 1 })), { ok: false, error: "not_profile" });
   assert.deepEqual(parseProfile(JSON.stringify({ format: "segatt-tools-profile", version: 2, tweaks: ["dark_mode"] })), { ok: false, error: "newer" });
+  for (const version of [0, -1, 1.5, "1"]) {
+    assert.deepEqual(parseProfile(JSON.stringify({ format: "segatt-tools-profile", version, tweaks: ["dark_mode"] })), { ok: false, error: "not_profile" }, String(version));
+  }
   assert.deepEqual(parseProfile(JSON.stringify({ format: "segatt-tools-profile", version: 1, tweaks: [], apps: [] })), { ok: false, error: "empty" });
   assert.deepEqual(parseProfile(" ".repeat(MAX_PROFILE_BYTES + 1)), { ok: false, error: "too_big" });
 });
@@ -68,14 +71,15 @@ test("import plan skips what this PC already has and holds back risky and off-pr
     format: "segatt-tools-profile",
     version: 1,
     exportedAt: "",
-    tweaks: ["dark_mode", "show_hidden_files", "disable_windows_update", "high_performance_plan"],
+    tweaks: ["dark_mode", "show_hidden_files", "disable_windows_update", "high_performance_plan", "set_dns_cloudflare"],
     apps: [{ id: "Git.Git", name: "Git" }, { id: "Valve.Steam", name: "Steam" }],
   };
   const laptop = { laptop: true, systemDisk: null } as unknown as Hardware;
-  const plan = planImport(profile, STATES, INSTALLED, laptop);
+  const plan = planImport(profile, { ...STATES, set_dns_cloudflare: st("set_dns_cloudflare", "unknown") }, INSTALLED, laptop);
   assert.equal(plan.tweaksDone, 1);
   assert.deepEqual(plan.tweaks.map((p) => [p.tweak.id, p.pick, p.why]), [
     ["high_performance_plan", false, "not_for_pc"],
+    ["set_dns_cloudflare", false, "unknown"],
     ["show_hidden_files", true, null],
     ["disable_windows_update", false, "risky"],
   ]);

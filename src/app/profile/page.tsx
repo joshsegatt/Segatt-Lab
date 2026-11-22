@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const { t, language } = useLanguage();
   const { states } = useTweakStates();
   const { installed, error: appsError } = useApps();
-  const { hw } = useHardware();
+  const { hw, error: hwError } = useHardware();
   const admin = useIsAdmin();
   const queue = useAppQueue();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [importError, setImportError] = useState<ParseError | "read" | null>(null);
-  const [loaded, setLoaded] = useState<{ file: string; plan: ImportPlan; dropped: number; exportedAt: string } | null>(null);
+  const [loaded, setLoaded] = useState<{ file: string; plan: ImportPlan; dropped: number; exportedAt: string; appsUnread: boolean } | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [confirmRisky, setConfirmRisky] = useState<string | null>(null);
   const [restoreFirst, setRestoreFirst] = useState(true);
@@ -57,6 +57,8 @@ export default function ProfilePage() {
   const activeCount = states ? Object.values(states).filter((s) => s.status === "active").length : 0;
   const appsRead = installed !== null || appsError !== null;
   const canExport = states !== null && appsRead && !saving;
+  // The plan's picks depend on all three readings (tweaks, apps, hardware).
+  const canImport = states !== null && appsRead && (hw !== null || hwError !== null);
 
   const exportProfile = async () => {
     if (!states) return;
@@ -93,8 +95,10 @@ export default function ProfilePage() {
       setImportError(parsed.error);
       return;
     }
-    const plan = planImport(parsed.profile, states ?? {}, installed ?? {}, hw);
-    setLoaded({ file: file.name, plan, dropped: parsed.dropped, exportedAt: parsed.profile.exportedAt });
+    // Without this PC's app list every app would look missing: leave apps out.
+    const profile = installed ? parsed.profile : { ...parsed.profile, apps: [] };
+    const plan = planImport(profile, states ?? {}, installed ?? {}, hw);
+    setLoaded({ file: file.name, plan, dropped: parsed.dropped, exportedAt: parsed.profile.exportedAt, appsUnread: !installed && parsed.profile.apps.length > 0 });
     setPicked(new Set([...plan.tweaks.filter((p) => p.pick).map((p) => `t:${p.tweak.id}`), ...plan.apps.map((a) => `a:${key(a.id)}`)]));
     setFailed({});
     setConfirmRisky(null);
@@ -141,8 +145,10 @@ export default function ProfilePage() {
         try {
           await invoke("create_restore_point");
         } catch (e) {
+          // No tweak runs without its restore point; apps never needed one.
           setBusyNote(null);
           setToast({ kind: "error", msg: fmt(t("tw.restore_failed"), { msg: String(e) }) });
+          if (appJobs.length) enqueue(appJobs.map((a) => ({ id: a.id, name: a.name, action: "install" as const })));
           return;
         }
       }
@@ -239,7 +245,7 @@ export default function ProfilePage() {
                       if (f) void openFile(f);
                     }}
                   />
-                  <button type="button" className={`btn btn-sm ${loaded ? "btn-ghost" : "btn-secondary"}`} onClick={() => fileInput.current?.click()} disabled={!states || !appsRead || busy}>
+                  <button type="button" className={`btn btn-sm ${loaded ? "btn-ghost" : "btn-secondary"}`} onClick={() => fileInput.current?.click()} disabled={!canImport || busy}>
                     <FileUp size={14} aria-hidden="true" /> {loaded ? t("pf.other_file") : t("pf.choose")}
                   </button>
                 </div>
@@ -300,6 +306,9 @@ export default function ProfilePage() {
                           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmRisky(null)}>{t("tw.risky_no")}</button>
                         </p>
                       )}
+                      {!done && why === "unknown" && st?.reason && (
+                        <p className={styles.reason} style={{ margin: "-4px 18px 12px" }}>{st.reason}</p>
+                      )}
                       {!done && why === "not_for_pc" && (
                         <p className={`${styles.riskNote} ${styles.riskModerate}`} style={{ margin: "-4px 18px 12px" }}>
                           <Cpu size={13} aria-hidden="true" />{hardwareHint(tw.id, hw)?.note[language]}
@@ -330,7 +339,7 @@ export default function ProfilePage() {
               <span>{fmt(t("pf.already_apps"), { n: plan.appsDone })}</span>
             </div>
             {plan.apps.length === 0 ? (
-              <p className={styles.reason} style={{ margin: "0 4px" }}>{t("pf.apps_none")}</p>
+              <p className={styles.reason} style={{ margin: "0 4px" }}>{t(loaded.appsUnread ? "pf.apps_unread" : "pf.apps_none")}</p>
             ) : (
               <ul className={styles.list}>
                 {plan.apps.map((a) => {

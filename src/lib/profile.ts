@@ -64,8 +64,9 @@ export function parseProfile(text: string): Parsed {
   } catch {
     return { ok: false, error: "not_json" };
   }
-  if (!isObj(raw) || raw.format !== PROFILE_FORMAT || typeof raw.version !== "number") return { ok: false, error: "not_profile" };
-  if (raw.version > PROFILE_VERSION) return { ok: false, error: "newer" };
+  if (!isObj(raw) || raw.format !== PROFILE_FORMAT || !Number.isInteger(raw.version) || (raw.version as number) < 1) return { ok: false, error: "not_profile" };
+  const version = raw.version as number;
+  if (version > PROFILE_VERSION) return { ok: false, error: "newer" };
 
   let dropped = 0;
   const tweaks: string[] = [];
@@ -87,10 +88,10 @@ export function parseProfile(text: string): Parsed {
   }
   if (!tweaks.length && !apps.length) return { ok: false, error: "empty" };
   const exportedAt = typeof raw.exportedAt === "string" && !Number.isNaN(Date.parse(raw.exportedAt)) ? raw.exportedAt : "";
-  return { ok: true, profile: { format: PROFILE_FORMAT, version: raw.version, exportedAt, tweaks, apps }, dropped };
+  return { ok: true, profile: { format: PROFILE_FORMAT, version, exportedAt, tweaks, apps }, dropped };
 }
 
-export interface PlannedTweak { tweak: TweakDef; pick: boolean; why: "risky" | "not_for_pc" | null }
+export interface PlannedTweak { tweak: TweakDef; pick: boolean; why: "risky" | "not_for_pc" | "unknown" | null }
 export interface ImportPlan {
   tweaks: PlannedTweak[];
   apps: ProfileApp[];
@@ -100,8 +101,9 @@ export interface ImportPlan {
 }
 
 /**
- * What importing would change here. Risky tweaks and tweaks that do not fit
- * this hardware come unpicked: the user turns them on knowingly.
+ * What importing would change here. Risky tweaks, tweaks that do not fit this
+ * hardware and tweaks this PC cannot read come unpicked: the user turns them
+ * on knowingly.
  */
 export function planImport(
   profile: Profile,
@@ -117,7 +119,7 @@ export function planImport(
       tweaksDone++;
       continue;
     }
-    const why = tw.risk === "risky" ? "risky" : hardwareHint(tw.id, hw)?.skip ? "not_for_pc" : null;
+    const why = tw.risk === "risky" ? "risky" : hardwareHint(tw.id, hw)?.skip ? "not_for_pc" : states[tw.id]?.status === "unknown" ? "unknown" : null;
     tweaks.push({ tweak: tw, pick: why === null, why });
   }
   const apps = profile.apps.filter((a) => !installed[a.id.toLowerCase()]);
