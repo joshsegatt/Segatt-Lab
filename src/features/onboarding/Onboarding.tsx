@@ -10,6 +10,7 @@ import { APP_MASCOT, APP_NAME } from "@/lib/brand";
 import { fmt } from "@/lib/fmt";
 import styles from "./Onboarding.module.css";
 import { localize } from "@/lib/i18n";
+import { LanguageMenu } from "@/features/navigation/components/LanguageMenu";
 
 const STEPS: { title: string; lede: string; rows?: [LucideIcon, string, string][] }[] = [
   {
@@ -60,6 +61,7 @@ export function Onboarding() {
 
   return (
     <div className={styles.screen} role="dialog" aria-modal="true" aria-labelledby="ob-title">
+      <div className={styles.lang}><LanguageMenu labeled /></div>
       <div className={styles.col}>
         <div key={step} className={styles.body}>
           {step === 0 && <Image className={styles.mark} src={APP_MASCOT} alt="" width={112} height={112} priority />}
