@@ -52,6 +52,38 @@ export function updateTweakState(state: TweakState) {
   emit({ states: { ...(store.states ?? {}), [state.id]: state } });
 }
 
+/** Known engine errors in the user's language; anything else is shown as is. */
+export function explainTweakError(msg: string, t: (path: string) => string): string {
+  if (/access denied|acesso negado|administrator/i.test(msg)) return t("tw.err_access");
+  if (/did not keep/i.test(msg)) return t("tw.err_not_kept");
+  if (/may be left changed/i.test(msg)) return t("tw.err_partial");
+  if (/could not be restored/i.test(msg)) return t("tw.err_restore");
+  if (/no active network adapter/i.test(msg)) return t("tw.err_no_adapter");
+  if (/not available on this pc/i.test(msg)) return t("tw.err_power");
+  return msg;
+}
+
+export type TweakFailures = Record<string, { msg: string; at: number }>;
+
+/**
+ * Applies changes one at a time (the engine is not built for parallel writes),
+ * storing each verified state. Returns the ones that failed.
+ */
+export async function applyTweaks(entries: [string, boolean][], onWorking: (id: string | null) => void): Promise<TweakFailures> {
+  const failed: TweakFailures = {};
+  for (const [id, enabled] of entries) {
+    onWorking(id);
+    try {
+      updateTweakState(await invoke<TweakState>("set_tweak", { id, enabled }));
+    } catch (e) {
+      failed[id] = { msg: String(e), at: Date.now() };
+    }
+  }
+  onWorking(null);
+  void refreshTweakStates();
+  return failed;
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   if (!store.states && !store.loading) void refreshTweakStates();
