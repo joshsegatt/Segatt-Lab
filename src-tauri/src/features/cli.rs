@@ -1,4 +1,4 @@
-//! `"Segatt Tools.exe" --profile C:\path\profile.json` applies a profile with
+//! `"Segatt Lab.exe" --profile C:\path\profile.json` applies a profile with
 //! no window: the same file the Profile screen exports, and the same choices
 //! it makes by default. A restore point comes first; risky tweaks, tweaks that
 //! do not fit this hardware and tweaks this PC cannot read are left out and
@@ -19,7 +19,7 @@ const VERSION: u64 = 1;
 const MAX_BYTES: u64 = 512 * 1024;
 const MAX_APPS: usize = 1000;
 const MAX_NAME: usize = 200;
-const NOT_PROFILE: &str = "This file is not a Segatt Tools profile.";
+const NOT_PROFILE: &str = "This file is not a Segatt Lab profile.";
 
 /// Tweaks marked risk: "risky" in src/lib/tweaks-catalog.ts. An import never
 /// turns them on by itself.
@@ -62,7 +62,7 @@ pub fn parse_profile(text: &str) -> Result<Profile, String> {
     }
     let version = obj.get("version").and_then(|v| v.as_u64()).filter(|&v| v >= 1).ok_or(NOT_PROFILE)?;
     if version > VERSION {
-        return Err("This profile comes from a newer Segatt Tools. Update the app first.".into());
+        return Err("This profile comes from a newer Segatt Lab. Update the app first.".into());
     }
 
     let known: HashSet<&str> = engine::specs().iter().map(|s| s.id).collect();
@@ -128,7 +128,7 @@ fn apply(path: &Path, out: &mut Out) -> i32 {
             return 2;
         }
     };
-    out.line(format!("Segatt Tools: applying {}", path.display()));
+    out.line(format!("Segatt Lab: applying {}", path.display()));
     if profile.dropped > 0 {
         out.line(format!("{} entries in the file were left out: unknown to this version or malformed.", profile.dropped));
     }
@@ -268,7 +268,7 @@ fn cli(args: impl Iterator<Item = String>, log_dir: Option<&Path>) -> Option<i32
     let code = match args.get(at + 1) {
         Some(file) => apply(Path::new(file), &mut out),
         None => {
-            out.line("Usage: \"Segatt Tools.exe\" --profile C:\\path\\profile.json");
+            out.line("Usage: \"Segatt Lab.exe\" --profile C:\\path\\profile.json");
             2
         }
     };

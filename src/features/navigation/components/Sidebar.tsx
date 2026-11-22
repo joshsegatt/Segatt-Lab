@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Package, PackageMinus, SlidersHorizontal, Power, Trash2, Wrench, Settings2, FolderSync, Monitor, Usb } from "lucide-react";
@@ -42,7 +43,7 @@ export function Sidebar() {
   return (
     <aside className={styles.side}>
       <Link href="/" className={styles.brand} aria-label={APP_NAME}>
-        <span className={styles.mark} aria-hidden="true">{APP_MARK}</span>
+        <Image className={styles.mark} src={APP_MARK} alt="" width={32} height={32} priority />
         <span className={styles.name}>{APP_NAME}</span>
       </Link>
 

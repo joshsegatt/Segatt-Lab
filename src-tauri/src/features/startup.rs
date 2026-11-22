@@ -291,7 +291,7 @@ pub async fn set_startup(id: String, enabled: bool) -> Result<bool, String> {
         }
         reg::set_approved(source, name, approved_bytes(enabled, now_filetime())).map_err(|e| {
             if e.kind() == std::io::ErrorKind::PermissionDenied {
-                "Access denied: open Segatt Tools as administrator.".to_string()
+                "Access denied: open Segatt Lab as administrator.".to_string()
             } else {
                 e.to_string()
             }

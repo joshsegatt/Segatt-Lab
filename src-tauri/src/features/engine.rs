@@ -419,7 +419,7 @@ pub(crate) mod regio {
 
 fn io_message(e: &std::io::Error) -> String {
     if e.kind() == std::io::ErrorKind::PermissionDenied {
-        "Access denied: open Segatt Tools as administrator.".to_string()
+        "Access denied: open Segatt Lab as administrator.".to_string()
     } else {
         e.to_string()
     }

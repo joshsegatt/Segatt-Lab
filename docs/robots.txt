@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://joshsegatt.github.io/Segatt-Tools/sitemap.xml
