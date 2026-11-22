@@ -8,6 +8,7 @@ const ui = {
       performance: "Performance",
       interface: "Interface",
       system: "System",
+      services: "Services",
     },
   },
   fx: {
@@ -114,6 +115,23 @@ const ui = {
     done: "{n} apps removed.",
     done_some: "Removed: {ok} · failed: {n}.",
     history: "Debloat",
+  },
+  su: {
+    title: "Startup",
+    lede: "What opens with Windows. Turning an item off keeps it installed; it just stops starting by itself, the same switch as Task Manager.",
+    reading: "Reading what opens with Windows…",
+    summary: "of {m} open with Windows",
+    reread: "Read again",
+    read_failed: "Could not read the startup apps.",
+    empty: "Nothing opens with Windows on this PC.",
+    changing: "Changing…",
+    on: "Opens with Windows",
+    off: "Off",
+    failed_at: "Failed at {time}.",
+    note: "Changes take effect the next time you sign in.",
+    not_admin: "Without administrator, items for the whole PC cannot be changed.",
+    history_on: "{name} opens with Windows",
+    history_off: "{name} no longer opens with Windows",
   },
   cl: {
     title: "Cleaner",
@@ -225,7 +243,7 @@ const ui = {
     tweaks: "Tweaks",
     cleaner: "Cleaner",
     fixes: "Fixes",
-    control: "Control", debloat: "Debloat",
+    control: "Control", debloat: "Debloat", startup: "Startup",
     profile: "Profile",
   },
   shell: {
@@ -296,6 +314,7 @@ const ui = {
     screen_control: "Windows Update and Windows features",
     screen_profile: "Export and import tweaks and apps",
     screen_debloat: "Remove apps Windows ships with",
+    screen_startup: "What opens with Windows",
     fix_sub: "Windows repair",
     cleanup_sub: "Cleanup",
   },
@@ -447,6 +466,7 @@ const ui = {
 /** English catalog texts live in the catalogs themselves (src/lib/*.ts). */
 /** "one" forms; Plurals type lives in i18n.ts, which imports this file. */
 const plural: Record<string, Partial<Record<Intl.LDMLPluralRule, string>>> = {
+  "su.summary": { one: "of {m} opens with Windows" },
   "db.installed_here": { one: "of these apps is installed here" },
   "db.dock": { one: "{n} app" },
   "db.done": { one: "{n} app removed." },

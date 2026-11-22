@@ -59,6 +59,9 @@
 /* Rows whose description must be read in full (Control). */
 .appInfo.appInfoWrap small { white-space: normal; }
 .dockForced { color: var(--ink-3); }
+.infoStatic { cursor: default; }
+.infoStatic:hover { background: none; }
+.command { font: 12px var(--font-mono) !important; color: var(--ink-3) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .linkBtn {
   border: 0; background: none; cursor: pointer; padding: 0;
   color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font: inherit;
