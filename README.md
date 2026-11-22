@@ -7,12 +7,12 @@
 **Tune, debloat, clean and repair Windows 10 and 11, and watch it happen.**<br>
 While your changes really apply, Doc runs through a giant PC and fixes each part they touch. Every tweak shows its live state first and goes back to its original value in one click.
 
-[![Latest release](https://img.shields.io/github/v/release/joshsegatt/Segatt-Tools?label=download&color=3ddc97)](https://github.com/joshsegatt/Segatt-Tools/releases/latest)
-[![CI](https://github.com/joshsegatt/Segatt-Tools/actions/workflows/ci.yml/badge.svg)](https://github.com/joshsegatt/Segatt-Tools/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/joshsegatt/Segatt-Lab?label=download&color=3ddc97)](https://github.com/joshsegatt/Segatt-Lab/releases/latest)
+[![CI](https://github.com/joshsegatt/Segatt-Lab/actions/workflows/ci.yml/badge.svg)](https://github.com/joshsegatt/Segatt-Lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-3ddc97)](LICENSE)
 ![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4)
 
-[Download](https://github.com/joshsegatt/Segatt-Tools/releases/latest) · [Website](https://joshsegatt.github.io/Segatt-Tools/) · [Features](#features) · [Safety](#how-it-keeps-your-pc-safe) · [FAQ](#faq)
+[Download](https://github.com/joshsegatt/Segatt-Lab/releases/latest) · [Website](https://joshsegatt.github.io/Segatt-Lab/) · [Features](#features) · [Safety](#how-it-keeps-your-pc-safe) · [FAQ](#faq)
 
 <img src="docs/assets/lab-scene.gif" alt="The lab scene: Doc runs to the processor, memory and graphics card of a giant PC while the Gaming preset applies, each part lighting up as Windows confirms it" width="900">
 
@@ -23,12 +23,12 @@ While your changes really apply, Doc runs through a giant PC and fixes each part
 Open **PowerShell** and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/joshsegatt/Segatt-Tools/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/joshsegatt/Segatt-Lab/main/install.ps1 | iex
 ```
 
 The script downloads the latest installer from GitHub Releases, checks its SHA-256 against the one GitHub publishes, and runs it. [Read it first](install.ps1) if you like; it is 28 lines.
 
-Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/Segatt-Tools/releases/latest) yourself.
+Or download the `.exe` or `.msi` from [Releases](https://github.com/joshsegatt/Segatt-Lab/releases/latest) yourself.
 
 ## Why Segatt Lab
 
@@ -135,8 +135,8 @@ Yes, Windows 10 and 11.
 
 ```bash
 # Node 22.6+, Rust stable, the Tauri prerequisites for Windows
-git clone https://github.com/joshsegatt/Segatt-Tools.git
-cd Segatt-Tools
+git clone https://github.com/joshsegatt/Segatt-Lab.git
+cd Segatt-Lab
 npm ci
 npm run tauri build
 ```

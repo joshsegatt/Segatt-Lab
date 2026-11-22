@@ -53,7 +53,7 @@ The reference competitor is Chris Titus Tech's WinUtil (PowerShell + WPF script,
 
 ## Evidence on Hand
 
-- MIT-licensed source on GitHub (joshsegatt/Segatt-Tools), public releases since v1.0.1; latest v1.7.8.
+- MIT-licensed source on GitHub (joshsegatt/Segatt-Lab), public releases since v1.0.1; latest v1.7.8.
 - No user testimonials, download milestones, benchmarks or FPS gains have been measured. Do not state performance numbers or user counts in the product.
 
 ## Product Principles
