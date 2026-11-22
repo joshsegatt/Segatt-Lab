@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useLevel } from "@/hooks/useLevel";
+import { showsAction } from "@/lib/level";
 import { recordActivity } from "@/lib/history";
 import { riskOfAction } from "@/lib/action-risk";
 import { RiskLine } from "@/components/ui/RiskLine";
@@ -27,6 +29,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 // ─── Main Page ───────────────────────────────────────────────
 export default function CleanerPage() {
   const { t, language } = useLanguage();
+  const { level } = useLevel();
   const [running, setRunning] = useState<string | null>(null);
   const [confirmRisky, setConfirmRisky] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,7 +38,7 @@ export default function CleanerPage() {
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
 
-  const CLEANUP_TASKS = [
+  const ALL_TASKS = [
     { id: "clean_temp", name: t("cleaner.items.temp"), description: "Remove %TEMP% and system temporary files.", category: "Basic" },
     { id: "clean_recycle_bin", name: t("cleaner.items.recycle_bin"), description: "Empties the recycle bin from all drives.", category: "Basic" },
     { id: "clean_prefetch", name: t("cleaner.items.prefetch"), description: "Clears Prefetch folder for consistency.", category: "System" },
@@ -47,6 +50,10 @@ export default function CleanerPage() {
     { id: "clean_windows_update", name: t("cleaner.items.win_update"), description: "Deletes old update files and logs.", category: "System" },
     { id: "clean_shader_cache", name: t("cleaner.items.shader"), description: "Resets DirectX shader cache to fix stuttering.", category: "Gaming" },
   ];
+
+  // Risky cleanups wait for the Advanced level.
+  const CLEANUP_TASKS = ALL_TASKS.filter((c) => showsAction(level, riskOfAction(c.id).risk));
+  const hiddenTasks = ALL_TASKS.length - CLEANUP_TASKS.length;
 
   const openSystemRestore = async () => {
     try { await invoke("open_system_restore"); } catch {}
@@ -155,7 +162,9 @@ export default function CleanerPage() {
         </div>
       </PageHeader>
 
-      <p className="cleaner-card-desc" style={{ margin: "0 0 12px" }}>{fmt(t("cleaner.all_skips_risky"), { btn: t("cleaner.clean_btn") })}</p>
+      <p className="cleaner-card-desc" style={{ margin: "0 0 12px" }}>
+        {hiddenTasks > 0 ? fmt(t("lv.hidden_actions"), { n: hiddenTasks }) : fmt(t("cleaner.all_skips_risky"), { btn: t("cleaner.clean_btn") })}
+      </p>
 
       {!safetyConfirmed && (
         <div className="admin-banner-elite">

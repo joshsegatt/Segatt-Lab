@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Loader2, RotateCw, TriangleAlert } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useLevel } from "@/hooks/useLevel";
+import { showsAction } from "@/lib/level";
 import { readControl, setFeature, setUpdateMode, useControl } from "@/hooks/useControl";
 import { FEATURES, UPDATE_MODES, type UpdateModeDef } from "@/lib/control";
 import type { Risk } from "@/lib/tweaks-catalog";
@@ -12,6 +14,7 @@ import styles from "@/components/ui/Screen.module.css";
 export default function ControlPage() {
   const { t, language } = useLanguage();
   const { update, features, readError, busy, errors, requested } = useControl();
+  const { level } = useLevel();
   const [confirmMode, setConfirmMode] = useState<string | null>(null);
   const [confirmOff, setConfirmOff] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState<Set<string>>(new Set());
@@ -92,7 +95,7 @@ export default function ControlPage() {
             </div>
             {update.mode === "custom" && <p className={styles.reason} style={{ margin: "0 4px 10px" }}>{t("ct.custom")}</p>}
             <ul className={styles.list}>
-              {UPDATE_MODES.map((m) => {
+              {UPDATE_MODES.filter((m) => showsAction(level, m.risk, update.mode === m.id)).map((m) => {
                 const current = update.mode === m.id;
                 const blocked = m.id === "security" && !update.deferralSupported;
                 const running = busy === `update:${m.id}`;
