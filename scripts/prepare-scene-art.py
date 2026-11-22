@@ -4,7 +4,7 @@
 
 For each character sheet: removes a flat or checkerboard background, finds the
 frames, crops them, puts the feet on one baseline in equal cells and saves a
-WebP strip to public/scene. props.png becomes 7 equal cells; bg.png is resized.
+WebP strip to public/scene. the props (props.png, or board.png ... net.png) become 7 equal cells; bg.png is resized.
 Needs Pillow.
 """
 
@@ -16,6 +16,7 @@ from PIL import Image
 
 OUT = Path(__file__).resolve().parent.parent / "public" / "scene"
 SHEETS = {"idle": 4, "run": 6, "work": 4, "cheer": 4, "shock": 4}
+STATIONS = ["board", "cpu", "ram", "gpu", "display", "disk", "net"]  # src/lib/scene.ts order
 CELL_H = 440  # sprite cell height: twice the on-screen height, for sharp HiDPI
 PROP_H = 400
 
@@ -102,11 +103,24 @@ def main(src: Path) -> None:
         s = strip(split(clear_background(Image.open(f)), n), CELL_H)
         s.save(OUT / f"{name}.webp", "WEBP", quality=92, method=6)
         print(f"{name}: {n} frames, {s.width}x{s.height}")
+    # Props: one sheet with 7 cells, or one file per station (board.png ... net.png).
     props = src / "props.png"
-    if props.exists():
-        p = strip(split(clear_background(Image.open(props)), 7), PROP_H)
+    singles = [src / f"{s}.png" for s in STATIONS]
+    frames = None
+    if all(f.exists() for f in singles):
+        frames = []
+        for f in singles:
+            im = clear_background(Image.open(f))
+            box = im.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
+            frames.append(im.crop(box) if box else im)
+    elif props.exists():
+        frames = split(clear_background(Image.open(props)), 7)
+    if frames:
+        p = strip(frames, PROP_H)
         p.save(OUT / "props.webp", "WEBP", quality=92, method=6)
         print(f"props: 7 cells, {p.width}x{p.height}")
+    else:
+        print("skip props: need props.png or all of " + ", ".join(f"{s}.png" for s in STATIONS))
     bg = src / "bg.png"
     if bg.exists():
         b = Image.open(bg).convert("RGB")
