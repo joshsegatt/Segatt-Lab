@@ -56,6 +56,8 @@
 .riskNote svg { flex: none; margin-top: 2px; }
 .confirm.confirmRisky svg { color: var(--danger); }
 .confirmText { flex: 1 1 320px; }
+/* Rows whose description must be read in full (Control). */
+.appInfo.appInfoWrap small { white-space: normal; }
 .dockForced { color: var(--ink-3); }
 .dockForced::before { content: "— "; }
 
