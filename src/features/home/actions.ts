@@ -14,20 +14,20 @@ import { localize } from "@/lib/i18n";
 type T = (path: string) => string;
 
 // Cleaner task ids (src-tauri cleaner.rs) and their label keys in i18n.
-const CLEANUP: [id: string, labelKey: string, keywords: string][] = [
-  ["clean_temp", "temp", "temporarios temp arquivos files espaco space"],
-  ["clean_windows_update", "win_update", "update atualizacao cache espaco"],
-  ["clean_prefetch", "prefetch", "prefetch"],
-  ["flush_dns", "dns", "dns internet rede network"],
-  ["clean_shader_cache", "shader", "shader directx nvidia amd jogo game travadas stutter"],
-  ["clean_recycle_bin", "recycle_bin", "lixeira recycle"],
-  ["clean_windows_old", "win_old", "windows.old espaco space"],
-  ["clean_delivery_optimization", "delivery_opt", "delivery otimizacao entrega"],
-  ["clean_thumbnails", "thumbnails", "miniaturas thumbnails icones"],
-  ["clean_logs_minidumps", "logs", "logs dumps"],
-  ["clean_browser_cache", "browser", "navegador browser chrome edge brave firefox cache"],
-  ["clean_discord_cache", "discord", "discord cache"],
-  ["clean_steam_web_cache", "steam", "steam cache loja store"],
+const CLEANUP: [id: string, keywords: string][] = [
+  ["clean_temp", "temporarios temp arquivos files espaco space"],
+  ["clean_windows_update", "update atualizacao cache espaco"],
+  ["clean_prefetch", "prefetch"],
+  ["flush_dns", "dns internet rede network"],
+  ["clean_shader_cache", "shader directx nvidia amd jogo game travadas stutter"],
+  ["clean_recycle_bin", "lixeira recycle"],
+  ["clean_windows_old", "windows.old espaco space"],
+  ["clean_delivery_optimization", "delivery otimizacao entrega"],
+  ["clean_thumbnails", "miniaturas thumbnails icones"],
+  ["clean_logs_minidumps", "logs dumps"],
+  ["clean_browser_cache", "navegador browser chrome edge brave firefox cache"],
+  ["clean_discord_cache", "discord cache"],
+  ["clean_steam_web_cache", "steam cache loja store"],
 ];
 
 // Extra words for the app categories, so "jogo" finds Steam.
@@ -40,12 +40,12 @@ const CATEGORY_WORDS: Record<string, string> = {
 };
 
 // Fix ids (src-tauri system.rs) and their label keys in i18n.
-const FIXES: [id: string, labelKey: string, keywords: string][] = [
-  ["sfc", "sfc_scan", "sfc corrompido corrupt arquivos sistema"],
-  ["dism", "dism_repair", "dism imagem image"],
-  ["net", "net_reset", "rede network internet winsock"],
-  ["update", "update_reset", "windows update atualizacao"],
-  ["cache", "clear_cache", "icones icons cache"],
+const FIXES: [id: string, keywords: string][] = [
+  ["sfc", "sfc corrompido corrupt arquivos sistema"],
+  ["dism", "dism imagem image"],
+  ["net", "rede network internet winsock"],
+  ["update", "windows update atualizacao"],
+  ["cache", "icones icons cache"],
 ];
 
 export function buildActions(lang: Language, t: T, states?: Record<string, TweakState> | null, hw: Hardware | null = null, level: Level = "advanced"): Action[] {
@@ -83,19 +83,19 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     })),
   );
 
-  const cleanup: Action[] = CLEANUP.filter(([id]) => showsAction(level, riskOfAction(id).risk)).map(([id, key, keywords]) => ({
+  const cleanup: Action[] = CLEANUP.filter(([id]) => showsAction(level, riskOfAction(id).risk)).map(([id, keywords]) => ({
     id: `cleanup:${id}`,
     kind: "cleanup",
-    title: localize(CLEANUPS.find((c) => c.id === id)?.name, lang) ?? key,
+    title: localize(CLEANUPS.find((c) => c.id === id)?.name, lang) ?? id,
     subtitle: t("home.cleanup_sub"),
     href: "/cleaner",
     keywords: `limpar limpeza clean ${keywords}`,
   }));
 
-  const fixes: Action[] = FIXES.map(([id, key, keywords]) => ({
+  const fixes: Action[] = FIXES.map(([id, keywords]) => ({
     id: `fix:${id}`,
     kind: "fix",
-    title: localize(FIX_DEFS.find((f) => f.id === id)?.name, lang) ?? key,
+    title: localize(FIX_DEFS.find((f) => f.id === id)?.name, lang) ?? id,
     subtitle: t("home.fix_sub"),
     href: "/fixes",
     keywords: `reparar reparo repair fix ${keywords}`,
