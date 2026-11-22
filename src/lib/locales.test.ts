@@ -8,6 +8,7 @@ import * as fixes from "./fixes.ts";
 import * as level from "./level.ts";
 import * as risk from "./action-risk.ts";
 import * as apps from "./app-categories.ts";
+import * as debloat from "./debloat.ts";
 import { hardwareHint, type Hardware } from "./hardware.ts";
 
 const flat = (o: object, p = ""): [string, string][] =>
@@ -26,8 +27,9 @@ function catalogTexts(): Text[] {
     }
     for (const x of Array.isArray(v) ? v : Object.values(v)) walk(x);
   };
-  [tweaks, control, cleanup, fixes, level, risk, apps].forEach(walk);
+  [tweaks, control, cleanup, fixes, level, risk, apps, debloat].forEach(walk);
   walk(hardwareHint("high_performance_plan", { laptop: true, systemDisk: null } as unknown as Hardware));
+  walk(hardwareHint("disable_power_throttling", { laptop: true, systemDisk: null } as unknown as Hardware));
   walk(hardwareHint("disable_superfetch", { laptop: false, systemDisk: { media: "HDD" } } as unknown as Hardware));
   return [...out.values()];
 }

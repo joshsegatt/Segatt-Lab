@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Package, SlidersHorizontal, Trash2, Wrench, Settings2, FolderSync, Monitor } from "lucide-react";
+import { House, Package, PackageMinus, SlidersHorizontal, Trash2, Wrench, Settings2, FolderSync, Monitor } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { usePcInfo } from "@/hooks/useSystem";
 import { countActive, useTweakStates } from "@/hooks/useTweakStates";
@@ -17,6 +17,7 @@ import styles from "./Sidebar.module.css";
 export const NAV = [
   { key: "home", href: "/", icon: House },
   { key: "apps", href: "/install", icon: Package },
+  { key: "debloat", href: "/debloat", icon: PackageMinus },
   { key: "tweaks", href: "/tweaks", icon: SlidersHorizontal },
   { key: "cleaner", href: "/cleaner", icon: Trash2 },
   { key: "fixes", href: "/fixes", icon: Wrench },

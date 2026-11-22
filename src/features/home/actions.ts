@@ -105,6 +105,7 @@ export function buildActions(lang: Language, t: T, states?: Record<string, Tweak
     ["fixes", "/fixes", "screen_fixes", "reparar repair consertar"],
     ["control", "/config", "screen_control", "controle control recursos features"],
     ["profile", "/profile", "screen_profile", "perfil profile exportar export importar import backup outro pc"],
+    ["debloat", "/debloat", "screen_debloat", "debloat bloatware remover remove apps copilot xbox onedrive teams lixo"],
   ].map(([key, href, sub, keywords]) => ({
     id: `screen:${key}`,
     kind: "screen" as const,
