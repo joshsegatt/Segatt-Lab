@@ -1,10 +1,11 @@
 <div align="center">
 
-<img src="docs/assets/mascot-256.png" width="160" alt="The Segatt Lab mascot, a scientist in goggles holding a chip">
+<img src="https://raw.githubusercontent.com/joshsegatt/Segatt-Lab/main/docs/assets/mascot-256.png" width="160" height="160" alt="The Segatt Lab mascot, a scientist in goggles holding a chip">
 
 # Segatt Lab
 
-**Tune, debloat, clean and repair Windows 10 and 11, and watch it happen.**<br>
+**Tune, debloat, clean and repair Windows 10 and 11, and watch it happen.**
+
 While your changes really apply, Doc runs through a giant PC and fixes each part they touch. Every tweak shows its live state first and goes back to its original value in one click.
 
 [![Latest release](https://img.shields.io/github/v/release/joshsegatt/Segatt-Lab?label=download&color=3ddc97)](https://github.com/joshsegatt/Segatt-Lab/releases/latest)
@@ -14,7 +15,7 @@ While your changes really apply, Doc runs through a giant PC and fixes each part
 
 [Download](https://github.com/joshsegatt/Segatt-Lab/releases/latest) · [Website](https://joshsegatt.github.io/Segatt-Lab/) · [Features](#features) · [Safety](#how-it-keeps-your-pc-safe) · [FAQ](#faq)
 
-<img src="docs/assets/lab-scene.gif" alt="The lab scene: Doc runs to the processor, memory and graphics card of a giant PC while the Gaming preset applies, each part lighting up as Windows confirms it" width="900">
+<img src="https://raw.githubusercontent.com/joshsegatt/Segatt-Lab/main/docs/assets/lab-scene.gif" width="900" height="506" alt="The lab scene: Doc runs to the processor, memory and graphics card of a giant PC while the Gaming preset applies, each part lighting up as Windows confirms it">
 
 </div>
 
