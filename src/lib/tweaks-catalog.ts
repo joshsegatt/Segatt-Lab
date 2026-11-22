@@ -3,7 +3,7 @@
 
 import type { Text } from "@/lib/i18n";
 
-export type TweakGroup = "privacy" | "performance" | "interface" | "system";
+export type TweakGroup = "privacy" | "performance" | "interface" | "system" | "services";
 export type PresetKey = "essential" | "privacy" | "gaming";
 
 /**
@@ -147,6 +147,30 @@ export const TWEAKS: TweakDef[] = [
   { id: "disable_windows_update", risk: "risky", riskNote: { pt: "O Windows para de receber correções de segurança. Deixe ligado só por pouco tempo.", en: "Windows stops getting security fixes. Keep it on only for a short time." }, group: "system", keywords: "atualizacoes updates windows update pausar",
     name: { pt: "Pausar atualizações automáticas", en: "Pause automatic updates" },
     description: { pt: "Desliga as atualizações automáticas; as manuais continuam.", en: "Turns off automatic updates; manual ones still work." } },
+  { id: "disable_diagtrack", risk: "safe", group: "services", presets: ["privacy"], keywords: "diagtrack telemetria telemetry servico service",
+    name: { pt: "Desativar serviço de telemetria", en: "Disable the telemetry service" },
+    description: { pt: "Para o serviço que coleta e envia os dados de diagnóstico (DiagTrack).", en: "Stops the service that collects and sends diagnostic data (DiagTrack)." } },
+  { id: "disable_wap_push", risk: "safe", group: "services", presets: ["privacy"], keywords: "wap push dmwappushservice telemetria servico",
+    name: { pt: "Desativar roteamento de mensagens WAP", en: "Disable WAP push routing" },
+    description: { pt: "Serviço que entrega dados de telemetria; quase nenhum PC usa para outra coisa.", en: "A service that carries telemetry data; almost no PC uses it for anything else." } },
+  { id: "manual_maps_broker", risk: "safe", group: "services", presets: ["essential"], keywords: "mapas maps download servico service",
+    name: { pt: "Mapas baixados só quando precisar", en: "Downloaded maps only when needed" },
+    description: { pt: "O serviço de mapas offline deixa de abrir com o Windows.", en: "The offline maps service stops starting with Windows." } },
+  { id: "disable_retail_demo", risk: "safe", group: "services", presets: ["essential"], keywords: "demo loja retail servico",
+    name: { pt: "Desativar modo demonstração de loja", en: "Disable retail demo mode" },
+    description: { pt: "Serviço das máquinas de exposição em loja.", en: "A service for store display machines." } },
+  { id: "disable_fax", risk: "safe", group: "services", keywords: "fax servico service",
+    name: { pt: "Desativar Fax", en: "Disable Fax" },
+    description: { pt: "O serviço de fax do Windows.", en: "The Windows fax service." } },
+  { id: "manual_link_tracking", risk: "safe", group: "services", presets: ["essential"], keywords: "link tracking atalhos shortcuts trkwks servico",
+    name: { pt: "Rastreamento de atalhos só quando precisar", en: "Link tracking only when needed" },
+    description: { pt: "Acompanha arquivos movidos entre PCs de rede; deixa de abrir com o Windows.", en: "Follows files moved across networked PCs; stops starting with Windows." } },
+  { id: "manual_compat_assistant", risk: "moderate", riskNote: { pt: "Programas antigos deixam de mostrar o aviso de compatibilidade depois de instalar.", en: "Old programs stop showing the compatibility prompt after installing." }, group: "services", keywords: "compatibilidade compatibility pcasvc programas antigos servico",
+    name: { pt: "Assistente de compatibilidade só quando precisar", en: "Compatibility Assistant only when needed" },
+    description: { pt: "O serviço que vigia programas antigos deixa de abrir com o Windows.", en: "The service that watches old programs stops starting with Windows." } },
+  { id: "disable_print_spooler", risk: "moderate", riskNote: { pt: "Imprimir e as impressoras param de funcionar até você desfazer.", en: "Printing and printers stop working until you undo it." }, group: "services", keywords: "impressora printer spooler imprimir print servico",
+    name: { pt: "Desativar spooler de impressão", en: "Disable the print spooler" },
+    description: { pt: "Para quem não usa impressora: um serviço a menos rodando o tempo todo.", en: "For people without a printer: one less service running all the time." } },
 ];
 
 export const PRESETS: { key: PresetKey; name: Text; keywords: string }[] = [

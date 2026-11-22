@@ -18,7 +18,7 @@ import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
 import { localeTag, localize } from "@/lib/i18n";
 
-const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
+const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system", "services"];
 type Pending = Record<string, boolean>;
 
 // Presets stay whole at every level: they never hold a risky tweak, and their

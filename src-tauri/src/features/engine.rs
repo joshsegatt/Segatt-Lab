@@ -60,7 +60,8 @@ pub struct RegValueSpec {
 #[derive(Clone, Debug)]
 pub enum Kind {
     Registry { values: Vec<RegValueSpec>, delete_key_on_revert: Option<(Hive, &'static str)> },
-    Service { name: &'static str, default_start: u32 },
+    /// `want`: 3 = manual (starts when something needs it), 4 = disabled.
+    Service { name: &'static str, default_start: u32, want: u32 },
     PowerPlan,
     Dns,
     Hpet,
@@ -134,8 +135,8 @@ pub fn specs() -> Vec<TweakSpec> {
             dword(Hkcu, r"SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR", "AppCaptureEnabled", 0, Some(1)),
             dword(Hkcu, r"System\GameConfigStore", "GameDVR_Enabled", 0, Some(1)),
         ]),
-        TweakSpec { id: "disable_superfetch", kind: Kind::Service { name: "SysMain", default_start: 2 }, restart: false },
-        TweakSpec { id: "disable_search_indexing", kind: Kind::Service { name: "WSearch", default_start: 2 }, restart: false },
+        TweakSpec { id: "disable_superfetch", kind: Kind::Service { name: "SysMain", default_start: 2, want: 4 }, restart: false },
+        TweakSpec { id: "disable_search_indexing", kind: Kind::Service { name: "WSearch", default_start: 2, want: 4 }, restart: false },
         reg("disable_visual_fx", true, vec![dword(Hkcu, r"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects", "VisualFXSetting", 2, None)]),
         TweakSpec { id: "set_dns_cloudflare", kind: Kind::Dns, restart: false },
         reg("enable_game_mode", false, vec![
@@ -179,6 +180,15 @@ pub fn specs() -> Vec<TweakSpec> {
         TweakSpec { id: "enable_f8_boot", kind: Kind::BootMenu, restart: true },
         reg("disable_fast_startup", false, vec![dword(Hklm, r"SYSTEM\CurrentControlSet\Control\Session Manager\Power", "HiberbootEnabled", 0, Some(1))]),
         reg("disable_windows_update", false, vec![dword(Hklm, r"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoUpdate", 1, None)]),
+        // Services
+        TweakSpec { id: "disable_diagtrack", kind: Kind::Service { name: "DiagTrack", default_start: 2, want: 4 }, restart: false },
+        TweakSpec { id: "disable_wap_push", kind: Kind::Service { name: "dmwappushservice", default_start: 3, want: 4 }, restart: false },
+        TweakSpec { id: "manual_maps_broker", kind: Kind::Service { name: "MapsBroker", default_start: 2, want: 3 }, restart: false },
+        TweakSpec { id: "disable_retail_demo", kind: Kind::Service { name: "RetailDemo", default_start: 3, want: 4 }, restart: false },
+        TweakSpec { id: "disable_fax", kind: Kind::Service { name: "Fax", default_start: 3, want: 4 }, restart: false },
+        TweakSpec { id: "manual_link_tracking", kind: Kind::Service { name: "TrkWks", default_start: 2, want: 3 }, restart: false },
+        TweakSpec { id: "manual_compat_assistant", kind: Kind::Service { name: "PcaSvc", default_start: 2, want: 3 }, restart: false },
+        TweakSpec { id: "disable_print_spooler", kind: Kind::Service { name: "Spooler", default_start: 2, want: 4 }, restart: false },
     ]
 }
 
@@ -473,12 +483,12 @@ fn detect(spec: &TweakSpec, snap: Option<&TweakSnapshot>) -> TweakState {
             }
             TweakState::new(spec, if all { Status::Active } else { Status::Inactive }, changes, None)
         }
-        Kind::Service { name, .. } => {
+        Kind::Service { name, want, .. } => {
             let path = format!(r"SYSTEM\CurrentControlSet\Services\{name}");
             match regio::read(Hive::Hklm, &path, "Start") {
                 Ok(Some(RegData::Dword(start))) => {
-                    let change = Change { target: format!("sc config {name} start= disabled"), current: start_label(start).into(), wanted: "disabled".into() };
-                    TweakState::new(spec, if start == 4 { Status::Active } else { Status::Inactive }, vec![change], None)
+                    let change = Change { target: format!("sc config {name} start= {}", sc_start(*want)), current: start_label(start).into(), wanted: start_label(*want).into() };
+                    TweakState::new(spec, if start == *want { Status::Active } else { Status::Inactive }, vec![change], None)
                 }
                 Ok(_) => TweakState::new(spec, Status::Unknown, vec![], Some(format!("Service {name} is not installed."))),
                 Err(e) => TweakState::new(spec, Status::Unknown, vec![], Some(io_message(&e))),
@@ -525,6 +535,15 @@ fn detect(spec: &TweakSpec, snap: Option<&TweakSnapshot>) -> TweakState {
             }
             Err(_) => TweakState::new(spec, Status::Unknown, vec![], Some("Reading boot settings needs administrator.".into())),
         },
+    }
+}
+
+/// The word `sc config ... start=` takes for a start type.
+pub fn sc_start(start: u32) -> &'static str {
+    match start {
+        2 => "auto",
+        3 => "demand",
+        _ => "disabled",
     }
 }
 
@@ -621,10 +640,13 @@ fn apply(spec: &TweakSpec, snap: &mut TweakSnapshot) -> Result<(), String> {
             }
             Ok(())
         }
-        Kind::Service { name, .. } => {
-            run_hidden("sc.exe", &["config", name, "start=", "disabled"])?;
+        Kind::Service { name, want, .. } => {
+            run_hidden("sc.exe", &["config", name, "start=", sc_start(*want)])?;
+            // A disabled service is also stopped now; a manual one stops by itself when idle.
             // Stopping may fail if it is already stopped; the startup type is what persists.
-            let _ = run_hidden("sc.exe", &["stop", name]);
+            if *want == 4 {
+                let _ = run_hidden("sc.exe", &["stop", name]);
+            }
             Ok(())
         }
         Kind::PowerPlan => {
@@ -682,7 +704,7 @@ fn revert(spec: &TweakSpec, snap: Option<&TweakSnapshot>) -> Result<(), String> 
             }
             Ok(())
         }
-        Kind::Service { name, default_start } => {
+        Kind::Service { name, default_start, .. } => {
             let start = snap.and_then(|s| s.service_start).unwrap_or(*default_start);
             let delayed = snap.and_then(|s| s.service_delayed).unwrap_or(0) == 1;
             let mode = match start {
