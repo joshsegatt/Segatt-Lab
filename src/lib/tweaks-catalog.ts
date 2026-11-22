@@ -53,7 +53,7 @@ export const TWEAKS: TweakDef[] = [
     description: { pt: "O Windows para de pedir sua opinião.", en: "Windows stops asking for feedback." } },
   { id: "disable_copilot", risk: "safe", group: "privacy", presets: ["privacy"], keywords: "copilot ia ai assistente assistant",
     name: { pt: "Desativar Copilot", en: "Disable Copilot" },
-    description: { pt: "Tira o Copilot da barra de tarefas e do Windows.", en: "Removes Copilot from the taskbar and Windows." } },
+    description: { pt: "Desliga o Copilot integrado ao Windows. Para remover o app Copilot, use o Debloat.", en: "Turns off the Copilot built into Windows. To remove the Copilot app, use Debloat." } },
   { id: "disable_recall", risk: "safe", group: "privacy", presets: ["privacy"], keywords: "recall ia ai capturas snapshots lembrar",
     name: { pt: "Desativar Recall", en: "Disable Recall" },
     description: { pt: "Para as capturas de tela automáticas do Recall nos PCs Copilot+.", en: "Stops Recall's automatic screenshots on Copilot+ PCs." } },

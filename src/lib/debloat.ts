@@ -30,8 +30,6 @@ export const BLOAT: BloatDef[] = [
   { id: "Microsoft.WindowsFeedbackHub", risk: "safe", name: { pt: "Hub de Comentários", en: "Feedback Hub" }, description: { pt: "Envia sugestões e problemas para a Microsoft.", en: "Sends suggestions and problems to Microsoft." } },
   { id: "Microsoft.WindowsMaps", risk: "safe", name: { pt: "Mapas", en: "Maps" }, description: { pt: "Os mapas do Windows.", en: "Windows Maps." } },
   { id: "Microsoft.ZuneVideo", risk: "safe", name: { pt: "Filmes e TV", en: "Movies & TV" }, description: { pt: "O antigo player de vídeos e loja de filmes.", en: "The old video player and movie store." } },
-  { id: "Microsoft.549981C3F5F10", risk: "safe", name: { pt: "Cortana", en: "Cortana" }, description: { pt: "O app da assistente que a Microsoft aposentou.", en: "The assistant app Microsoft retired." } },
-  { id: "Microsoft.Windows.DevHome", risk: "safe", name: { pt: "Dev Home", en: "Dev Home" }, description: { pt: "Painel para programadores, já descontinuado.", en: "A developer dashboard, already discontinued." } },
   { id: "MSTeams", risk: "safe", name: { pt: "Microsoft Teams (pessoal)", en: "Microsoft Teams (personal)" }, description: { pt: "O Teams que vem com o Windows. O Teams do trabalho é outro app.", en: "The Teams that ships with Windows. Work Teams is a separate app." } },
   { id: "Clipchamp.Clipchamp", risk: "safe", name: { pt: "Clipchamp", en: "Clipchamp" }, description: { pt: "Editor de vídeo da Microsoft.", en: "Microsoft's video editor." } },
   { id: "Microsoft.YourPhone", risk: "moderate", name: { pt: "Vincular ao Celular", en: "Phone Link" }, description: { pt: "Liga o celular ao PC.", en: "Links your phone to the PC." },

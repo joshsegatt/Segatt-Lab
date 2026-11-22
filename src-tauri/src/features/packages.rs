@@ -244,6 +244,9 @@ pub fn output_tail(stdout: &str, lines: usize) -> String {
     clean[clean.len().saturating_sub(lines)..].join("\n")
 }
 
+/// winget installs one package at a time; the Apps queue and Debloat share this.
+static WINGET_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 /// Installs, upgrades or removes one app with no window. On failure the error
 /// carries winget's exit code and the last lines it printed.
 #[tauri::command]
@@ -252,7 +255,10 @@ pub async fn run_app_action(id: String, action: AppAction) -> Result<(), String>
         return Err(format!("Invalid package id: '{id}'"));
     }
     let (args, done) = action_args(action, &id);
-    let output = tauri::async_runtime::spawn_blocking(move || run_with_timeout("winget", &args, ACTION_TIMEOUT))
+    let output = tauri::async_runtime::spawn_blocking(move || {
+        let _one_at_a_time = WINGET_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+        run_with_timeout("winget", &args, ACTION_TIMEOUT)
+    })
     .await
     .map_err(|e| format!("Runtime error: {e}"))??;
 

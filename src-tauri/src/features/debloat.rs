@@ -25,9 +25,7 @@ pub const APPX: &[(&str, &str)] = &[
     ("Microsoft.WindowsFeedbackHub", "8wekyb3d8bbwe"),
     ("Microsoft.WindowsMaps", "8wekyb3d8bbwe"),
     ("Microsoft.ZuneVideo", "8wekyb3d8bbwe"),
-    ("Microsoft.549981C3F5F10", "8wekyb3d8bbwe"),
     ("Microsoft.YourPhone", "8wekyb3d8bbwe"),
-    ("Microsoft.Windows.DevHome", "8wekyb3d8bbwe"),
     ("Microsoft.GamingApp", "8wekyb3d8bbwe"),
     ("Microsoft.XboxGamingOverlay", "8wekyb3d8bbwe"),
     ("MicrosoftCorporationII.QuickAssist", "8wekyb3d8bbwe"),
@@ -89,6 +87,10 @@ pub async fn remove_bloat(id: String) -> Result<Vec<BloatState>, String> {
         run_app_action(winget_id.to_string(), AppAction::Uninstall).await?;
     } else {
         let (name, _) = APPX.iter().find(|(n, _)| *n == id).ok_or_else(|| format!("Not in the debloat list: '{id}'"))?;
+        // The list is fixed, but nothing reaches a script without this check.
+        if !safe_name(name) {
+            return Err(format!("Unsafe package name: '{name}'"));
+        }
         let script = format!("Get-AppxPackage -Name '{name}' | Remove-AppxPackage");
         tauri::async_runtime::spawn_blocking(move || run_hidden_powershell(&script))
             .await
