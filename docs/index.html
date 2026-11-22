@@ -165,6 +165,9 @@ section.wrap { padding-top: 96px; }
 .points p { color: var(--ink-2); font-size: 15px; margin-top: 6px; }
 @media (max-width: 860px) { .points { grid-template-columns: 1fr; gap: 20px; } }
 
+.lab { margin-top: 36px; }
+.lab video { display: block; width: 100%; height: auto; }
+.sec-head p b { color: var(--ink); font-weight: 600; }
 .row { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; padding-top: 88px; }
 .row:nth-of-type(even) { grid-template-columns: 7fr 5fr; }
 .row:nth-of-type(even) .row-text { order: 2; }
@@ -221,6 +224,7 @@ footer a:hover { color: var(--ink); }
 <header class="wrap top">
   <a class="brand" href="./"><img src="assets/mascot-face.png" width="32" height="32" alt="">Segatt Lab</a>
   <nav aria-label="Main">
+    <a class="hide-sm" href="#lab">The lab</a>
     <a class="hide-sm" href="#features">Features</a>
     <a class="hide-sm" href="#safety">Safety</a>
     <a class="hide-sm" href="#faq">FAQ</a>
@@ -232,7 +236,7 @@ footer a:hover { color: var(--ink); }
   <div class="wrap hero">
     <img class="mascot" src="assets/mascot.webp" width="512" height="512" alt="The Segatt Lab mascot, a scientist in goggles holding a chip" fetchpriority="high">
     <h1>Tune Windows <em>without guessing.</em></h1>
-    <p class="lede">Segatt Lab reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. Debloat, tweaks, cleanup, repairs and bootable USB drives in one native app for Windows 10 and 11.</p>
+    <p class="lede">Segatt Lab reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. And while your changes apply, Doc runs through a giant PC fixing each part they touch. Debloat, tweaks, cleanup, repairs and bootable USB drives for Windows 10 and 11.</p>
 
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/joshsegatt/Segatt-Tools/releases/latest">
@@ -254,6 +258,19 @@ footer a:hover { color: var(--ink); }
       <img src="assets/home.webp" width="1440" height="900" alt="The Segatt Lab home screen: a search box, suggested actions read from the PC, live CPU, memory and disk, and the PC's hardware" fetchpriority="high">
     </div>
   </div>
+
+  <section id="lab" class="wrap">
+    <div class="sec-head">
+      <h2>Watch Doc fix your PC.</h2>
+      <p>Apply a preset or a cleanup and the lab opens. Every part on screen carries the name Windows reports for your PC, and it lights up only when Windows confirms the change. When something fails, Doc takes the shock and the summary says why. It ends with <b>Undo all</b>.</p>
+    </div>
+    <div class="window lab">
+      <video autoplay muted loop playsinline preload="metadata" poster="assets/lab-scene-poster.jpg" width="1280" height="720" aria-label="Doc runs to the processor, memory and graphics card of a giant PC while the Gaming preset applies">
+        <source src="assets/lab-scene.webm" type="video/webm">
+        <source src="assets/lab-scene.mp4" type="video/mp4">
+      </video>
+    </div>
+  </section>
 
   <section id="why" class="wrap">
     <div class="sec-head">
@@ -347,6 +364,7 @@ footer a:hover { color: var(--ink); }
       <p><b>Fixes.</b> SFC and DISM with a plain-language verdict, network reset, Windows Update reset, icon cache and the classic control panels.</p>
       <p><b>Control.</b> Windows Update modes and optional Windows features, from one screen.</p>
       <p><b>Profile.</b> Export your apps and tweaks to one file and set up a new PC from it, in the app or from the command line.</p>
+      <p><b>Updates itself.</b> New versions arrive inside the app, signed and verified before they install.</p>
       <p><b>10 languages.</b> English, Português, Español, Français, Deutsch, Русский, 中文, 日本語, 한국어 and Türkçe.</p>
     </div>
   </section>
@@ -423,6 +441,10 @@ footer a:hover { color: var(--ink); }
 </footer>
 
 <script>
+  // Reduced motion: the lab video waits for a click instead of playing by itself.
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const v of document.querySelectorAll("video")) { v.removeAttribute("autoplay"); v.pause(); v.controls = true; }
+  }
   for (const button of document.querySelectorAll("[data-copy]")) {
     button.addEventListener("click", async () => {
       const text = document.getElementById(button.dataset.copy).textContent.trim();

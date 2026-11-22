@@ -13,6 +13,7 @@ import { closeScene, getScene, useScene, RESTORE_STEP, type SceneStep } from "./
 import { buildFrames, type Pose } from "./sprites";
 import { STATIONS, partNames, type Station } from "@/lib/scene";
 import { useHardware } from "@/hooks/useHardware";
+import { useIsAdmin } from "@/hooks/useSystem";
 import { useLanguage } from "@/hooks/useLanguage";
 import { applyTweaks } from "@/hooks/useTweakStates";
 import { TWEAKS } from "@/lib/tweaks-catalog";
@@ -226,6 +227,7 @@ export function LabScene() {
   const { t, language } = useLanguage();
   const scene = useScene();
   const { hw } = useHardware();
+  const admin = useIsAdmin();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const atEndRef = useRef(false);
   const [say, setSay] = useState("");
@@ -608,6 +610,7 @@ export function LabScene() {
           </h3>
           {restoreFailed?.reason && <p className={styles.reason}>{restoreFailed.reason.split("\n")[0]}</p>}
           {scene.kind === "cleanup" && scene.freed !== null && <p className={styles.freed}>{fmt(t("sc.freed"), { size: formatBytes(scene.freed, language) })}</p>}
+          {failed.length > 0 && admin === false && <p className={styles.reason}>{t("shell.not_admin_hint")}</p>}
           {failed.length > 0 && (
             <ul className={styles.fails}>
               {failed.map((s) => (
