@@ -466,6 +466,12 @@ const fr: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "Cache des navigateurs",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Cache de Chrome, Edge, Brave et Firefox. Les connexions, l'historique et les mots de passe restent ; les sites chargent un peu plus lentement la première fois.",
+    "Discord cache": "Cache de Discord",
+    "Images and files Discord saved. It downloads them again when needed.": "Images et fichiers enregistrés par Discord. Il les retélécharge si besoin.",
+    "Steam web cache": "Cache web de Steam",
+    "Store and library pages Steam saved. Games are not touched.": "Pages du magasin et de la bibliothèque enregistrées par Steam. Les jeux ne sont pas touchés.",
     "Gaming mode": "Mode jeu",
     "Maximum privacy": "Confidentialité maximale",
     "Essentials": "Essentiel",
