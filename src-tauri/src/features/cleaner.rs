@@ -40,7 +40,15 @@ pub enum Pick {
     Named(&'static str),
     /// Files with this extension, in subfolders too, older than this many days.
     OldExt(&'static str, u64),
+    /// Everything in these folders inside each subfolder (browser profiles).
+    ProfileDirs(&'static [&'static str]),
+    /// Everything in these folders right under the root.
+    Dirs(&'static [&'static str]),
 }
+
+/// The cache folders Chromium browsers and Electron apps rebuild by themselves.
+/// Logins, history, cookies and settings live elsewhere and are never touched.
+const CHROMIUM_CACHES: &[&str] = &["Cache", "Code Cache", "GPUCache", "DawnGraphiteCache", "DawnWebGPUCache"];
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Target {
@@ -75,6 +83,14 @@ pub fn targets(id: &str, env: &dyn Fn(&str) -> Option<String>) -> Option<Vec<Tar
             Pick::All,
         )],
         "clean_thumbnails" => vec![t(dir("LOCALAPPDATA", r"Microsoft\Windows\Explorer"), Pick::DbPrefix("thumbcache_"))],
+        "clean_browser_cache" => vec![
+            t(dir("LOCALAPPDATA", r"Google\Chrome\User Data"), Pick::ProfileDirs(CHROMIUM_CACHES)),
+            t(dir("LOCALAPPDATA", r"Microsoft\Edge\User Data"), Pick::ProfileDirs(CHROMIUM_CACHES)),
+            t(dir("LOCALAPPDATA", r"BraveSoftware\Brave-Browser\User Data"), Pick::ProfileDirs(CHROMIUM_CACHES)),
+            t(dir("LOCALAPPDATA", r"Mozilla\Firefox\Profiles"), Pick::ProfileDirs(&["cache2"])),
+        ],
+        "clean_discord_cache" => vec![t(dir("APPDATA", "discord"), Pick::Dirs(CHROMIUM_CACHES))],
+        "clean_steam_web_cache" => vec![t(dir("LOCALAPPDATA", r"Steam\htmlcache"), Pick::All)],
         "clean_logs_minidumps" => vec![
             t(dir("SystemRoot", "Minidump"), Pick::Ext("dmp")),
             t(dir("SystemRoot", ""), Pick::Named("MEMORY.DMP")),
@@ -110,7 +126,7 @@ pub fn size_of(target: &Target, now: SystemTime) -> u64 {
             }
             let name = entry.file_name().to_string_lossy().to_lowercase();
             let take = match pick {
-                Pick::All | Pick::Files => true,
+                Pick::All | Pick::Files | Pick::ProfileDirs(_) | Pick::Dirs(_) => true,
                 Pick::Ext(ext) => has_ext(&path, ext),
                 Pick::DbPrefix(prefix) => name.starts_with(prefix) && has_ext(&path, "db"),
                 Pick::Named(n) => name == n.to_lowercase(),
@@ -125,8 +141,18 @@ pub fn size_of(target: &Target, now: SystemTime) -> u64 {
         }
         total
     }
-    let deep = matches!(target.pick, Pick::All | Pick::OldExt(..));
-    walk(&target.root, target.pick, deep, now)
+    match target.pick {
+        Pick::ProfileDirs(names) => std::fs::read_dir(&target.root)
+            .map(|it| {
+                it.flatten()
+                    .filter(|e| e.path().symlink_metadata().is_ok_and(|m| m.is_dir()))
+                    .map(|profile| names.iter().map(|n| walk(&profile.path().join(n), Pick::All, true, now)).sum::<u64>())
+                    .sum()
+            })
+            .unwrap_or(0),
+        Pick::Dirs(names) => names.iter().map(|n| walk(&target.root.join(n), Pick::All, true, now)).sum(),
+        pick => walk(&target.root, pick, matches!(pick, Pick::All | Pick::OldExt(..)), now),
+    }
 }
 
 /// `whoami /user /fo csv /nh` -> the SID in its last quoted field.
@@ -148,10 +174,10 @@ fn measure(id: &str) -> Option<u64> {
     targets(id, &system_env).map(|list| list.iter().map(|t| size_of(t, now)).sum())
 }
 
-const IDS: [&str; 10] = [
+const IDS: [&str; 13] = [
     "clean_temp", "clean_prefetch", "flush_dns", "clean_windows_update", "clean_shader_cache",
     "clean_recycle_bin", "clean_windows_old", "clean_delivery_optimization", "clean_thumbnails",
-    "clean_logs_minidumps",
+    "clean_logs_minidumps", "clean_browser_cache", "clean_discord_cache", "clean_steam_web_cache",
 ];
 
 /// Sizes of every cleanup, measured side by side (Windows.old can take a while).
@@ -243,6 +269,38 @@ if (Get-Command Delete-DeliveryOptimizationCache -ErrorAction SilentlyContinue) 
         Start-Service -Name DoSvc -ErrorAction SilentlyContinue
     }
 }"),
+
+        // Files in use (an open browser) stay; the freed size says what really went.
+        "clean_browser_cache" => ("Clean Browser Caches", "
+$names = 'Cache','Code Cache','GPUCache','DawnGraphiteCache','DawnWebGPUCache'
+$roots = @(\"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\", \"$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\", \"$env:LOCALAPPDATA\\BraveSoftware\\Brave-Browser\\User Data\")
+foreach ($r in $roots) {
+    if (Test-Path $r) {
+        Get-ChildItem -Path $r -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            foreach ($n in $names) {
+                $d = Join-Path $_.FullName $n
+                if (Test-Path $d) { Remove-Item -Path (Join-Path $d '*') -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+        }
+    }
+}
+$ff = \"$env:LOCALAPPDATA\\Mozilla\\Firefox\\Profiles\"
+if (Test-Path $ff) {
+    Get-ChildItem -Path $ff -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        $d = Join-Path $_.FullName 'cache2'
+        if (Test-Path $d) { Remove-Item -Path (Join-Path $d '*') -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}"),
+
+        "clean_discord_cache" => ("Clean Discord Cache", "
+$root = \"$env:APPDATA\\discord\"
+foreach ($n in @('Cache','Code Cache','GPUCache','DawnGraphiteCache','DawnWebGPUCache')) {
+    $d = Join-Path $root $n
+    if (Test-Path $d) { Remove-Item -Path (Join-Path $d '*') -Recurse -Force -ErrorAction SilentlyContinue }
+}"),
+
+        "clean_steam_web_cache" => ("Clean Steam Web Cache",
+            "Remove-Item -Path \"$env:LOCALAPPDATA\\Steam\\htmlcache\\*\" -Recurse -Force -ErrorAction SilentlyContinue"),
 
         "clean_thumbnails" => ("Clean Thumbnail Cache",
             "Remove-Item -Path \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*.db\" -Force -ErrorAction SilentlyContinue"),
@@ -355,6 +413,15 @@ mod tests {
         assert_eq!(size_of(&t(Pick::OldExt("log", 7)), old), 1100);
         assert_eq!(size_of(&t(Pick::OldExt("log", 7)), SystemTime::now()), 0);
         assert_eq!(size_of(&Target { root: root.join("missing"), pick: Pick::All }, old), 0);
+        // Browser profiles: only the cache folders count, in every profile.
+        std::fs::create_dir_all(root.join(r"prof\Default\Cache")).unwrap();
+        std::fs::create_dir_all(root.join(r"prof\Profile 1\GPUCache")).unwrap();
+        std::fs::write(root.join(r"prof\Default\Cache\a"), vec![0u8; 40]).unwrap();
+        std::fs::write(root.join(r"prof\Profile 1\GPUCache\b"), vec![0u8; 2]).unwrap();
+        std::fs::write(root.join(r"prof\Default\Login Data"), vec![0u8; 500]).unwrap();
+        let prof = |pick| Target { root: root.join("prof"), pick };
+        assert_eq!(size_of(&prof(Pick::ProfileDirs(CHROMIUM_CACHES)), old), 42, "logins are not cache");
+        assert_eq!(size_of(&Target { root: root.join(r"prof\Default"), pick: Pick::Dirs(&["Cache"]) }, old), 40);
         std::fs::remove_dir_all(&root).unwrap();
     }
 
