@@ -18,12 +18,23 @@ pub async fn check_admin() -> Result<bool, String> {
     Ok(stdout.contains("S-1-16-12288") || stdout.contains("S-1-16-16384"))
 }
 
-const RESTORE_POINT_SCRIPT: &str =
-    "Checkpoint-Computer -Description 'Segatt Tools' -RestorePointType 'MODIFY_SETTINGS'";
+/// Windows skips a new point when one exists from the last 24 hours
+/// (SystemRestorePointCreationFrequency, default 1440 minutes), which would let
+/// a risky change run with no point right before it. The limit is lifted for
+/// this call and put back as it was.
+const RESTORE_POINT_SCRIPT: &str = "
+$key = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore'
+$name = 'SystemRestorePointCreationFrequency'
+$old = (Get-ItemProperty -Path $key -Name $name -ErrorAction SilentlyContinue).$name
+Set-ItemProperty -Path $key -Name $name -Value 0 -Type DWord
+try {
+    Checkpoint-Computer -Description 'Segatt Tools' -RestorePointType 'MODIFY_SETTINGS'
+} finally {
+    if ($null -eq $old) { Remove-ItemProperty -Path $key -Name $name -ErrorAction SilentlyContinue }
+    else { Set-ItemProperty -Path $key -Name $name -Value $old -Type DWord }
+}";
 
-/// Creates a System Restore point without opening a window. Windows silently
-/// skips a new point when one was made in the last 24 hours; that still counts
-/// as protected.
+/// Creates a System Restore point without opening a window, every time it is asked.
 #[tauri::command]
 pub async fn create_restore_point() -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(|| run_hidden_powershell(RESTORE_POINT_SCRIPT))
