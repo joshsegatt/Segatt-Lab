@@ -84,6 +84,8 @@
   --font-ui: "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", sans-serif;
   --font-title: "Segoe UI Variable Display", "Segoe UI", "Malgun Gothic", sans-serif;
 }
+/* Korean breaks between words, not between syllables (결/과). */
+:root:lang(ko) body { word-break: keep-all; overflow-wrap: anywhere; }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
