@@ -43,9 +43,11 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "Is Segatt Tools free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free and open source under the MIT license, with no account, no ads and no telemetry." } },
+        { "@type": "Question", "name": "Is Segatt Tools free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Free and open source under the MIT license, with no account, no ads and no telemetry." } },
         { "@type": "Question", "name": "Can I undo the tweaks?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The original value is saved before each tweak and written back when you turn it off, and a restore point is created before a batch of tweaks." } },
-        { "@type": "Question", "name": "How is it different from WinUtil and other debloat scripts?", "acceptedAnswer": { "@type": "Answer", "text": "Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values to undo them, and also cleans, repairs and makes bootable USB drives." } },
+        { "@type": "Question", "name": "How is it different from WinUtil and other debloat scripts?", "acceptedAnswer": { "@type": "Answer", "text": "Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives." } },
+        { "@type": "Question", "name": "Windows SmartScreen warns me. Is it safe?", "acceptedAnswer": { "@type": "Answer", "text": "SmartScreen warns about any publisher it has not seen often. Each release publishes the installer's SHA-256, the install command checks it for you, and all the code is on GitHub." } },
+        { "@type": "Question", "name": "Why does it ask for administrator?", "acceptedAnswer": { "@type": "Answer", "text": "Tweaks for the whole PC, services, system cleanup, repairs and writing USB drives all need it, so the app asks once when it opens." } },
         { "@type": "Question", "name": "Does it work on Windows 10?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, on Windows 10 and Windows 11." } }
       ]
     }
@@ -253,7 +255,7 @@ footer a:hover { color: var(--ink); }
   <section id="why" class="wrap">
     <div class="sec-head">
       <h2>See it, change it, take it back.</h2>
-      <p>Most Windows tweakers run a script and hope. Segatt Tools treats your PC like the main machine it is.</p>
+      <p>Segatt Tools treats your PC like the main machine it is: it reads before it writes, and keeps what it needs to put things back.</p>
     </div>
     <div class="points">
       <div>
@@ -365,8 +367,12 @@ footer a:hover { color: var(--ink); }
     <div class="sec-head"><h2>Questions</h2></div>
     <div class="faq">
       <details>
-        <summary>Is it free?</summary>
+        <summary>Is Segatt Tools free?</summary>
         <p>Yes. Free and open source under the MIT license, with no account, no ads and no telemetry.</p>
+      </details>
+      <details>
+        <summary>Can I undo the tweaks?</summary>
+        <p>Yes. The original value is saved before each tweak and written back when you turn it off, and a restore point is created before a batch of tweaks.</p>
       </details>
       <details>
         <summary>How is it different from WinUtil and other debloat scripts?</summary>
