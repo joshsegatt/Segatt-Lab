@@ -25,6 +25,9 @@ const CLEANUP: [id: string, labelKey: string, keywords: string][] = [
   ["clean_delivery_optimization", "delivery_opt", "delivery otimizacao entrega"],
   ["clean_thumbnails", "thumbnails", "miniaturas thumbnails icones"],
   ["clean_logs_minidumps", "logs", "logs dumps"],
+  ["clean_browser_cache", "browser", "navegador browser chrome edge brave firefox cache"],
+  ["clean_discord_cache", "discord", "discord cache"],
+  ["clean_steam_web_cache", "steam", "steam cache loja store"],
 ];
 
 // Extra words for the app categories, so "jogo" finds Steam.

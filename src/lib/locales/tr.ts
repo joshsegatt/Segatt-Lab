@@ -466,6 +466,12 @@ const tr: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "Tarayıcı önbellekleri",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Chrome, Edge, Brave ve Firefox önbelleği. Oturumlar, geçmiş ve parolalar korunur; siteler ilk seferde biraz daha yavaş yüklenir.",
+    "Discord cache": "Discord önbelleği",
+    "Images and files Discord saved. It downloads them again when needed.": "Discord'un kaydettiği resimler ve dosyalar. Gerektiğinde yeniden indirir.",
+    "Steam web cache": "Steam web önbelleği",
+    "Store and library pages Steam saved. Games are not touched.": "Steam'in kaydettiği mağaza ve kütüphane sayfaları. Oyunlara dokunulmaz.",
     "Gaming mode": "Oyun modu",
     "Maximum privacy": "En yüksek gizlilik",
     "Essentials": "Temel",

@@ -466,6 +466,12 @@ const zh: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "浏览器缓存",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Chrome、Edge、Brave 和 Firefox 的缓存。登录、历史记录和密码都会保留；网站第一次加载会稍慢。",
+    "Discord cache": "Discord 缓存",
+    "Images and files Discord saved. It downloads them again when needed.": "Discord 保存的图片和文件。需要时会重新下载。",
+    "Steam web cache": "Steam 网页缓存",
+    "Store and library pages Steam saved. Games are not touched.": "Steam 保存的商店和库页面。不会影响游戏。",
     "Gaming mode": "游戏模式",
     "Maximum privacy": "最高隐私",
     "Essentials": "基础",

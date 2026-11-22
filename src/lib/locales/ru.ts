@@ -466,6 +466,12 @@ const ru: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "Кэш браузеров",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Кэш Chrome, Edge, Brave и Firefox. Входы в аккаунты, история и пароли сохраняются; при первом открытии сайты загружаются чуть медленнее.",
+    "Discord cache": "Кэш Discord",
+    "Images and files Discord saved. It downloads them again when needed.": "Изображения и файлы, сохранённые Discord. При необходимости он скачает их заново.",
+    "Steam web cache": "Веб-кэш Steam",
+    "Store and library pages Steam saved. Games are not touched.": "Страницы магазина и библиотеки, сохранённые Steam. Игры не затрагиваются.",
     "Gaming mode": "Игровой режим",
     "Maximum privacy": "Максимальная конфиденциальность",
     "Essentials": "Основное",

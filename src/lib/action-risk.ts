@@ -18,6 +18,9 @@ export const ACTION_RISK: Record<string, ActionRisk> = {
   clean_temp: safe,
   flush_dns: safe,
   clean_thumbnails: safe,
+  clean_browser_cache: safe,
+  clean_discord_cache: safe,
+  clean_steam_web_cache: safe,
   clean_delivery_optimization: safe,
   clean_windows_update: safe,
   clean_prefetch: {

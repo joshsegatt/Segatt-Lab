@@ -466,6 +466,12 @@ const ko: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "브라우저 캐시",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Chrome, Edge, Brave, Firefox의 캐시입니다. 로그인, 기록, 암호는 그대로 유지되며 사이트는 처음에 조금 느리게 로드됩니다.",
+    "Discord cache": "Discord 캐시",
+    "Images and files Discord saved. It downloads them again when needed.": "Discord가 저장한 이미지와 파일입니다. 필요하면 다시 다운로드합니다.",
+    "Steam web cache": "Steam 웹 캐시",
+    "Store and library pages Steam saved. Games are not touched.": "Steam이 저장한 상점 및 라이브러리 페이지입니다. 게임에는 영향이 없습니다.",
     "Gaming mode": "게임 모드",
     "Maximum privacy": "최대 개인 정보 보호",
     "Essentials": "필수",

@@ -466,6 +466,12 @@ const ja: Locale = {
     },
   },
   catalog: {
+    "Browser caches": "ブラウザーのキャッシュ",
+    "Chrome, Edge, Brave and Firefox caches. Logins, history and passwords stay; sites load a bit slower the first time.": "Chrome、Edge、Brave、Firefox のキャッシュです。ログイン情報、履歴、パスワードはそのまま残ります。サイトの初回表示は少し遅くなります。",
+    "Discord cache": "Discord のキャッシュ",
+    "Images and files Discord saved. It downloads them again when needed.": "Discord が保存した画像やファイルです。必要になると再ダウンロードされます。",
+    "Steam web cache": "Steam の Web キャッシュ",
+    "Store and library pages Steam saved. Games are not touched.": "Steam が保存したストアとライブラリのページです。ゲームには影響しません。",
     "Gaming mode": "ゲーム モード",
     "Maximum privacy": "最大限のプライバシー",
     "Essentials": "基本",
