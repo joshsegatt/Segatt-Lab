@@ -360,7 +360,7 @@ export default function TweaksPage() {
         {hiddenCount > 0 && !query.trim() && (
           <div className={styles.hiddenNote}>
             <p>
-              {fmt(t("lv.hidden"), { n: hiddenCount, level: localize(LEVEL_TEXT[level].name, language) })}
+              {fmt(t("lv.hidden", hiddenCount), { n: hiddenCount, level: localize(LEVEL_TEXT[level].name, language) })}
               {!confirmAll && <button type="button" onClick={() => setConfirmAll(true)}>{t("lv.show_all")}</button>}
             </p>
             {confirmAll && (

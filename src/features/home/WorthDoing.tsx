@@ -77,8 +77,8 @@ export function WorthDoing() {
               <>
                 <span className={`${styles.worthIcon} ${s.kind === "warn" ? styles.worthWarn : ""}`} aria-hidden="true"><Icon size={16} strokeWidth={1.75} /></span>
                 <span className={styles.worthText}>
-                  <b>{fmt(t(`dash.${s.id}`), words(s.vars))}</b>
-                  <small>{fmt(t(`dash.${s.id}_sub`), words(s.vars))}</small>
+                  <b>{fmt(t(`dash.${s.id}`, s.vars?.n), words(s.vars))}</b>
+                  <small>{fmt(t(`dash.${s.id}_sub`, s.vars?.n), words(s.vars))}</small>
                 </span>
                 {s.href && <ChevronRight size={16} strokeWidth={1.75} className={styles.worthGo} aria-hidden="true" />}
               </>

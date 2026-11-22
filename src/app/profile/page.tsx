@@ -256,7 +256,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               {importError && <p className={styles.error} role="alert"><TriangleAlert size={14} aria-hidden="true" />{t(`pf.err_${importError}`)}</p>}
-              {loaded && loaded.dropped > 0 && <p className={styles.reason} style={{ margin: "-4px 18px 12px" }}>{fmt(t("pf.dropped"), { n: loaded.dropped })}</p>}
+              {loaded && loaded.dropped > 0 && <p className={styles.reason} style={{ margin: "-4px 18px 12px" }}>{fmt(t("pf.dropped", loaded.dropped), { n: loaded.dropped })}</p>}
             </li>
           </ul>
         </section>
@@ -265,7 +265,7 @@ export default function ProfilePage() {
           <section className={styles.group} aria-labelledby="pf-tweaks">
             <div className={styles.groupHead}>
               <h2 id="pf-tweaks">{t("pf.tweaks")}</h2>
-              <span>{fmt(t("pf.already"), { n: plan.tweaksDone })}</span>
+              <span>{fmt(t("pf.already", plan.tweaksDone), { n: plan.tweaksDone })}</span>
             </div>
             {plan.tweaks.length === 0 ? (
               <p className={styles.reason} style={{ margin: "0 4px" }}>{t("pf.tweaks_none")}</p>
@@ -342,7 +342,7 @@ export default function ProfilePage() {
           <section className={styles.group} aria-labelledby="pf-apps">
             <div className={styles.groupHead}>
               <h2 id="pf-apps">{t("pf.apps")}</h2>
-              <span>{fmt(t("pf.already_apps"), { n: plan.appsDone })}</span>
+              <span>{fmt(t("pf.already_apps", plan.appsDone), { n: plan.appsDone })}</span>
             </div>
             {plan.apps.length === 0 ? (
               <p className={styles.reason} style={{ margin: "0 4px" }}>{t(loaded.appsUnread ? "pf.apps_unread" : "pf.apps_none")}</p>

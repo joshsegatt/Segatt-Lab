@@ -423,5 +423,15 @@ const pt: Locale = {
     },
   },
   catalog: {},
+  plural: {
+    "dash.app_updates": { one: "Atualizar {n} app" },
+    "dash.essential_sub": { one: "{n} ajuste ainda desligado. Você revisa antes de aplicar." },
+    "dash.gaming_sub": { one: "{n} ajuste ainda desligado. Você revisa antes de aplicar." },
+    "lv.hidden": { one: "{n} ajuste acima do nível {level} está escondido." },
+    "lv.hidden_actions": { one: "{n} item arriscado fica escondido abaixo do nível Avançado." },
+    "pf.dropped": { one: "{n} item do arquivo ficou de fora: este app não o conhece ou está malformado." },
+    "pf.already": { one: "{n} já ligado aqui" },
+    "pf.already_apps": { one: "{n} já instalado aqui" },
+  },
 };
 export default pt;

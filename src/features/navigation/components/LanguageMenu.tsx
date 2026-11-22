@@ -1,46 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Check, Languages } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { LANGUAGES } from "@/lib/i18n";
 import styles from "./LevelMenu.module.css";
+import { useMenu } from "./useMenu";
 
 /** The language picker in the top bar: every language by its own name. */
 export function LanguageMenu() {
   const { t, language, setLanguage } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  const items = useRef<(HTMLButtonElement | null)[]>([]);
-
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        root.current?.querySelector<HTMLButtonElement>("[aria-haspopup]")?.focus();
-      }
-    };
-    items.current[LANGUAGES.findIndex((l) => l.code === language)]?.focus();
-    document.addEventListener("pointerdown", away);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("pointerdown", away);
-      document.removeEventListener("keydown", esc);
-    };
-    // Focus goes to the current language once, when the menu opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const move = (e: React.KeyboardEvent, i: number) => {
-    const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
-    if (!step) return;
-    e.preventDefault();
-    items.current[(i + step + LANGUAGES.length) % LANGUAGES.length]?.focus();
-  };
+  const { open, setOpen, root, itemRef, move } = useMenu(LANGUAGES.length, LANGUAGES.findIndex((l) => l.code === language));
 
   return (
     <div className={styles.wrap} ref={root}>
@@ -60,9 +29,7 @@ export function LanguageMenu() {
           {LANGUAGES.map((l, i) => (
             <button
               key={l.code}
-              ref={(el) => {
-                items.current[i] = el;
-              }}
+              ref={itemRef(i)}
               onKeyDown={(e) => move(e, i)}
               type="button"
               role="menuitemradio"

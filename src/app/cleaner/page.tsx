@@ -165,7 +165,7 @@ export default function CleanerPage() {
           </ul>
         </section>
 
-        {hidden > 0 && <p className={styles.hiddenNote}>{fmt(t("lv.hidden_actions"), { n: hidden })}</p>}
+        {hidden > 0 && <p className={styles.hiddenNote}>{fmt(t("lv.hidden_actions", hidden), { n: hidden })}</p>}
         {admin === false && sizes && <p className={styles.hiddenNote}>{t("cl.not_admin_sizes")}</p>}
       </div>
 
