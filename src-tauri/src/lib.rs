@@ -4,6 +4,7 @@ use crate::features::packages::{list_installed, run_app_action, search_packages}
 use crate::features::tweaks::{check_admin, create_restore_point, open_system_restore};
 use crate::features::engine::{get_tweak_states, set_tweak};
 use crate::features::cleaner::run_cleanup;
+use crate::features::hardware::get_hardware;
 use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
 use std::sync::Mutex;
@@ -41,6 +42,7 @@ pub fn run() {
       run_cleanup,
       get_system_stats,
       get_pc_info,
+      get_hardware,
       open_legacy_panel,
       run_system_fix
     ])
