@@ -11,11 +11,7 @@
 .body { display: flex; flex-direction: column; animation: step-in 0.3s var(--ease-out) both; }
 @keyframes step-in { from { opacity: 0; transform: translateY(6px); } }
 
-.mark {
-  width: 44px; height: 44px; border-radius: 12px; margin-bottom: 22px;
-  display: grid; place-items: center;
-  background: var(--brand); color: var(--brand-ink); font: 700 22px var(--font-title);
-}
+.mark { display: block; width: 112px; height: 112px; margin: -8px 0 14px -8px; }
 .title { font: 600 30px/1.2 var(--font-title); letter-spacing: -0.02em; text-wrap: balance; outline: none; }
 .lede { color: var(--ink-2); margin-top: 8px; font-size: 15px; line-height: 1.5; }
 

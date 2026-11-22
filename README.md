@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/mark.svg" width="72" alt="Segatt Tools icon">
+<img src="docs/assets/mascot-256.png" width="160" alt="The Segatt Tools mascot, a scientist in goggles holding a chip">
 
 # Segatt Tools
 

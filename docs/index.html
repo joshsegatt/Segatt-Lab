@@ -8,7 +8,8 @@
 <link rel="canonical" href="https://joshsegatt.github.io/Segatt-Tools/">
 <meta name="theme-color" content="#1a1a1a">
 <meta name="color-scheme" content="dark">
-<link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/mascot-face.png">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Segatt Tools">
@@ -96,7 +97,8 @@ img { display: block; max-width: 100%; height: auto; }
 /* Top bar */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font: 600 16px var(--font-title); text-decoration: none; }
-.brand img { width: 28px; height: 28px; border-radius: 7px; }
+.brand img { width: 32px; height: 32px; }
+.mascot { width: 148px; height: 148px; margin: 0 auto 18px; }
 .top nav { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--ink-2); }
 .top nav a { text-decoration: none; }
 .top nav a:hover { color: var(--ink); }
@@ -116,7 +118,7 @@ img { display: block; max-width: 100%; height: auto; }
 .btn svg { width: 18px; height: 18px; flex: none; }
 
 /* Hero */
-.hero { text-align: center; padding-top: 72px; padding-bottom: 40px; }
+.hero { text-align: center; padding-top: 32px; padding-bottom: 40px; }
 .hero h1 {
   font: 600 clamp(40px, 7vw, 72px)/1.04 var(--font-title);
   letter-spacing: -0.035em; text-wrap: balance; max-width: 14ch; margin: 0 auto;
@@ -217,7 +219,7 @@ footer a:hover { color: var(--ink); }
 <body>
 
 <header class="wrap top">
-  <a class="brand" href="./"><img src="assets/mark.svg" width="28" height="28" alt="">Segatt Tools</a>
+  <a class="brand" href="./"><img src="assets/mascot-face.png" width="32" height="32" alt="">Segatt Tools</a>
   <nav aria-label="Main">
     <a class="hide-sm" href="#features">Features</a>
     <a class="hide-sm" href="#safety">Safety</a>
@@ -228,6 +230,7 @@ footer a:hover { color: var(--ink); }
 
 <main>
   <div class="wrap hero">
+    <img class="mascot" src="assets/mascot.webp" width="512" height="512" alt="The Segatt Tools mascot, a scientist in goggles holding a chip" fetchpriority="high">
     <h1>Tune Windows <em>without guessing.</em></h1>
     <p class="lede">Segatt Tools reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. Debloat, tweaks, cleanup, repairs and bootable USB drives in one native app for Windows 10 and 11.</p>
 
