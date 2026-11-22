@@ -399,6 +399,10 @@ On Home, under the live numbers: a 15px "Seu PC" heading with an Ink 3 note ("Li
 
 Hardware-aware tweaks: when a rule in `src/lib/hardware.ts` says a tweak does not fit this PC, its access line adds "Fora do perfil neste PC" (Ink 2, CPU glyph), the detail panel says why, and presets leave it out.
 
+### Control list
+
+The Control screen reuses the app row (info | tag slot | 176px actions, no checkbox) with descriptions that wrap (`appInfoWrap`) because they must be read in full. Windows Update modes are rows, not cards: the current one carries the jade "Atual" tag and no button; the others offer "Usar". Risky modes confirm inline and always make a restore point first. Moderate and risky notes sit under the row in Ink 2 or red. Windows features show their real state (Ativo, Desligado, Indisponível nesta edição), one change at a time with "Mudando…" and a plain note that it can take minutes; a pending restart is said once above the list. Failures give a plain reason first and the raw Windows message under "Ver detalhes".
+
 ### Access & Risk line
 
 Every tweak row carries a third line in 12px Ink 3 under its description, plain text with a hairline (Line 2) between the two parts, no chips:
