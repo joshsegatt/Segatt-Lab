@@ -8,4 +8,5 @@ pub mod control;
 pub mod profile;
 pub mod debloat;
 pub mod startup;
+pub mod usb;
 pub mod utils;

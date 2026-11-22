@@ -8,6 +8,7 @@ use crate::features::hardware::get_hardware;
 use crate::features::profile::save_profile;
 use crate::features::debloat::{list_bloat, open_store_page, remove_bloat};
 use crate::features::startup::{list_startup, set_startup};
+use crate::features::usb::{cancel_usb, inspect_iso, list_usb_disks, write_usb};
 use crate::features::control::{get_features, get_update_mode, set_feature, set_update_mode};
 use crate::features::system::{get_pc_info, get_system_stats, open_legacy_panel, run_system_fix, SystemState};
 use sysinfo::System;
@@ -18,7 +19,8 @@ pub fn run() {
   let mut builder = tauri::Builder::default();
 
   builder = builder
-    .plugin(tauri_plugin_opener::init());
+    .plugin(tauri_plugin_opener::init())
+    .plugin(tauri_plugin_dialog::init());
 
   if cfg!(debug_assertions) {
     builder = builder.plugin(
@@ -57,6 +59,10 @@ pub fn run() {
       open_store_page,
       list_startup,
       set_startup,
+      list_usb_disks,
+      inspect_iso,
+      write_usb,
+      cancel_usb,
       open_legacy_panel,
       run_system_fix
     ])
