@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="src-tauri/icons/128x128@2x.png" width="96" alt="Segatt Tools icon">
+<img src="docs/assets/mark.svg" width="72" alt="Segatt Tools icon">
 
 # Segatt Tools
 

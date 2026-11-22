@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segatt Tools: free Windows 11 debloat, tweaks and cleaner app</title>
+<meta name="description" content="Debloat, tune, clean and repair Windows 10 and 11 from one native app. See each tweak's live state, undo any of it in one click, make bootable USB drives. Free, open source, no telemetry.">
+<link rel="canonical" href="https://joshsegatt.github.io/Segatt-Tools/">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Segatt Tools">
+<meta property="og:title" content="Segatt Tools: tune Windows without guessing">
+<meta property="og:description" content="Debloat, tune, clean and repair Windows 10 and 11. Live state for every tweak, one-click undo, bootable USB built in. Free and open source.">
+<meta property="og:url" content="https://joshsegatt.github.io/Segatt-Tools/">
+<meta property="og:image" content="https://joshsegatt.github.io/Segatt-Tools/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Segatt Tools home screen">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Segatt Tools",
+      "description": "A native Windows app to debloat, tune, clean and repair Windows 10 and 11, with the live state of every tweak, one-click undo and a built-in bootable USB maker.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Windows 10, Windows 11",
+      "url": "https://joshsegatt.github.io/Segatt-Tools/",
+      "downloadUrl": "https://github.com/joshsegatt/Segatt-Tools/releases/latest",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Josh Segatt" },
+      "screenshot": "https://joshsegatt.github.io/Segatt-Tools/assets/home.png",
+      "inLanguage": ["en", "pt-BR", "es", "fr", "de", "ru", "zh-Hans", "ja", "ko", "tr"]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Is Segatt Tools free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is free and open source under the MIT license, with no account, no ads and no telemetry." } },
+        { "@type": "Question", "name": "Can I undo the tweaks?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The original value is saved before each tweak and written back when you turn it off, and a restore point is created before a batch of tweaks." } },
+        { "@type": "Question", "name": "How is it different from WinUtil and other debloat scripts?", "acceptedAnswer": { "@type": "Answer", "text": "Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values to undo them, and also cleans, repairs and makes bootable USB drives." } },
+        { "@type": "Question", "name": "Does it work on Windows 10?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, on Windows 10 and Windows 11." } }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+:root {
+  --canvas: #1a1a1a;
+  --side: #131313;
+  --raise: #242424;
+  --raise-2: #2c2c2c;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --ink: #ededed;
+  --ink-2: #a1a1a1;
+  --ink-3: #8a8a8a;
+  --brand: #3ddc97;
+  --brand-ink: #05140d;
+  --brand-soft: rgba(61, 220, 151, 0.14);
+  --font-title: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-ui: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scrollbar-color: rgba(255, 255, 255, 0.16) var(--canvas); }
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font: 400 16px/1.55 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection { background: var(--brand); color: var(--brand-ink); }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 6px; }
+a { color: inherit; text-underline-offset: 3px; }
+img { display: block; max-width: 100%; height: auto; }
+
+.wrap { width: min(1120px, 100%); margin: 0 auto; padding: 0 24px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+/* Top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font: 600 16px var(--font-title); text-decoration: none; }
+.brand img { width: 28px; height: 28px; border-radius: 7px; }
+.top nav { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--ink-2); }
+.top nav a { text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+@media (max-width: 640px) { .top nav .hide-sm { display: none; } }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--line-2);
+  font: 600 15px var(--font-ui); text-decoration: none; color: var(--ink); background: var(--raise);
+  transition: background 0.15s, transform 0.15s var(--ease-out);
+}
+.btn:hover { background: var(--raise-2); }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+.btn-primary:hover { background: #52e4a6; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+
+/* Hero */
+.hero { text-align: center; padding-top: 72px; padding-bottom: 40px; }
+.hero h1 {
+  font: 600 clamp(40px, 7vw, 72px)/1.04 var(--font-title);
+  letter-spacing: -0.035em; text-wrap: balance; max-width: 14ch; margin: 0 auto;
+}
+.hero h1 em { font-style: normal; color: var(--brand); }
+.hero .lede { color: var(--ink-2); font-size: clamp(17px, 2vw, 19px); max-width: 58ch; margin: 22px auto 0; text-wrap: pretty; }
+.cta { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+
+.cmd {
+  display: flex; align-items: center; gap: 12px; max-width: 640px; margin: 18px auto 0;
+  padding: 8px 8px 8px 18px; border-radius: 14px; background: var(--side); border: 1px solid var(--line);
+  text-align: left;
+}
+.cmd code { flex: 1; min-width: 0; font: 13.5px/1.5 var(--font-mono); color: var(--ink-2); overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.cmd code::-webkit-scrollbar { display: none; }
+.cmd code b { color: var(--brand); font-weight: 400; }
+.copy {
+  flex: none; height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--line-2);
+  background: var(--raise); color: var(--ink); font: 600 13px var(--font-ui); cursor: pointer;
+}
+.copy:hover { background: var(--raise-2); }
+.cmd-note { color: var(--ink-3); font-size: 13px; margin-top: 10px; }
+
+.facts { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; color: var(--ink-3); font-size: 14px; }
+.facts span { display: inline-flex; align-items: center; gap: 7px; }
+.facts span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+
+/* App window */
+.window {
+  margin: 56px auto 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line-2);
+  box-shadow: var(--shadow); background: var(--canvas);
+}
+.hero .window { animation: rise 0.9s var(--ease-out) both; }
+@keyframes rise { from { transform: translateY(18px) scale(0.985); } to { transform: none; } }
+
+/* Sections */
+section.wrap { padding-top: 96px; }
+.sec-head { max-width: 720px; }
+.sec-head h2 { font: 600 clamp(30px, 4vw, 44px)/1.1 var(--font-title); letter-spacing: -0.03em; text-wrap: balance; }
+.sec-head p { color: var(--ink-2); font-size: 18px; margin-top: 14px; max-width: 62ch; text-wrap: pretty; }
+
+.points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
+.points h3 { font: 600 16px var(--font-title); }
+.points p { color: var(--ink-2); font-size: 15px; margin-top: 6px; }
+@media (max-width: 860px) { .points { grid-template-columns: 1fr; gap: 20px; } }
+
+.row { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; padding-top: 88px; }
+.row:nth-of-type(even) { grid-template-columns: 7fr 5fr; }
+.row:nth-of-type(even) .row-text { order: 2; }
+.row h3 { font: 600 clamp(24px, 3vw, 32px)/1.15 var(--font-title); letter-spacing: -0.025em; text-wrap: balance; }
+.row p { color: var(--ink-2); margin-top: 12px; text-wrap: pretty; }
+.row ul { list-style: none; margin-top: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: 15px; }
+.row li { display: flex; gap: 10px; }
+.row li::before { content: ""; flex: none; width: 14px; height: 14px; margin-top: 5px; border-radius: 4px; background: var(--brand-soft); box-shadow: inset 0 0 0 1px rgba(61, 220, 151, 0.4); }
+.row .window { margin: 0; }
+.num { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+@media (max-width: 860px) {
+  .row, .row:nth-of-type(even) { grid-template-columns: 1fr; gap: 28px; padding-top: 64px; }
+  .row:nth-of-type(even) .row-text { order: 0; }
+}
+
+.safety { margin-top: 40px; border-top: 1px solid var(--line); }
+.safety div { display: grid; grid-template-columns: 260px 1fr; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.safety dt { font: 600 16px var(--font-title); }
+.safety dd { color: var(--ink-2); }
+@media (max-width: 640px) { .safety div { grid-template-columns: 1fr; gap: 4px; } }
+
+.more { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 48px; margin-top: 36px; }
+.more p { padding: 18px 0; border-top: 1px solid var(--line); color: var(--ink-2); }
+.more b { color: var(--ink); font-weight: 600; }
+@media (max-width: 760px) { .more { grid-template-columns: 1fr; } }
+
+.faq { margin-top: 36px; max-width: 800px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { list-style: none; cursor: pointer; padding: 20px 0; font: 600 17px var(--font-title); display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--ink-3); font-weight: 400; transition: transform 0.2s var(--ease-out); }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq p { color: var(--ink-2); padding: 0 0 20px; max-width: 68ch; }
+
+.final { text-align: center; padding-top: 120px; }
+.final h2 { font: 600 clamp(32px, 5vw, 52px)/1.08 var(--font-title); letter-spacing: -0.035em; text-wrap: balance; }
+
+footer { margin-top: 120px; border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--ink-3); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; }
+footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hero .window { animation: none; }
+  .btn, .faq summary::after { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="brand" href="./"><img src="assets/mark.svg" width="28" height="28" alt="">Segatt Tools</a>
+  <nav aria-label="Main">
+    <a class="hide-sm" href="#features">Features</a>
+    <a class="hide-sm" href="#safety">Safety</a>
+    <a class="hide-sm" href="#faq">FAQ</a>
+    <a href="https://github.com/joshsegatt/Segatt-Tools">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1>Tune Windows <em>without guessing.</em></h1>
+    <p class="lede">Segatt Tools reads your PC's real state, shows exactly what will change, and puts every tweak back in one click. Debloat, tweaks, cleanup, repairs and bootable USB drives in one native app for Windows 10 and 11.</p>
+
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/joshsegatt/Segatt-Tools/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        Download for Windows
+      </a>
+      <a class="btn" href="https://github.com/joshsegatt/Segatt-Tools">View the source</a>
+    </div>
+
+    <div class="cmd">
+      <code id="install-cmd"><b>irm</b> https://raw.githubusercontent.com/joshsegatt/Segatt-Tools/main/install.ps1 <b>| iex</b></code>
+      <button class="copy" type="button" data-copy="install-cmd">Copy</button>
+    </div>
+    <p class="cmd-note">Or paste this in PowerShell: it downloads the latest release and checks its SHA-256 before running it.</p>
+
+    <p class="facts"><span>Free and open source</span><span>No telemetry, no account</span><span>10 languages</span></p>
+
+    <div class="window">
+      <img src="assets/home.webp" width="1440" height="900" alt="The Segatt Tools home screen: a search box, suggested actions read from the PC, live CPU, memory and disk, and the PC's hardware" fetchpriority="high">
+    </div>
+  </div>
+
+  <section id="why" class="wrap">
+    <div class="sec-head">
+      <h2>See it, change it, take it back.</h2>
+      <p>Most Windows tweakers run a script and hope. Segatt Tools treats your PC like the main machine it is.</p>
+    </div>
+    <div class="points">
+      <div>
+        <h3>Live state, not guesses</h3>
+        <p>Every tweak shows what your PC has right now, read from the registry, services and power settings.</p>
+      </div>
+      <div>
+        <h3>Undo is one click</h3>
+        <p>The original value is saved before a change. A restore point comes first, and risky items always ask.</p>
+      </div>
+      <div>
+        <h3>Real results</h3>
+        <p>Tasks run in the background, with no console windows, and report what happened: "Freed 5.4 GB", not "Done".</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="wrap" aria-label="Features">
+    <article class="row">
+      <div class="row-text">
+        <h3><span class="num">47</span> tweaks, tuned to your hardware</h3>
+        <p>Privacy, performance, interface, system and services, alone or in presets: Essentials, Gaming and Maximum privacy.</p>
+        <ul>
+          <li>Each one labelled Safe, Moderate or Risky, with what you may notice</li>
+          <li>A laptop never gets the power settings meant for a desktop</li>
+          <li>Pick Beginner, Intermediate or Advanced and see only what fits</li>
+        </ul>
+      </div>
+      <div class="window"><img src="assets/tweaks.webp" width="1440" height="900" loading="lazy" alt="The Tweaks screen with the Gaming preset, showing each tweak's state, scope and risk"></div>
+    </article>
+
+    <article class="row">
+      <div class="row-text">
+        <h3>Debloat that you can take back</h3>
+        <p>Remove the apps Windows ships with: Copilot, News, Bing Search, Solitaire, the Xbox Game Bar, Teams, OneDrive and more, <span class="num">22</span> in all.</p>
+        <ul>
+          <li>See which ones are actually installed on your PC</li>
+          <li>Any of them comes back from the Microsoft Store in one click</li>
+        </ul>
+      </div>
+      <div class="window"><img src="assets/debloat.webp" width="1440" height="900" loading="lazy" alt="The Debloat screen listing preinstalled Windows apps and whether each is installed"></div>
+    </article>
+
+    <article class="row">
+      <div class="row-text">
+        <h3>A cleaner that measures first</h3>
+        <p><span class="num">13</span> cleanups, sized on your PC before you choose: temp files, Windows Update downloads, shader caches, Windows.old, and the caches of Chrome, Edge, Brave, Firefox, Discord and Steam.</p>
+        <ul>
+          <li>Logins, history and passwords are never touched</li>
+          <li>Files in use stay; the result shows what really went</li>
+        </ul>
+      </div>
+      <div class="window"><img src="assets/cleaner.webp" width="1440" height="900" loading="lazy" alt="The Cleaner screen showing how much each cleanup can free"></div>
+    </article>
+
+    <article class="row">
+      <div class="row-text">
+        <h3>Bootable USB, built in</h3>
+        <p>Windows 10/11 or Linux on a USB drive in three guided steps, like a lean Rufus inside the app.</p>
+        <ul>
+          <li>Optionally skip the TPM, Secure Boot and RAM checks, or the Microsoft account</li>
+          <li>Only USB drives are listed, and you type the drive's name to confirm</li>
+          <li>Everything written is read back and compared: Ready and verified</li>
+        </ul>
+      </div>
+      <div class="window"><img src="assets/usb.webp" width="1440" height="900" loading="lazy" alt="The Bootable USB screen with a Windows ISO and a USB drive selected"></div>
+    </article>
+
+    <article class="row">
+      <div class="row-text">
+        <h3>What opens with Windows, under control</h3>
+        <p>The same switch as Task Manager, with friendly names and publishers, for your account and for the whole PC.</p>
+      </div>
+      <div class="window"><img src="assets/startup.webp" width="1440" height="900" loading="lazy" alt="The Startup screen with an on and off switch for each program that opens with Windows"></div>
+    </article>
+
+    <article class="row">
+      <div class="row-text">
+        <h3>Apps, installed and updated with winget</h3>
+        <p><span class="num">42</span> hand-picked apps, the whole winget catalog in search, and Update all for whatever is out of date. In the background, with no installer windows.</p>
+      </div>
+      <div class="window"><img src="assets/apps.webp" width="1440" height="900" loading="lazy" alt="The Apps screen with installed apps, available updates and install buttons"></div>
+    </article>
+
+    <div class="more">
+      <p><b>Fixes.</b> SFC and DISM with a plain-language verdict, network reset, Windows Update reset, icon cache and the classic control panels.</p>
+      <p><b>Control.</b> Windows Update modes and optional Windows features, from one screen.</p>
+      <p><b>Profile.</b> Export your apps and tweaks to one file and set up a new PC from it, in the app or from the command line.</p>
+      <p><b>10 languages.</b> English, Português, Español, Français, Deutsch, Русский, 中文, 日本語, 한국어 and Türkçe.</p>
+    </div>
+  </section>
+
+  <section id="safety" class="wrap">
+    <div class="sec-head">
+      <h2>Built to run on your main PC.</h2>
+      <p>Changes are real and system-wide, so every one of them is checked, recorded and reversible.</p>
+    </div>
+    <dl class="safety">
+      <div><dt>Restore point first</dt><dd>Created before any batch of tweaks. Risky tweaks cannot run without one.</dd></div>
+      <div><dt>Original values kept</dt><dd>Turning a tweak off writes back exactly what was there before.</dd></div>
+      <div><dt>Checked after writing</dt><dd>A tweak counts as applied only when Windows reports the new value. A change Windows did not keep is rolled back.</dd></div>
+      <div><dt>Honest results</dt><dd>Errors say what failed and why. A failed task never shows as done.</dd></div>
+      <div><dt>Nothing leaves your PC</dt><dd>No telemetry, no account, no cloud. The only downloads are the apps you ask winget for.</dd></div>
+      <div><dt>Open source</dt><dd>MIT license. Every check and script is on GitHub to read.</dd></div>
+    </dl>
+  </section>
+
+  <section id="faq" class="wrap">
+    <div class="sec-head"><h2>Questions</h2></div>
+    <div class="faq">
+      <details>
+        <summary>Is it free?</summary>
+        <p>Yes. Free and open source under the MIT license, with no account, no ads and no telemetry.</p>
+      </details>
+      <details>
+        <summary>How is it different from WinUtil and other debloat scripts?</summary>
+        <p>Scripts run once and print to a console. Segatt Tools is an installed app that reads the live state of each tweak on your PC, shows what will change, keeps the original values so you can undo them, and also cleans, repairs and makes bootable USB drives.</p>
+      </details>
+      <details>
+        <summary>Windows SmartScreen warns me. Is it safe?</summary>
+        <p>SmartScreen warns about any publisher it has not seen often. Each release publishes the installer's SHA-256, the install command checks it for you, and all the code is on GitHub.</p>
+      </details>
+      <details>
+        <summary>Why does it ask for administrator?</summary>
+        <p>Tweaks for the whole PC, services, system cleanup, repairs and writing USB drives all need it, so the app asks once when it opens.</p>
+      </details>
+      <details>
+        <summary>Does it work on Windows 10?</summary>
+        <p>Yes, on Windows 10 and Windows 11.</p>
+      </details>
+    </div>
+  </section>
+
+  <div class="wrap final">
+    <h2>Your PC, tuned and still yours.</h2>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/joshsegatt/Segatt-Tools/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        Download for Windows
+      </a>
+    </div>
+    <div class="cmd">
+      <code id="install-cmd-2"><b>irm</b> https://raw.githubusercontent.com/joshsegatt/Segatt-Tools/main/install.ps1 <b>| iex</b></code>
+      <button class="copy" type="button" data-copy="install-cmd-2">Copy</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© Josh Segatt · MIT license</span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/joshsegatt/Segatt-Tools/releases">Releases</a>
+      <a href="https://github.com/joshsegatt/Segatt-Tools">Source code</a>
+      <a href="https://github.com/joshsegatt/Segatt-Tools/issues">Report a problem</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  for (const button of document.querySelectorAll("[data-copy]")) {
+    button.addEventListener("click", async () => {
+      const text = document.getElementById(button.dataset.copy).textContent.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = "Copied";
+      } catch {
+        button.textContent = "Select and copy";
+      }
+      setTimeout(() => { button.textContent = "Copy"; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
