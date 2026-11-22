@@ -17,6 +17,7 @@ import { hardwareHint } from "@/lib/hardware";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 type Note = { kind: "success" | "error"; msg: string };
 
@@ -173,8 +174,8 @@ export default function ProfilePage() {
     if (appJobs.length) enqueue(appJobs.map((a) => ({ id: a.id, name: a.name, action: "install" as const })));
   };
 
-  const time = (at: number) => new Date(at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
-  const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString(language === "pt" ? "pt-BR" : "en-US", { day: "numeric", month: "long", year: "numeric" }) : "");
+  const time = (at: number) => new Date(at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" });
+  const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString(localeTag(language), { day: "numeric", month: "long", year: "numeric" }) : "");
 
   const plan = loaded?.plan;
   const dockOpen = total > 0 || busy || queue.progress !== null;
@@ -278,11 +279,11 @@ export default function ProfilePage() {
                     <li key={tw.id} className={`${styles.row} ${picked.has(k) && !done && allows(level, tw.risk) ? styles.changed : ""}`}>
                       <div className={`${styles.appLine} ${styles.appLineNoActions}`}>
                         {done || busy || !allows(level, tw.risk) ? <span aria-hidden="true" /> : (
-                          <input type="checkbox" className={styles.check} checked={picked.has(k)} onChange={() => flip(k)} aria-label={tw.name[language]} />
+                          <input type="checkbox" className={styles.check} checked={picked.has(k)} onChange={() => flip(k)} aria-label={localize(tw.name, language)} />
                         )}
                         <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
-                          <b>{tw.name[language]}</b>
-                          <small>{tw.description[language]}</small>
+                          <b>{localize(tw.name, language)}</b>
+                          <small>{localize(tw.description, language)}</small>
                           <span className={styles.access}>
                             {st && <span title={t(`tw.scope_${st.scope}_hint`)}>{t(`tw.scope_${st.scope}`)}</span>}
                             <span className={tw.risk === "risky" ? styles.riskRisky : tw.risk === "moderate" ? styles.riskModerate : undefined}>
@@ -290,7 +291,7 @@ export default function ProfilePage() {
                               {t(`tw.risk_${tw.risk}`)}
                             </span>
                             {why === "not_for_pc" && <span className={styles.riskModerate}><Cpu size={12} aria-hidden="true" />{t("pc.not_for_pc")}</span>}
-                            {!done && !allows(level, tw.risk) && <span className={styles.riskModerate}>{fmt(t("lv.needs"), { level: LEVEL_TEXT[levelFor(tw.risk)].name[language] })}</span>}
+                            {!done && !allows(level, tw.risk) && <span className={styles.riskModerate}>{fmt(t("lv.needs"), { level: localize(LEVEL_TEXT[levelFor(tw.risk)].name, language) })}</span>}
                           </span>
                         </div>
                         <span className={styles.tagSlot}>
@@ -306,7 +307,7 @@ export default function ProfilePage() {
                       {confirmRisky === tw.id && (
                         <p className={`${styles.confirm} ${styles.confirmRisky}`} role="alert">
                           <TriangleAlert size={14} aria-hidden="true" />
-                          <span className={styles.confirmText}>{fmt(t("tw.risky_confirm"), { note: tw.riskNote?.[language] ?? "" })}</span>
+                          <span className={styles.confirmText}>{fmt(t("tw.risky_confirm"), { note: localize(tw.riskNote, language) ?? "" })}</span>
                           <button type="button" className="btn btn-sm btn-secondary" onClick={() => flip(k, true)}>{t("tw.risky_yes")}</button>
                           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmRisky(null)}>{t("tw.risky_no")}</button>
                         </p>
@@ -316,7 +317,7 @@ export default function ProfilePage() {
                       )}
                       {!done && why === "not_for_pc" && (
                         <p className={`${styles.riskNote} ${styles.riskModerate}`} style={{ margin: "-4px 18px 12px" }}>
-                          <Cpu size={13} aria-hidden="true" />{hardwareHint(tw.id, hw)?.note[language]}
+                          <Cpu size={13} aria-hidden="true" />{localize(hardwareHint(tw.id, hw)?.note, language)}
                         </p>
                       )}
                       {failed[tw.id] && !done && working !== tw.id && (

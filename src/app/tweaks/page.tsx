@@ -16,6 +16,7 @@ import { normalize } from "@/lib/search";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 const GROUPS: TweakGroup[] = ["performance", "privacy", "interface", "system"];
 type Pending = Record<string, boolean>;
@@ -83,7 +84,7 @@ export default function TweaksPage() {
 
   const visible = useMemo(() => {
     const q = normalize(query.trim());
-    return TWEAKS.filter((tw) => !q || normalize(`${tw.name[language]} ${tw.description[language]} ${tw.keywords ?? ""}`).includes(q));
+    return TWEAKS.filter((tw) => !q || normalize(`${localize(tw.name, language)} ${localize(tw.description, language)} ${tw.keywords ?? ""}`).includes(q));
   }, [query, language]);
 
   const isActive = (id: string) => states?.[id]?.status === "active";
@@ -150,7 +151,7 @@ export default function TweaksPage() {
     setPending(Object.fromEntries(Object.entries(pending).filter(([id]) => failed[id] || !entries.some(([e]) => e === id))));
 
     const ok = entries.length - Object.keys(failed).length;
-    const names = Object.keys(failed).map((id) => TWEAKS.find((tw) => tw.id === id)?.name[language] ?? id);
+    const names = Object.keys(failed).map((id) => localize(TWEAKS.find((tw) => tw.id === id)?.name, language) ?? id);
     setToast(
       ok === entries.length
         ? { kind: "success", msg: fmt(t("tw.done_all"), { n: ok }) }
@@ -218,7 +219,7 @@ export default function TweaksPage() {
                 onClick={() => choosePreset(key)}
                 disabled={!states || busy}
               >
-                {key === "current" ? t("tw.preset_current") : PRESETS.find((p) => p.key === key)?.name[language]}
+                {key === "current" ? t("tw.preset_current") : localize(PRESETS.find((p) => p.key === key)?.name, language)}
               </button>
               )
             ))}
@@ -264,8 +265,8 @@ export default function TweaksPage() {
                     <li key={tw.id} id={`tweak-${tw.id}`} className={`${styles.row} ${tw.id in pending ? styles.changed : ""} ${selectParam === tw.id ? styles.flash : ""}`}>
                       <div className={styles.line}>
                         <button type="button" className={styles.info} onClick={() => toggleOpen(tw.id)} aria-expanded={expanded} aria-controls={`d-${tw.id}`}>
-                          <b>{tw.name[language]}</b>
-                          <small>{tw.description[language]}</small>
+                          <b>{localize(tw.name, language)}</b>
+                          <small>{localize(tw.description, language)}</small>
                           <span className={styles.access}>
                             {st && <span title={t(`tw.scope_${st.scope}_hint`)}>{t(`tw.scope_${st.scope}`)}</span>}
                             <span className={tw.risk === "risky" ? styles.riskRisky : tw.risk === "moderate" ? styles.riskModerate : undefined}>
@@ -282,7 +283,7 @@ export default function TweaksPage() {
                           type="button"
                           role="switch"
                           aria-checked={on}
-                          aria-label={tw.name[language]}
+                          aria-label={localize(tw.name, language)}
                           className={`${styles.switch} ${on ? styles.switchOn : ""}`}
                           onClick={() => toggle(tw.id)}
                           disabled={!states || busy}
@@ -291,7 +292,7 @@ export default function TweaksPage() {
                       {confirmRisky === tw.id && (
                         <p className={`${styles.confirm} ${styles.confirmRisky}`} role="alert">
                           <TriangleAlert size={14} aria-hidden="true" />
-                          <span className={styles.confirmText}>{fmt(t("tw.risky_confirm"), { note: tw.riskNote?.[language] ?? "" })}</span>
+                          <span className={styles.confirmText}>{fmt(t("tw.risky_confirm"), { note: localize(tw.riskNote, language) ?? "" })}</span>
                           <button type="button" className="btn btn-sm btn-secondary" onClick={() => toggle(tw.id, true)}>{t("tw.risky_yes")}</button>
                           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setConfirmRisky(null)}>{t("tw.risky_no")}</button>
                         </p>
@@ -299,7 +300,7 @@ export default function TweaksPage() {
                       {errors[tw.id] && (
                         <p className={styles.error} role="alert">
                           <TriangleAlert size={14} aria-hidden="true" />
-                          {fmt(t("tw.failed_at"), { time: new Date(errors[tw.id].at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" }), msg: explain(errors[tw.id].msg) })}
+                          {fmt(t("tw.failed_at"), { time: new Date(errors[tw.id].at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" }), msg: explain(errors[tw.id].msg) })}
                           {level !== "advanced" && (
                             <button type="button" onClick={() => setShowRaw((prev) => { const n = new Set(prev); if (n.has(tw.id)) n.delete(tw.id); else n.add(tw.id); return n; })}>
                               {t("tw.see_details")}
@@ -317,13 +318,13 @@ export default function TweaksPage() {
                           {hardwareHint(tw.id, hw) && (
                             <p className={`${styles.riskNote} ${styles.riskModerate}`}>
                               <Cpu size={13} aria-hidden="true" />
-                              {hardwareHint(tw.id, hw)!.note[language]}
+                              {localize(hardwareHint(tw.id, hw)!.note, language)}
                             </p>
                           )}
                           {tw.riskNote && (
                             <p className={`${styles.riskNote} ${tw.risk === "risky" ? styles.riskRisky : styles.riskModerate}`}>
                               <TriangleAlert size={13} aria-hidden="true" />
-                              {tw.riskNote[language]}
+                              {localize(tw.riskNote, language)}
                             </p>
                           )}
                           {level !== "beginner" && st?.changes.map((c) => (
@@ -359,7 +360,7 @@ export default function TweaksPage() {
         {hiddenCount > 0 && !query.trim() && (
           <div className={styles.hiddenNote}>
             <p>
-              {fmt(t("lv.hidden"), { n: hiddenCount, level: LEVEL_TEXT[level].name[language] })}
+              {fmt(t("lv.hidden"), { n: hiddenCount, level: localize(LEVEL_TEXT[level].name, language) })}
               {!confirmAll && <button type="button" onClick={() => setConfirmAll(true)}>{t("lv.show_all")}</button>}
             </p>
             {confirmAll && (

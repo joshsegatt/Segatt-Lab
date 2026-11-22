@@ -2,13 +2,13 @@
 // scale as the tweaks (see Risk in tweaks-catalog.ts). Risky actions never run
 // as part of "Clean all" and ask for a confirmation on their own card.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 import type { Risk } from "@/lib/tweaks-catalog";
 
 export interface ActionRisk {
   risk: Risk;
   /** Required unless risk is safe: what the user may notice or lose. */
-  note?: Record<Language, string>;
+  note?: Text;
 }
 
 const safe: ActionRisk = { risk: "safe" };

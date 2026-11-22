@@ -12,6 +12,7 @@ import { APP_CATEGORIES, ALL_APPS } from "@/lib/app-categories";
 import { normalize } from "@/lib/search";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 type View = "catalog" | "installed" | "updates";
 interface WingetHit { name: string; id: string; version: string }
@@ -76,7 +77,7 @@ export default function AppsPage() {
       return n;
     });
 
-  const time = (at?: number) => (at ? new Date(at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "");
+  const time = (at?: number) => (at ? new Date(at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" }) : "");
 
   const q = normalize(query.trim());
   const matches = (text: string) => !q || normalize(text).includes(q);
@@ -233,11 +234,11 @@ export default function AppsPage() {
             {catalogGroups.map(({ cat, apps }) => (
               <section key={cat.key} className={styles.group} aria-labelledby={`c-${cat.key}`}>
                 <div className={styles.groupHead}>
-                  <h2 id={`c-${cat.key}`}>{cat.label[language]}</h2>
+                  <h2 id={`c-${cat.key}`}>{localize(cat.label, language)}</h2>
                   {installed && <span>{fmt(t("ap.n_installed"), { n: apps.filter((a) => findInstalled(installed, a.id)).length, m: apps.length })}</span>}
                 </div>
                 <ul className={styles.list}>
-                  {apps.map((a) => row({ id: a.id, name: a.name, sub: a.description[language], selectable: true, removable: true }))}
+                  {apps.map((a) => row({ id: a.id, name: a.name, sub: localize(a.description, language), selectable: true, removable: true }))}
                 </ul>
               </section>
             ))}

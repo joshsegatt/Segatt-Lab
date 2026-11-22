@@ -8,6 +8,7 @@ import { LEVELS, LEVEL_TEXT, type Level } from "@/lib/level";
 import { APP_MARK, APP_NAME } from "@/lib/brand";
 import { fmt } from "@/lib/fmt";
 import styles from "./Onboarding.module.css";
+import { localize } from "@/lib/i18n";
 
 const STEPS: { title: string; lede: string; rows?: [LucideIcon, string, string][] }[] = [
   {
@@ -84,9 +85,9 @@ export function Onboarding() {
                 <label key={l} className={`${styles.row} ${styles.choice} ${pick === l ? styles.picked : ""}`}>
                   <input type="radio" name="level" value={l} checked={pick === l} onChange={() => setPick(l)} className={styles.radio} />
                   <span className={styles.text}>
-                    <b>{LEVEL_TEXT[l].name[language]}</b>
-                    <small>{LEVEL_TEXT[l].who[language]}</small>
-                    <small className={styles.sees}>{LEVEL_TEXT[l].sees[language]}</small>
+                    <b>{localize(LEVEL_TEXT[l].name, language)}</b>
+                    <small>{localize(LEVEL_TEXT[l].who, language)}</small>
+                    <small className={styles.sees}>{localize(LEVEL_TEXT[l].sees, language)}</small>
                   </span>
                 </label>
               ))}

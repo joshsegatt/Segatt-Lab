@@ -1,9 +1,9 @@
 // Curated app catalog (winget ids). Every label and description exists in every
 // shipped language, so a screen never mixes languages.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 
-type T = Record<Language, string>;
+type T = Text;
 
 export interface AppEntry {
   id: string; // winget package id

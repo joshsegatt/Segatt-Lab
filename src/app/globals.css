@@ -69,6 +69,24 @@
   --font-body: var(--font-ui);
 }
 
+/* CJK: name the Windows UI font of each script, so Chinese, Japanese and
+   Korean get their own Han glyph shapes instead of whichever font the
+   fallback finds first. Latin text keeps Segoe UI Variable. */
+:root:lang(zh) {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  --font-title: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+}
+:root:lang(ja) {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Yu Gothic UI", sans-serif;
+  --font-title: "Segoe UI Variable Display", "Segoe UI", "Yu Gothic UI", sans-serif;
+}
+:root:lang(ko) {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-title: "Segoe UI Variable Display", "Segoe UI", "Malgun Gothic", sans-serif;
+}
+/* Korean breaks between words, not between syllables (결/과). */
+:root:lang(ko) body { word-break: keep-all; overflow-wrap: anywhere; }
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body { height: 100%; }

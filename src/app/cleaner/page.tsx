@@ -13,6 +13,7 @@ import { showsAction } from "@/lib/level";
 import { recordActivity } from "@/lib/history";
 import { fmt } from "@/lib/fmt";
 import styles from "@/components/ui/Screen.module.css";
+import { localeTag, localize } from "@/lib/i18n";
 
 export default function CleanerPage() {
   const { t, language } = useLanguage();
@@ -67,7 +68,7 @@ export default function CleanerPage() {
     recordActivity({ label: t("cl.history"), detail: out.failed ? fmt(t(`cl.history_failed${one}`), { size, n: out.failed }) : size, status: out.failed ? "failed" : "ok", href: "/cleaner" });
   };
 
-  const time = (at: number) => new Date(at).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+  const time = (at: number) => new Date(at).toLocaleTimeString(localeTag(language), { hour: "2-digit", minute: "2-digit" });
   const toggleRaw = (id: string) => setShowRaw((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   return (
@@ -115,17 +116,17 @@ export default function CleanerPage() {
                 <li key={c.id} className={`${styles.row} ${picked.has(c.id) ? styles.changed : ""} ${result?.status === "done" ? styles.flash : ""}`}>
                   <div className={`${styles.appLine} ${styles.appLineNoActions}`}>
                     {busy || !sizes ? <span aria-hidden="true" /> : (
-                      <input type="checkbox" className={styles.check} checked={picked.has(c.id)} onChange={() => flip(c.id)} aria-label={c.name[language]} />
+                      <input type="checkbox" className={styles.check} checked={picked.has(c.id)} onChange={() => flip(c.id)} aria-label={localize(c.name, language)} />
                     )}
                     <div className={`${styles.appInfo} ${styles.appInfoWrap}`}>
-                      <b>{c.name[language]}</b>
-                      <small>{c.description[language]}</small>
+                      <b>{localize(c.name, language)}</b>
+                      <small>{localize(c.description, language)}</small>
                       <span className={styles.access}>
                         <span className={risk.risk === "risky" ? styles.riskRisky : risk.risk === "moderate" ? styles.riskModerate : undefined}>
                           {risk.risk !== "safe" && <TriangleAlert size={12} aria-hidden="true" />}
                           {t(`tw.risk_${risk.risk}`)}
                         </span>
-                        {risk.note && <span>{risk.note[language]}</span>}
+                        {risk.note && <span>{localize(risk.note, language)}</span>}
                       </span>
                     </div>
                     <span className={styles.tagSlot}>
@@ -174,7 +175,7 @@ export default function CleanerPage() {
             {busy ? (
               <span className={styles.dockNote} role="status">
                 <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                {restoring ? t("tw.creating_restore") : progress && fmt(t("cl.progress"), { i: progress.i, n: progress.n, name: CLEANUPS.find((c) => c.id === running)?.name[language] ?? "" })}
+                {restoring ? t("tw.creating_restore") : progress && fmt(t("cl.progress"), { i: progress.i, n: progress.n, name: localize(CLEANUPS.find((c) => c.id === running)?.name, language) ?? "" })}
               </span>
             ) : (
               <>

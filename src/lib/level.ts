@@ -3,7 +3,7 @@
 // only hide what is risky. Anything already on stays visible at every level,
 // so it can always be undone. Pure functions: tested in Node.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 // Relative with extension so the Node test runner can load it too.
 import type { Risk } from "./tweaks-catalog.ts";
 
@@ -30,7 +30,7 @@ export const showsAction = (level: Level, risk: Risk, current = false) => curren
 /** Keeps the tweaks this level is offered. */
 export const forLevel = <T extends { risk: Risk }>(items: T[], level: Level): T[] => items.filter((i) => allows(level, i.risk));
 
-export const LEVEL_TEXT: Record<Level, { name: Record<Language, string>; who: Record<Language, string>; sees: Record<Language, string> }> = {
+export const LEVEL_TEXT: Record<Level, { name: Text; who: Text; sees: Text }> = {
   beginner: {
     name: { pt: "Iniciante", en: "Beginner" },
     who: { pt: "Quero o PC mais rápido sem correr risco.", en: "I want a faster PC without taking risks." },

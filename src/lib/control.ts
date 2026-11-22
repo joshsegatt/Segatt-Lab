@@ -1,10 +1,9 @@
 // What the Control screen offers. Behavior lives in src-tauri/src/features/control.rs;
 // this file holds the words and the risk of each choice.
 
-import type { Language } from "@/lib/i18n";
+import type { Text } from "@/lib/i18n";
 import type { Risk } from "./tweaks-catalog.ts";
 
-type Text = Record<Language, string>;
 
 export type UpdateMode = "default" | "security" | "manual" | "custom";
 
