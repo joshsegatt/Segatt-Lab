@@ -142,6 +142,7 @@ const ko: Locale = {
       skip: "장면 건너뛰기",
       name: "닥",
       restore: "복원 지점",
+      restore_failed: "아무것도 바뀌지 않았습니다. 복원 지점을 만들 수 없었습니다.",
       say_intro: "실험실로 출발! 이 PC를 튜닝해 보자!",
       say_restore: "먼저 복원 지점부터. 과학보다 안전!",
       say_run: "{station}: {name}",

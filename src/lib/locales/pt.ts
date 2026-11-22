@@ -143,6 +143,7 @@ const pt: Locale = {
       skip: "Pular cena",
       name: "Doc",
       restore: "Ponto de restauração",
+      restore_failed: "Nada foi alterado: não deu para criar o ponto de restauração.",
       say_intro: "Bem-vindo ao laboratório. Vamos afinar esse PC!",
       say_restore: "Primeiro, um ponto de restauração. Segurança antes da ciência!",
       say_run: "{station}: {name}",

@@ -142,6 +142,7 @@ const ja: Locale = {
       skip: "シーンをスキップ",
       name: "ドク",
       restore: "復元ポイント",
+      restore_failed: "何も変更していません。復元ポイントを作成できませんでした。",
       say_intro: "ラボへようこそ。この PC を調整しよう！",
       say_restore: "まずは復元ポイント。科学より安全第一！",
       say_run: "{station}：{name}",

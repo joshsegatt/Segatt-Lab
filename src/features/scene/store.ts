@@ -47,13 +47,12 @@ export function startScene(kind: SceneKind, steps: { id: string; station: Statio
   return true;
 }
 
+/** Updates the current run even when it was skipped, so it still ends. */
 export function stepScene(id: string, status: StepStatus, reason?: string): void {
-  if (!state.open) return;
   set({ steps: state.steps.map((s) => (s.id === id ? { ...s, status, reason } : s)) });
 }
 
 export function finishScene(freed: number | null = null): void {
-  if (!state.open) return;
   set({ finished: true, freed });
 }
 

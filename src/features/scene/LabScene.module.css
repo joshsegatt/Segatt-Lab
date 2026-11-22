@@ -35,6 +35,7 @@
   animation: sc-line 0.3s var(--ease-out) both;
 }
 .summary h3 { font: 600 22px var(--font-title); letter-spacing: -0.015em; }
+.reason { color: var(--ink-2); font-size: 13px; }
 .freed { color: var(--brand); font: 600 16px var(--font-title); font-variant-numeric: tabular-nums; }
 .fails { list-style: none; display: grid; gap: 6px; max-height: 160px; overflow-y: auto; color: var(--ink-2); font-size: 13px; }
 .fails b { color: var(--ink); font-weight: 600; }

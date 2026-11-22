@@ -80,8 +80,10 @@ export function sceneForTweaks(entries: [string, boolean][], withRestore: boolea
 
 export async function applyTweaks(entries: [string, boolean][], onWorking: (id: string | null) => void): Promise<TweakFailures> {
   const failed: TweakFailures = {};
-  const open = getScene();
-  if (!(open.open && !open.finished && open.steps.some((s) => s.id === entries[0]?.[0]))) sceneForTweaks(entries, false);
+  // The screen may have opened this run already (with its restore point), and
+  // the user may have skipped it: reuse it rather than open it again.
+  const run = getScene();
+  if (!(!run.finished && run.steps.some((s) => s.id === entries[0]?.[0]))) sceneForTweaks(entries, false);
   for (const [id, enabled] of entries) {
     onWorking(id);
     stepScene(id, "run");

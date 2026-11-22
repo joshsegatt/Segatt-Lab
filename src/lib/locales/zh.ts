@@ -142,6 +142,7 @@ const zh: Locale = {
       skip: "跳过动画",
       name: "博士",
       restore: "还原点",
+      restore_failed: "未做任何更改：无法创建还原点。",
       say_intro: "进实验室，开始调校这台电脑！",
       say_restore: "先建一个还原点。安全第一！",
       say_run: "{station}：{name}",

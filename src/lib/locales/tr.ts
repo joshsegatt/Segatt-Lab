@@ -142,6 +142,7 @@ const tr: Locale = {
       skip: "Sahneyi geç",
       name: "Doc",
       restore: "Geri yükleme noktası",
+      restore_failed: "Hiçbir şey değişmedi: geri yükleme noktası oluşturulamadı.",
       say_intro: "Laboratuvara! Bu bilgisayarı ayarlayalım!",
       say_restore: "Önce bir geri yükleme noktası. Bilimden önce güvenlik!",
       say_run: "{station}: {name}",

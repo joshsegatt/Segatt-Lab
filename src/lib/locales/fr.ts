@@ -142,6 +142,7 @@ const fr: Locale = {
       skip: "Passer la scène",
       name: "Doc",
       restore: "Point de restauration",
+      restore_failed: "Rien n'a été modifié : le point de restauration n'a pas pu être créé.",
       say_intro: "Direction le labo. On règle ce PC !",
       say_restore: "D'abord, un point de restauration. La sécurité avant la science !",
       say_run: "{station} : {name}",

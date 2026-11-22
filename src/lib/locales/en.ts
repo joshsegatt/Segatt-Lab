@@ -141,6 +141,7 @@ const ui = {
     skip: "Skip scene",
     name: "Doc",
     restore: "Restore point",
+    restore_failed: "Nothing was changed: the restore point could not be created.",
     say_intro: "Into the lab. Let's tune this PC!",
     say_restore: "First, a restore point. Safety before science!",
     say_run: "{station}: {name}",

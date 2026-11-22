@@ -142,6 +142,7 @@ const de: Locale = {
       skip: "Szene überspringen",
       name: "Doc",
       restore: "Wiederherstellungspunkt",
+      restore_failed: "Nichts wurde geändert: Der Wiederherstellungspunkt konnte nicht erstellt werden.",
       say_intro: "Ab ins Labor. Wir tunen diesen PC!",
       say_restore: "Zuerst ein Wiederherstellungspunkt. Sicherheit vor Wissenschaft!",
       say_run: "{station}: {name}",

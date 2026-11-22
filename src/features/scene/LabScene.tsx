@@ -330,7 +330,9 @@ export function LabScene() {
         d.phase = "goto";
         d.time = 0;
       } else if (d.phase === "goto") {
-        if (!step) {
+        // The run ended with steps that never ran (the restore point failed): skip them.
+        if (!step || (sc.finished && step.status === "wait")) {
+          d.i = steps.length;
           d.phase = "outro";
           d.time = 0;
         } else {
@@ -373,8 +375,10 @@ export function LabScene() {
         }
       } else if (d.phase === "outro") {
         if (sc.finished) {
-          d.pose = "cheer";
-          if (Math.random() < dt * 14) burst(d.x + (Math.random() - 0.5) * 300, floor - 260, 6, [JADE, "#ff9b1f", "#ffffff", "#9af5cf"], 180, 260, 1.6);
+          // Cheer only when something really worked.
+          const anyOk = steps.some((s) => s.status === "ok" && s.id !== RESTORE_STEP);
+          d.pose = anyOk ? "cheer" : "idle";
+          if (anyOk && Math.random() < dt * 14) burst(d.x + (Math.random() - 0.5) * 300, floor - 260, 6, [JADE, "#ff9b1f", "#ffffff", "#9af5cf"], 180, 260, 1.6);
           if (d.time > 0.4 && !atEndRef.current) {
             atEndRef.current = true;
             setEndRun(thisRun);
@@ -553,6 +557,7 @@ export function LabScene() {
   const done = ok.length + failed.length;
   const title = fmt(t(`sc.title_${scene.kind}`), { n: real.length });
   const showSummary = scene.finished && (endRun === scene.run || reduced);
+  const restoreFailed = steps.find((s) => s.id === RESTORE_STEP && s.status === "fail");
 
   const undo = () => {
     const ids = ok.map((s) => s.id);
@@ -598,7 +603,10 @@ export function LabScene() {
 
       {showSummary && (
         <section className={styles.summary} aria-live="polite">
-          <h3>{failed.length ? fmt(t("sc.done_some"), { ok: ok.length, n: real.length }) : t("sc.done_title")}</h3>
+          <h3>
+            {restoreFailed ? t("sc.restore_failed") : failed.length ? fmt(t("sc.done_some"), { ok: ok.length, n: real.length }) : t("sc.done_title")}
+          </h3>
+          {restoreFailed?.reason && <p className={styles.reason}>{restoreFailed.reason.split("\n")[0]}</p>}
           {scene.kind === "cleanup" && scene.freed !== null && <p className={styles.freed}>{fmt(t("sc.freed"), { size: formatBytes(scene.freed, language) })}</p>}
           {failed.length > 0 && (
             <ul className={styles.fails}>

@@ -142,6 +142,7 @@ const es: Locale = {
       skip: "Saltar escena",
       name: "Doc",
       restore: "Punto de restauración",
+      restore_failed: "No se cambió nada: no se pudo crear el punto de restauración.",
       say_intro: "Al laboratorio. ¡Vamos a afinar este PC!",
       say_restore: "Primero, un punto de restauración. ¡La seguridad antes que la ciencia!",
       say_run: "{station}: {name}",
